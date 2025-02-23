@@ -2,6 +2,7 @@
 - test example2: the number of paths in size n square grid
 -/
 import Std
+import Utils.Combinators
 
 open Std
 
@@ -24,18 +25,26 @@ def SquareGrid.startPosition (_ : SquareGrid size) : Nat × Nat := (0, 0)
 def SquareGrid.mask (_ : SquareGrid size) (p : Nat × Nat) : Option (Nat × Nat) :=
   if p.1 <= size ∧ p.2 <= size then some p else none
 
-example : (SquareGrid.of 2).mask (4, 0) = none := by simp [SquareGrid.mask]
+example : (SquareGrid.of 2).mask (4, 0) = none := rfl
 
 def SquareGrid.position (_ : SquareGrid size) (id : Nat) : Nat × Nat := (id / (size + 1), id % (size + 1))
+
 def SquareGrid.toId (_ : SquareGrid size) (p : Nat × Nat) : Nat := p.1 * (size + 1) + p.2
 
-def SquareGrid.neighbors (s : SquareGrid size) (n : Nat) : Array Nat :=
+/-
+-- I don't like to import mathlib just for proving it.
+lemma from_to_eq_id (n : Nat) : @fromDim2 size (@toDim2 size n) = n := by
+  simp [toDim2, fromDim2]
+  exact Nat.div_add_mod' n size
+-/
+
+def SquareGrid.neighborsOf (s : SquareGrid size) (n : Nat) : Array Nat :=
   let p := s.position n
   [
-    if p.1 > 0 then some (p.1 - 1, p.2) else none,
-    if p.1 < size then some (p.1 + 1, p.2) else none,
-    if p.2 > 0 then some (p.1, p.2 - 1) else none,
-    if p.2 < size then some (p.1, p.2 + 1) else none
+    p.1 > 0    |> toSome (p.1 - 1, p.2),
+    p.1 < size |> toSome (p.1 + 1, p.2),
+    p.2 > 0    |> toSome (p.1, p.2 - 1),
+    p.2 < size |> toSome (p.1, p.2 + 1),
   ]
     |>.filterMap id
     |>.map (s.toId ·)
@@ -46,7 +55,7 @@ def SquareGrid.neighbors (s : SquareGrid size) (n : Nat) : Array Nat :=
 --  8  9 10 11
 -- 12 13 14 15
 example : (SquareGrid.of 3).position 4 = (1, 0) := rfl
-example : ((SquareGrid.of 3).neighbors 4).insertionSort = #[0, 5, 8].insertionSort := rfl
+example : ((SquareGrid.of 3).neighborsOf 4).insertionSort = #[0, 5, 8].insertionSort := rfl
 
 /--
 This is just a simple expansion process; we don't need to keep track of the searched space.
@@ -55,7 +64,7 @@ partial def expand (s : SquareGrid size) (path : Array Nat) : Nat :=
   if path.back? = some s.goal
   then 1
   else
-    s.neighbors path.back!
+    s.neighborsOf path.back!
       |>.filter (!path.contains ·)
       |>.foldl (fun acc n => acc + expand s (path.push n)) 0
 
