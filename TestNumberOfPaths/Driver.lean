@@ -1,5 +1,5 @@
 import TestNumberOfPaths.Basic
-import Utils.Debug
+import Common.Debug
 
 open SquareGrid
 

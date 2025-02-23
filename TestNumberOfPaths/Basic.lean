@@ -2,7 +2,7 @@
 - test example2: the number of paths in size n square grid
 -/
 import Std
-import Utils.Combinators
+import Common.Combinators
 
 open Std
 
