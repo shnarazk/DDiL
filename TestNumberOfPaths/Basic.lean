@@ -1,25 +1,31 @@
 /- Decision Diagram Library in Lean4
-- test example1: the number of paths in size n square grid
+- test example2: the number of paths in size n square grid
 -/
--- import Init.Data.Nat.Basic
+import Std
+open Std
 
 namespace SquareGrid
 
 variable {size : Nat}
 
-structure Grid (size : Nat)
+structure SquareGrid (size : Nat)
 
--- #check (Grid.mk : Grid 3)
---
-def Grid.getSize (_ : Grid size) : Nat := size
+def SquareGrid.of (size : Nat) : SquareGrid size := (SquareGrid.mk : SquareGrid size)
 
-def Grid.mask (_ : Grid size) (p : Nat × Nat) : Option (Nat × Nat) :=
+def SquareGrid.getSize (_ : SquareGrid size) : Nat := size
+
+def SquareGrid.mask (_ : SquareGrid size) (p : Nat × Nat) : Option (Nat × Nat) :=
   if p.1 < size ∧ p.2 < size then some p else none
 
-example : (Grid.mk : Grid 2).mask (4, 0) = none := by simp [Grid.mask]
+example : (SquareGrid.of 2).mask (4, 0) = none := by simp [SquareGrid.mask]
 
-def Grid.position (_ : Grid size) (id : Nat) : Nat × Nat := (id / size, id % size)
+def SquareGrid.position (_ : SquareGrid size) (id : Nat) : Nat × Nat := (id / size, id % size)
 
-def Grid.numberOfPaths (_ : Grid size) : Nat := 0
+def SquareGrid.countNumberOfPathsNaively (_ : SquareGrid size) : Nat :=
+  let bag : HashSet (Array Nat) := HashSet.empty
+  bag.size
+
+def SquareGrid.numberOfPaths (s : SquareGrid size) : Nat :=
+  s.countNumberOfPathsNaively
 
 end SquareGrid

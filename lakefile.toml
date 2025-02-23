@@ -18,6 +18,9 @@ name = "BDD"
 name = "ZDD"
 
 [[lean_lib]]
+name = "Utils"
+
+[[lean_lib]]
 name = "TestNumberOfPaths"
 
 [[lean_exe]]
