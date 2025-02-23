@@ -41,7 +41,12 @@ def SquareGrid.neighbors (s : SquareGrid size) (n : Nat) : Array Nat :=
     |>.map (s.toId ·)
     |>.toArray
 
--- #eval (SquareGrid.of 3).neighbors 4
+--  0  1  2  3
+--  4  5  6  7
+--  8  9 10 11
+-- 12 13 14 15
+example : (SquareGrid.of 3).position 4 = (1, 0) := rfl
+example : ((SquareGrid.of 3).neighbors 4).insertionSort = #[0, 5, 8].insertionSort := rfl
 
 /--
 This is just a simple expansion process; we don't need to keep track of the searched space.
@@ -51,7 +56,7 @@ partial def expand (s : SquareGrid size) (path : Array Nat) : Nat :=
   then 1
   else
     s.neighbors path.back!
-      |>.filter (fun n => !path.contains n)
+      |>.filter (!path.contains ·)
       |>.foldl (fun acc n => acc + expand s (path.push n)) 0
 
 def SquareGrid.countNumberOfPathsNaively (s : SquareGrid size) : Nat :=
