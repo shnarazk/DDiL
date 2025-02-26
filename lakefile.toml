@@ -2,6 +2,7 @@ name = "DDiL"
 version = "0.1.0"
 keywords = ["data structures"]
 defaultTargets = ["BDD", "ZDD"]
+testDriver = "test1"
 
 [leanOptions]
 pp.unicode.fun = true # pretty-prints `fun a ↦ b`
@@ -26,3 +27,7 @@ name = "TestNumberOfPaths"
 [[lean_exe]]
 name = "test2"
 root = "TestNumberOfPaths.Driver"
+
+[[lean_exe]]
+name = "test1"
+root = "Test.driver"
