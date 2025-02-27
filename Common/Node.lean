@@ -23,9 +23,9 @@ def Node.toVarId (self : Node) : Nat := match self with
   | .node varId _ _ _ => varId
 
 def Node.index (self : Node) : Nat := match self with
-    | .isFalse => 0
-    | .isTrue => 1
-    | .node _ _ _ id => id
+  | .isFalse => 0
+  | .isTrue => 1
+  | .node _ _ _ id => id
 
 instance : ToString Node where
   toString (n : Node) : String := match n with
@@ -73,9 +73,9 @@ def Node.satisfiable (self : Node) : Bool := match self with
 def Node.assignIndex (self : Node) (index : Nat := 2) : Node × Nat := match self with
   | .isFalse | .isTrue => (self, index)
   | .node varId low high _ =>
-      let (l, i₁) := low.assignIndex index
-      let (h, i₂) := high.assignIndex i₁
-      (Node.newVar varId l h i₂, i₂ + 1)
+    let (l, i₁) := low.assignIndex index
+    let (h, i₂) := high.assignIndex i₁
+    (Node.newVar varId l h i₂, i₂ + 1)
 
 /--
 Checks if the node satisfies all conditions.
@@ -85,12 +85,12 @@ def linearCount (counter : Std.HashMap Nat Nat) (n : Node) : Std.HashMap Nat Nat
   if let some count := counter[n.index]? then (counter, count)
   else
     match n with
-    | .isFalse => (counter, 0)
-    | .isTrue => (counter, 1)
-    | .node _ low high index =>
-        let (c₁, k₁) := linearCount counter low
-        let (c₂, k₂) := linearCount c₁ high
-        (c₂.insert index (k₁ + k₂), k₁ + k₂)
+      | .isFalse => (counter, 0)
+      | .isTrue => (counter, 1)
+      | .node _ low high index =>
+          let (c₁, k₁) := linearCount counter low
+          let (c₂, k₂) := linearCount c₁ high
+          (c₂.insert index (k₁ + k₂), k₁ + k₂)
 
 /--
 Returns the number of satisfying assignments for the given node.
