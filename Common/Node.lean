@@ -6,8 +6,7 @@ open Std
 /--
 Implementation of node linking to two siblings in binary graph
 It holds a boolean value and a unique identifier.
-It is a derivation of `BEq`, `Hashable`, `Repr`, and `DecidableEq`.
--/
+It is a derivation of `BEq`, `Hashable`, `Repr`, and `DecidableEq`. -/
 inductive Node where
   | isFalse
   | isTrue
@@ -19,12 +18,12 @@ instance : Inhabited Node where
 
 def Node.toVarId (self : Node) : Nat := match self with
   | .isFalse => 0
-  | .isTrue => 0
+  | .isTrue  => 0
   | .node varId _ _ _ => varId
 
 def Node.index (self : Node) : Nat := match self with
   | .isFalse => 0
-  | .isTrue => 1
+  | .isTrue  => 1
   | .node _ _ _ id => id
 
 instance : ToString Node where
@@ -43,31 +42,37 @@ instance : ToString Node where
 
 def Node.is_congruent (a b : Node) : Bool := match a, b with
   | .isFalse, .isFalse => true
-  | .isTrue, .isTrue => true
+  | .isTrue , .isTrue  => true
   | .node varId1 low1 high1 _, .node varId2 low2 high2 _ => varId1 = varId2 && low1.is_congruent low2 && high1.is_congruent high2
   | _, _ => false
 
 def Node.newConstant (value : Bool) : Node := match value with
-  | true => .isTrue
   | false => .isFalse
+  | true  => .isTrue
 
 def Node.newVar (varId : Nat) (low high : Node) (id : Nat) : Node :=
   .node varId low high id
 
 def Node.isConstant (self : Node) : Option Bool := match self with
   | .isFalse => some false
-  | .isTrue => some true
+  | .isTrue  => some true
   | .node _ _ _ _ => none
 
+def Node.toHashMap (self : Node) (set : Std.HashMap Nat Node := Std.HashMap.empty)
+    : Std.HashMap Nat Node := match self with
+  | .isFalse => set.insert 0 self
+  | .isTrue  => set.insert 1 self
+  | .node _ low high _ => set.insert (self.index) self |> low.toHashMap |> high.toHashMap
+
 def Node.toHashSet (self : Node) (set : Std.HashSet Node := Std.HashSet.empty): Std.HashSet Node := match self with
-  | .isFalse | .isTrue => set.insert self
-  | .node _ low high _ => set.insert self |> low.toHashSet |> high.toHashSet
+    | .isFalse | .isTrue => set.insert self
+    | .node _ low high _ => set.insert self |> low.toHashSet |> high.toHashSet
 
 def Node.satisfiable (self : Node) : Bool := match self with
   | .isFalse => false
-  | .isTrue => true
+  | .isTrue  => true
   | .node _ low high _ => match low.satisfiable with
-    | true => true
+    | true  => true
     | false => high.satisfiable
 
 def Node.assignIndex (self : Node) (index : Nat := 2) : Node × Nat := match self with
@@ -79,14 +84,13 @@ def Node.assignIndex (self : Node) (index : Nat := 2) : Node × Nat := match sel
 
 /--
 Checks if the node satisfies all conditions.
-Tree traversing approach isn't efficient because it visits subtrees many times.
--/
+Tree traversing approach isn't efficient because it visits subtrees many times. -/
 def linearCount (counter : Std.HashMap Nat Nat) (n : Node) : Std.HashMap Nat Nat × Nat :=
   if let some count := counter[n.index]? then (counter, count)
   else
     match n with
       | .isFalse => (counter, 0)
-      | .isTrue => (counter, 1)
+      | .isTrue  => (counter, 1)
       | .node _ low high index =>
           let (c₁, k₁) := linearCount counter low
           let (c₂, k₂) := linearCount c₁ high
@@ -94,7 +98,6 @@ def linearCount (counter : Std.HashMap Nat Nat) (n : Node) : Std.HashMap Nat Nat
 
 /--
 Returns the number of satisfying assignments for the given node.
-This is the number of paths.
--/
+This is the number of paths. -/
 def Node.numSatisfies (self : Node) : Nat :=
   linearCount Std.HashMap.empty self |>.snd
