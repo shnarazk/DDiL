@@ -28,8 +28,8 @@ def TreeNode.index (self : TreeNode) : Nat := match self with
 
 instance : ToString TreeNode where
   toString (n : TreeNode) : String := match n with
-    | .isFalse => "[false]"
-    | .isTrue  => "[true]"
+    | .isFalse => "#false"
+    | .isTrue  => "#true"
     | .node varId .isFalse .isFalse id => s!"[#{id} v:{varId}=false]"
     | .node varId .isFalse .isTrue  id => s!"[#{id} v:{varId}]"
     | .node varId .isTrue  .isFalse id => s!"[#{id} v:-{varId}]"

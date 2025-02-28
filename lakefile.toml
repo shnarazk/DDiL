@@ -22,6 +22,9 @@ name = "ZDD"
 name = "Common"
 
 [[lean_lib]]
+name = "Test"
+
+[[lean_lib]]
 name = "TestNumberOfPaths"
 
 [[lean_exe]]

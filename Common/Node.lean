@@ -26,8 +26,8 @@ def Node.newNode (varId low high: Nat) : Node :=
 
 instance : ToString Node where
   toString (n : Node) : String := match n with
-    | .isFalse => "[false]"
-    | .isTrue  => "[true]"
+    | .isFalse => "#false"
+    | .isTrue  => "#true"
     | .node varId 0 0 => s!"[v:{varId}=false]"
     | .node varId 0 1 => s!"[v:{varId}]"
     | .node varId 1 0 => s!"[v:-{varId}]"

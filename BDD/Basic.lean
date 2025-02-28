@@ -57,7 +57,7 @@ def aux_merge (indexer: HashMap Node Nat) (nodes: List Node) : (List ((Nat × Na
       ([], indexer)
     |> (fun (added, indexer) ↦ (added.mergeSort lhn_le, indexer))
 
-    def compact (_self : Array Node) (_start : Nat) : BDD := default
+def BBD.compact (_self : Array Node) (_start : Nat) : BDD := default
 
 /-- Called from `reduce`. Rebuild and merge mergeable nodes. -/
 def BDD.reduce₁ (self : BDD) (var_nodes: HashMap Nat (List Node)) : BDD :=
@@ -76,7 +76,7 @@ def BDD.reduce₁ (self : BDD) (var_nodes: HashMap Nat (List Node)) : BDD :=
             |> (fun (i, n, _) ↦ (i, n)))
         (indexer, self.toGraph.nodes)
     |>.snd
-    |> (compact · next_root)
+    |> (BBD.compact · next_root)
 
 /-- Check the trivial cases. Otherwise pass to `reduce₁`. -/
 def BDD.reduce (self : BDD) : BDD :=
