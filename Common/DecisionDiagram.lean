@@ -11,7 +11,7 @@ class DecisionDiagram (α : Type) [BEq α] where
   -- numberOfPaths : α → Nat
   allNodes : α → HashSet Node
   addNewConstant : α → Bool → Node × α
-  addNewVar (self : α) (varId : Nat) (low high : Node) : Node × α
+  addNewNode (self : α) (varId low high : Nat) : Nat × α
 
 class ReducibleDecisionDiagram (α : Type) [BEq α] extends DecisionDiagram α where
   /-- Normalize to a valid representation -/
