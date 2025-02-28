@@ -16,5 +16,7 @@ def g1 : Graph := {
 def run : IO Unit := do
   IO.println s!"Graph: {(g1, 2)}"
   IO.println s!"Graph: {(g1, 3)}"
+  IO.println s!"Graph.toHashMap: {g1.toHashMap.toList}"
+  IO.println s!"Graph.toHashSet: {g1.toHashSet.toList}"
 
 end Test_Graph
