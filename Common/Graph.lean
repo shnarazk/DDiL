@@ -1,6 +1,7 @@
 import Std.Data.HashMap
 import Std.Data.HashSet
 import Common.Node
+import Common.Debug
 
 open Std
 
@@ -121,9 +122,28 @@ def Graph.satisfiable (self : Graph) (root : Fin self.nodes.size := self.root) (
 
 /-- TODO: reset before assigning index.
 Current version can't handle shared subtrees. -/
-def Graph.compactNodes (_nodes: Array Node) : Graph :=
-  -- topological sort
-  default
+def Graph.compactNodes (self: Graph) : Graph :=
+  let nodeMap : HashMap Nat Node := self.reachableNodes.filter (fun _ node => node.isConstant.isNone)
+  -- let keys : List Nat := nodeMap.keys
+  let indices : HashMap Nat Nat := [0, 1] ++ nodeMap.keys
+    |>.zipIdx
+    |>.map (fun (n : Nat × Nat) ↦ (n.snd, n.fst))
+    |> HashMap.ofList
+  let nodes : Array Node := Array.range indices.size
+    |>.map
+      (fun (i : Nat) => match i with
+     | 0 => Node.isFalse
+     | 1 => Node.isTrue
+     | _ => match nodeMap[i]! with
+       | Node.node vi li hi => Node.node vi indices[li]! indices[hi]!
+       | _ => Node.isFalse)
+  have : indices.contains 0 := by sorry
+  have : 0 ≠ indices.size := by sorry
+  have indices_filled : NeZero indices.size := by exact { out := id (Ne.symm this) }
+  have nodes_filled : NeZero nodes.size := by sorry
+  { nodes := nodes,
+    root := Fin.ofNat' nodes.size self.root.val,
+    filled := nodes_filled }
 
 /--
 Checks if the node satisfies all conditions.
