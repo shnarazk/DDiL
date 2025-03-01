@@ -169,3 +169,31 @@ Returns the number of satisfying assignments for the given node.
 This is the number of paths. -/
 def Graph.numSatisfies (self : Graph) : Nat :=
   self.numberOfSatisfiedPathes |>.snd
+
+def Graph.dumpAsDot (self : Graph) (path : String) : IO Unit := do
+  let buffer := "digraph regexp {
+    fontname=\"Helvetica,Arial,sans-serif\"
+    node [fontname=\"Helvetica,Arial,sans-serif\"]
+    edge [fontname=\"Helvetica,Arial,sans-serif\", color=blue]
+  "
+  let nodes := self.nodes.toList.zipIdx.map
+      (fun (node, i) ↦ match node, i with
+        | _, 0 => "  0 [style=filled, fillcolor=\"gray80\",label=\"false\",shape=\"box\"];\n"
+        | _, 1 => "  1 [style=filled, fillcolor=\"gray95\",label=\"true\",shape=\"box\"];\n"
+        | .node vi _ _, i => s!"  {i} [label=\"{vi}\"];\n"
+        | _, _ => ""
+      )
+    |> String.join
+  let edges := self.nodes.toList.zipIdx.map
+      (fun (node, i) ↦ match node with
+        | .isFalse => ""
+        | .isTrue => ""
+        | .node _ li hi => if li = hi
+            then
+              s!" {i} -> {li} [color=black,penwidth=2];\n"
+            else
+              s!" {i} -> {li} [color=red,style=\"dotted\"];\n" ++
+              s!" {i} -> {hi} [color=blue];\n" )
+    |> String.join
+  IO.FS.writeFile path (buffer ++ "\n" ++ nodes ++ "\n" ++ edges ++ "\n}\n")
+  IO.println "done"
