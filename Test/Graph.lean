@@ -49,15 +49,15 @@ def run : IO Unit := do
   IO.println s!"g1.compact: {g1.compactNodes.toHashMap.toList}"
   IO.println s!"g2.compact: {g2.compactNodes.toHashMap.toList}"
   IO.println s!"g3.compact: {g3.compactNodes.toHashMap.toList}"
-  g2.dumpAsDot "lake-test_g2.gv"
-  g2.compactNodes.dumpAsDot "g2-compact.gv"
   try
-    IO.println =<< IO.Process.run {
-      cmd := "dot",
-      args := #["-T", "png", "-O", "lake-test_g2.gv"]}
-    IO.println =<< IO.Process.run {
-      cmd := "dot",
-      args := #["-T", "png", "-O", "lake-test_g2-compact.gv"]}
+    let gv1 := "lake-test_g2.gv"
+    g2.dumpAsDot gv1
+    IO.println =<< IO.Process.run { cmd := "dot", args := #["-T", "png", "-O", gv1]}
+    IO.FS.removeFile gv1
+    let gv2 := "lake-test_g2-compact.gv"
+    g2.compactNodes.dumpAsDot gv2
+    IO.println =<< IO.Process.run { cmd := "dot", args := #["-T", "png", "-O", gv2]}
+    IO.FS.removeFile gv2
   catch
     | e => IO.println s!"Failed to make a png: {e}"
   IO.println done
