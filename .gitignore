@@ -1,2 +1,4 @@
 .direnv
 /.lake
+*.gv
+*.png
