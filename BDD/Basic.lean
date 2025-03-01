@@ -18,13 +18,14 @@ structure BDD extends Graph
 
 instance : Inhabited BDD := ⟨{ toGraph := default }⟩
 
+instance : ToString BDD where
+  toString bdd := s!"[bdd {bdd.toGraph}]"
+
 instance : BEq BDD where
   beq a b := a.toGraph == b.toGraph
 
 instance : Coe Graph BDD where
   coe g := { toGraph := g }
-
-#check (↑(default : Graph) : BDD)
 
 def BDD.unusedId (self : BDD) : Nat := self.nodes.size
 

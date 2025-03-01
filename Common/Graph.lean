@@ -19,6 +19,12 @@ instance : Inhabited Graph where
     root := Fin.ofNat' 2 0,
     filled := by exact Nat.instNeZeroSucc }
 
+instance : Inhabited (Graph × Nat) where
+  default := (default, 0)
+
+instance : ToString Graph where
+  toString g := s!"[graph {g.nodes.size} nodes]"
+
 instance : ToString (Graph × Nat)  where
   toString gn : String :=
     let (g, id) := gn
@@ -45,7 +51,7 @@ def Graph.lowIndexOf (g : Graph) (n : Node) : Fin g.nodes.size := match n with
     | .isTrue     => @Fin.ofNat' g.nodes.size g.filled 1
     | .node _ _ h => @Fin.ofNat' g.nodes.size g.filled h
 
-def Graph.is_congruent₁ (limit : Nat) (g₁ g₂ : Graph)
+protected def Graph.is_congruent₁ (limit : Nat) (g₁ g₂ : Graph)
     (n₁ : Fin g₁.nodes.size) (n₂ : Fin g₂.nodes.size) : Bool :=
   match limit, g₁.nodes[n₁], g₂.nodes[n₂] with
   | 0, _, _ => false
@@ -77,20 +83,32 @@ def Graph.addNewNode (self : Graph) (varId : Nat) (li hi : Nat) : Nat × Graph :
     filled := this
   })
 
+def Graph.reachableNodes (self : Graph) (start : Nat := self.root)
+    (map : HashMap Nat Node := HashMap.empty)
+    (limit : Nat := self.nodes.size)
+    : HashMap Nat Node :=
+    match limit, map.contains start with
+      | 0, _ => HashMap.empty
+      | _, true => map
+      | n + 1, false =>  match self.nodes[start]? with
+        | none => HashMap.empty
+        | some .isFalse => map.insert 0 .isFalse
+        | some .isTrue => map.insert 1 .isTrue
+        | some node@(.node _ li hi) =>
+          map.insert start node
+          |> (self.reachableNodes li · n)
+          |> (self.reachableNodes hi · n)
+
 def Graph.toHashMap (self : Graph) : Std.HashMap Nat Node :=
-  self.nodes.foldl
-      (fun (acc, i) n => (acc.insert i n, i + 1))
-      (Std.HashMap.empty, 0)
-    |>.fst
+  self.reachableNodes.fold (fun acc n node => acc.insert n node) Std.HashMap.empty
 
 def Graph.toHashMapFin (self : Graph) : Std.HashMap (Fin self.nodes.size) Node :=
-  self.nodes.foldl
-      (fun (acc, i) n => (acc.insert (@Fin.ofNat' self.nodes.size self.filled i) n, i + 1))
-      (Std.HashMap.empty, 0)
-    |>.fst
+  self.reachableNodes.fold
+    (fun acc n node => acc.insert (@Fin.ofNat' self.nodes.size self.filled n) node)
+    Std.HashMap.empty
 
 def Graph.toHashSet (self : Graph) : Std.HashSet Node :=
-  self.nodes.foldl (fun acc n => acc.insert n) Std.HashSet.empty
+  self.reachableNodes.fold (fun acc _ node => acc.insert node) Std.HashSet.empty
 
 def Graph.satisfiable (self : Graph) (root : Fin self.nodes.size := self.root) (limit : Nat := self.nodes.size) : Bool :=
   match limit, self.nodes[root] with
@@ -118,7 +136,7 @@ def Graph.numberOfSatisfiedPathes (self : Graph)
   if let some count := counter[root]? then (counter, count)
   else
     match limit, self.nodes[root] with
-      | 0, _       => (counter, 0)
+      | 0, _        => (counter, 0)
       | _, .isFalse => (counter, 0)
       | _, .isTrue  => (counter, 1)
       | n + 1, node =>

@@ -1,7 +1,8 @@
 import Common.Graph
 import Common.Node
+import BDD.Basic
 
-namespace Test_Graph
+namespace Test_BDD
 
 def g1 : Graph := {
   nodes := #[
@@ -24,12 +25,15 @@ def g2 : Graph := {
   filled := by exact Nat.instNeZeroSucc
 }
 
-def run : IO Unit := do
-  IO.println s!"Graph: {(g1, 2)}"
-  IO.println s!"Graph: {(g1, 3)}"
-  IO.println s!"Graph.toHashMap: {g1.toHashMap.toList}"
-  IO.println s!"Graph.toHashSet: {g1.toHashSet.toList}"
-  IO.println s!"g1 ≃ g1: {Graph.is_congruent g1 g1}"
-  IO.println s!"g1 ≃ g2: {Graph.is_congruent g1 g2}"
+def bdd1 : BDD := ↑g1
+def bdd2 : BDD := ↑g2
 
-end Test_Graph
+def run : IO Unit := do
+  IO.println s!"BDD: {(↑g1 : BDD)}"
+  IO.println s!"bdd1.reduce: {bdd1.reduce.toHashMap.toList}"
+  IO.println s!"bdd2: {bdd2.toHashMap.toList}"
+  IO.println s!"bdd2.reduce: {bdd2.reduce.toHashMap.toList}"
+  -- IO.println s!"g1 ≃ g1: {Graph.is_congruent g1 g1}"
+  -- IO.println s!"g1 ≃ g2: {Graph.is_congruent g1 g2}"
+
+end Test_BDD
