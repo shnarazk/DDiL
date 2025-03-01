@@ -2,6 +2,7 @@ import Std.Data.HashMap
 import Std.Data.HashSet
 import Common.Node
 import Common.Debug
+import Common.TreeNode
 
 open Std
 
@@ -196,4 +197,21 @@ def Graph.dumpAsDot (self : Graph) (path : String) : IO Unit := do
               s!" {i} -> {hi} [color=blue];\n" )
     |> String.join
   IO.FS.writeFile path (buffer ++ "\n" ++ nodes ++ "\n" ++ edges ++ "\n}\n")
-  IO.println "done"
+
+def Graph.ofTreeNode (tree : TreeNode) : Graph :=
+  let nodes := Node.ofTreeNode tree
+  if h: 0 < nodes.size then
+    have : 0 ≠ nodes.size := by
+      exact Ne.symm (Nat.not_eq_zero_of_lt h)
+    have : NeZero nodes.size := by
+      exact { out := id (Ne.symm this) }
+    {
+      nodes := nodes,
+      root := @Fin.ofNat' nodes.size this tree.index,
+      filled := this
+    }
+  else
+    default
+
+instance : Coe TreeNode Graph where
+  coe t := Graph.ofTreeNode t.assignIndex.fst

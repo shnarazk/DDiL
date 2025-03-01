@@ -1,5 +1,6 @@
 import Std.Data.HashMap
 import Std.Data.HashSet
+import Common.TreeNode
 
 open Std
 
@@ -46,3 +47,17 @@ def Node.isConstant (self : Node) : Option Bool := match self with
   | .isFalse => some false
   | .isTrue  => some true
   | .node _ _ _ => none
+
+def Node.ofTreeNode' (tree : TreeNode)
+    (map : HashMap Nat Node := HashMap.empty) : HashMap Nat Node :=
+  match tree with
+    | TreeNode.isFalse => map.insert 0 .isFalse
+    | TreeNode.isTrue  => map.insert 0 .isTrue
+    | TreeNode.node varId low high id =>
+      let map₁ := Node.ofTreeNode' low map
+      let map₂ := Node.ofTreeNode' high map₁
+      map₂.insert id (.node varId low.index high.index)
+
+def Node.ofTreeNode (tree : TreeNode) : Array Node :=
+  let mapping := Node.ofTreeNode' tree
+  (Array.range mapping.size).map (mapping.getD · default)

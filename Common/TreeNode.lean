@@ -1,5 +1,8 @@
 import Std.Data.HashMap
 import Std.Data.HashSet
+import Std.Internal.Parsec
+import Std.Internal.Parsec.String
+import Common.Parser
 
 open Std
 
@@ -80,9 +83,9 @@ Current version can't handle shared subtrees. -/
 def TreeNode.assignIndex (self : TreeNode) (index : Nat := 2) : TreeNode × Nat := match self with
   | .isFalse | .isTrue => (self, index)
   | .node varId low high _ =>
-    let (l, i₁) := low.assignIndex index
+    let (l, i₁) := low.assignIndex (index + 1)
     let (h, i₂) := high.assignIndex i₁
-    (TreeNode.newVar varId l h i₂, i₂ + 1)
+    (TreeNode.newVar varId l h index, i₂)
 
 /--
 Checks if the TreeNode satisfies all conditions.
@@ -103,3 +106,45 @@ Returns the number of satisfying assignments for the given TreeNode.
 This is the number of paths. -/
 def TreeNode.numSatisfies (self : TreeNode) : Nat :=
   linearCount Std.HashMap.empty self |>.snd
+
+namespace parser
+
+open Std.Internal.Parsec
+open Std.Internal.Parsec.String
+open ParserLib
+
+def parse_false : Parser TreeNode := do
+  let _ ← pchar 'F'
+  return TreeNode.isFalse
+
+def parse_true : Parser TreeNode := do
+  let _ ← pchar 'T'
+  return TreeNode.isTrue
+
+mutual
+
+partial def parse_block : Parser TreeNode := do
+  let _ ← pchar '{' <* delimiter?
+  let vi ← number <* delimiter
+  let f ← parse_tf <* delimiter
+  let t ← parse_tf <* delimiter?
+  let _ ← pchar '}'
+  return TreeNode.newVar vi f t 0
+
+partial def parse_tf : Parser TreeNode :=
+  parse_false <|> parse_true <|> parse_block
+
+end
+
+#eval ParserLib.parse parse_tf "{0 F F}"
+
+end parser
+
+def TreeNode.ofString (input : String) : TreeNode :=
+  match ParserLib.parse parser.parse_tf input with
+    |some tree => tree.assignIndex.fst
+    |none => TreeNode.isFalse
+
+example : TreeNode.ofString "F" = TreeNode.isFalse := by sorry
+-- example : TreeNode.ofString "T" = TreeNode.isTrue
+-- example : TreeNode.ofString "{1 T F}" = TreeNode.newVar 1 TreeNode.isTrue TreeNode.isFalse 0
