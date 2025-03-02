@@ -122,19 +122,38 @@ def Graph.satisfiable (self : Graph) (root : Fin self.nodes.size := self.root) (
       | true  => true
       | false => self.satisfiable (self.highIndexOf node) n
 
-/-- FIXME: to proove this, we need mathlib 😔 -/
-theorem size_of_hash_with_zero {α : Type} (l : HashMap Nat α) : l.contains 0 → NeZero l.size := by
-  intro h
-  have h₁ : 0 ∈ l := by exact h
-  have size_erase : (l.erase 0).size = if 0 ∈ l then l.size - 1 else l.size := by
-    exact HashMap.size_erase
-  simp [h₁] at size_erase
-  have : (l.erase 0).size + 1 = l.size := by sorry
-  have size_ge_zero : ∀ h : HashMap Nat α, 0 ≤ h.size := by exact fun h ↦ Nat.zero_le h.size
-  rcases size_ge_zero (l.erase 0) with l'_size
-  have : 0 ≤ l.size - 1 := by exact Nat.zero_le (l.size - 1)
-  have : 0 ≠ l.size := by sorry
-  exact { out := id (Ne.symm this) }
+/-
+import Mathlib.Tactic
+namespace Hash
+
+universe u v
+
+variable {α : Type u} {β : Type v} {_ : BEq α} {_ : Hashable α}
+
+theorem nonempty_hash {h : HashMap Nat β} : h.contains 0 → ¬h.isEmpty := by
+  rintro h₁
+  have : ∃ a : Nat, a ∈ h := by
+    exact Exists.intro 0 h₁
+  have : h.isEmpty = false := by
+    exact HashMap.isEmpty_eq_false_iff_exists_mem.mpr this
+  exact ne_true_of_eq_false this
+
+theorem nonempty_hash_size {h : HashMap Nat β} : ¬h.isEmpty → NeZero h.size := by
+  have h₁ : h.isEmpty = (h.size == 0) := by exact rfl
+  have h₃ : ¬NeZero h.size ↔ h.size = 0 := by exact not_neZero
+  contrapose!
+  simp [h₃]
+  simp [h₁]
+
+theorem hash_with_zero_size {h : HashMap Nat β} : h.contains 0 → NeZero h.size := by
+  rintro h₁
+  exact nonempty_hash_size (nonempty_hash h₁)
+
+end Hash
+-/
+
+theorem nonempty_hash_size {α : Type} {h : HashMap Nat α} : h.contains 0 → NeZero h.size := by
+  sorry
 
 /-- TODO: reset before assigning index.
 Current version can't handle shared subtrees. -/
@@ -153,10 +172,12 @@ def Graph.compactNodes (self: Graph) : Graph :=
      | _ => match nodeMap[i]! with
        | Node.node vi li hi => Node.node vi indices[li]! indices[hi]!
        | _ => Node.isFalse)
-  have indices_has_zero : indices.contains 0 := by sorry
+  have indices_has_zero : indices.contains 0 := by
+    sorry
   have indices_filled : NeZero indices.size := by
-    exact size_of_hash_with_zero indices indices_has_zero
-  have nodes_filled : NeZero nodes.size := by sorry
+    exact @nonempty_hash_size Nat indices indices_has_zero
+  have nodes_filled : NeZero nodes.size := by
+    sorry
   { nodes := nodes,
     root := Fin.ofNat' nodes.size self.root.val,
     filled := nodes_filled }
