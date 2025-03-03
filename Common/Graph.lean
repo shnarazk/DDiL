@@ -105,6 +105,18 @@ def Graph.reachableNodes (self : Graph) (start : Nat := self.root)
 def Graph.toHashMap (self : Graph) : Std.HashMap Nat Node :=
   self.reachableNodes.fold (fun acc n node => acc.insert n node) Std.HashMap.empty
 
+/-- FIXME: we need this before implementing BDD. -/
+def Graph.ofHashMap (mapping : HashMap Nat Node) (root : Nat) : Graph :=
+  let nodes : Array Node := mapping.toArray
+      |>.insertionSort (·.fst < ·.fst)
+      |>.map (·.snd)
+  if h : 0 < nodes.size
+    then
+      have : NeZero (nodes.size) := by sorry
+      {nodes, root := @Fin.ofNat' nodes.size this root, filled := this }
+    else default
+
+
 def Graph.toHashMapFin (self : Graph) : Std.HashMap (Fin self.nodes.size) Node :=
   self.reachableNodes.fold
     (fun acc n node => acc.insert (@Fin.ofNat' self.nodes.size self.filled n) node)

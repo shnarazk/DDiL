@@ -66,9 +66,9 @@ def BBD.compact (nodes : Array Node) (start : Nat) : BDD :=
     default
 
 /-- Called from `reduce`. Rebuild and merge mergeable nodes. -/
-def BDD.reduce₁ (self : BDD) (var_nodes: HashMap Nat (List Node)) : BDD :=
+def BDD.reduce₁ (g: Graph) (var_nodes: HashMap Nat (List Node)) : BDD :=
   let indexer : HashMap Node Nat := HashMap.empty
-  let next_id := var_nodes.size
+  let next_id := g.nodes.size
   var_nodes.toList.mergeSort (fun a b ↦ a.fst < b.fst)
     |>.reverse
     |>.foldl
@@ -86,19 +86,32 @@ def BDD.reduce₁ (self : BDD) (var_nodes: HashMap Nat (List Node)) : BDD :=
                     | .isFalse | .isTrue => (next_id₁, indexer.insert node next_id₁, nodes.insert next_id₁ node, key)
                     | .node vi li hi =>
                       let newNode := Node.node vi li hi
-                      let indexer₁ := indexer.insert newNode next_id₁
+                      let indexer₁ := indexer.insert node next_id₁
                       let indexer₂ := indexer₁.insert newNode next_id₁
                       (next_id₁, indexer₂, nodes.insert next_id₁ newNode, key)
                     )
               (next_id, indexer, nodes, (0,0))
             |> (fun (i, h, n, _) ↦ (i, h, n)) )
-        (indexer.size, indexer, self.toGraph.toHashMap)
-    |> (fun (_, _, nodes) ↦ BBD.compact (nodes.toArray |>.insertionSort (·.fst < ·.fst) |>.map (·.snd)) next_id)
+        (indexer.size, indexer, g.toHashMap)
+    |> (fun (_, _, nodes) ↦
+          nodes.toArray
+            |>.insertionSort (·.fst < ·.fst)
+            |>.map (·.snd))
+    |> (fun (nodes : Array Node) ↦ if h : 0 < nodes.size
+          then
+            have : NeZero (nodes.size) := by sorry
+            {nodes, root := @Fin.ofNat' nodes.size this next_id, filled := this }
+          else default)
+    |> (fun (g : Graph) ↦ ((↑g) : BDD))
+    -- BBD.compact (nodes.toArray |>.insertionSort (·.fst < ·.fst) |>.map (·.snd)) next_id)
 
-/-- Check the trivial cases. Otherwise pass to `reduce₁`. -/
+/-- Check the trivial cases. Otherwise pass to `reduce₁`.
+FIXME: don't take BDD. It shold be a `Array Node`.
+-/
 def BDD.reduce (self : BDD) : BDD :=
+  let g := self.toGraph
   -- build a mapping from `varId` to `List node`
-  let (_, all_false, all_true, var_nodes) := self.toGraph.nodes
+  let (_, all_false, all_true, var_nodes) := g.nodes
       |>.toSubarray 2
       |>.foldl
         (fun (id, falses, trues, map) node => (
@@ -112,4 +125,4 @@ def BDD.reduce (self : BDD) : BDD :=
   match all_false, all_true with
     | true, _    => ↑{(default : Graph) with root := Fin.ofNat' 2 0}
     | _   , true => ↑{(default : Graph) with root := Fin.ofNat' 2 1}
-    | _   , _    => self.reduce₁ var_nodes
+    | _   , _    => BDD.reduce₁ g var_nodes
