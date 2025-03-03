@@ -234,6 +234,16 @@ def Graph.dumpAsDot (self : Graph) (path : String) : IO Unit := do
     |> String.join
   IO.FS.writeFile path (buffer ++ "\n" ++ nodes ++ "\n" ++ edges ++ "\n}\n")
 
+def Graph.dumpAsPng (self : Graph) (path : String) : IO (Option String) := do
+  try
+    let gv := s!"{path}.gv"
+    self.dumpAsDot gv
+    let _ ← IO.Process.run { cmd := "dot", args := #["-T", "png", "-o", path, gv]}
+    IO.FS.removeFile gv
+    return none
+  catch e =>
+    return (some s!"Error dumping graph to PNG: {e}")
+
 def Graph.ofTreeNode (tree : TreeNode) : Graph :=
   let nodes := Node.ofTreeNode tree
   if h: 0 < nodes.size then

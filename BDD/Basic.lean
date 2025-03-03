@@ -58,26 +58,42 @@ def aux_merge (indexer: HashMap Node Nat) (nodes: List Node) : (List ((Nat × Na
       ([], indexer)
     |> (fun (added, indexer) ↦ (added.mergeSort lhn_le, indexer))
 
-def BBD.compact (_self : Array Node) (_start : Nat) : BDD := default
+def BBD.compact (nodes : Array Node) (start : Nat) : BDD :=
+  if h : 0 < nodes.size then
+    have : NeZero nodes.size := by sorry
+    { nodes := nodes, root := Fin.ofNat' nodes.size start, filled := this }
+  else
+    default
 
 /-- Called from `reduce`. Rebuild and merge mergeable nodes. -/
 def BDD.reduce₁ (self : BDD) (var_nodes: HashMap Nat (List Node)) : BDD :=
   let indexer : HashMap Node Nat := HashMap.empty
-  let next_root : Nat := indexer.size
+  let next_id := var_nodes.size
   var_nodes.toList.mergeSort (fun a b ↦ a.fst < b.fst)
     |>.reverse
     |>.foldl
-        (fun (indexer, nodes) (v_list : (Nat × List Node)) ↦
+        (fun (next_id, indexer, nodes) (v_list : (Nat × List Node)) ↦
           let (q, indexer) : List ((Nat × Nat) × Node) × HashMap Node Nat
             := aux_merge indexer v_list.snd
-          -- use indexer, update nodes
           q.foldl
-              (fun (indexer, nodes, oldKey) _ ↦ (indexer, nodes, oldKey))
-              (indexer, nodes, (0,0))
-            |> (fun (i, n, _) ↦ (i, n)))
-        (indexer, self.toGraph.nodes)
-    |>.snd
-    |> (BBD.compact · next_root)
+              (fun (next_id, indexer, nodes, oldKey) (key, node) ↦
+                if oldKey == key then
+                  (next_id, indexer.insert node next_id, nodes, key)
+                else
+                  -- FIXME: nothing done: update nodes using indexer
+                  let next_id₁ := next_id + 1
+                  match node with
+                    | .isFalse | .isTrue => (next_id₁, indexer.insert node next_id₁, nodes.insert next_id₁ node, key)
+                    | .node vi li hi =>
+                      let newNode := Node.node vi li hi
+                      let indexer₁ := indexer.insert newNode next_id₁
+                      let indexer₂ := indexer₁.insert newNode next_id₁
+                      (next_id₁, indexer₂, nodes.insert next_id₁ newNode, key)
+                    )
+              (next_id, indexer, nodes, (0,0))
+            |> (fun (i, h, n, _) ↦ (i, h, n)) )
+        (indexer.size, indexer, self.toGraph.toHashMap)
+    |> (fun (_, _, nodes) ↦ BBD.compact (nodes.toArray |>.insertionSort (·.fst < ·.fst) |>.map (·.snd)) next_id)
 
 /-- Check the trivial cases. Otherwise pass to `reduce₁`. -/
 def BDD.reduce (self : BDD) : BDD :=
@@ -90,10 +106,10 @@ def BDD.reduce (self : BDD) : BDD :=
           falses && (node == .isFalse),
           trues && (node == .isTrue),
           map.alter id (fun o => match o with
-          | none => some [node]
-          | some l => some (node :: l))))
+            | none => some [node]
+            | some l => some (node :: l))))
       (0, true, true, (HashMap.empty : HashMap Nat (List Node)))
   match all_false, all_true with
-    | true, _    => ↑{ (default : Graph) with root := Fin.ofNat' 2 0 }
-    | _   , true => ↑{ (default : Graph) with root := Fin.ofNat' 2 1 }
+    | true, _    => ↑{(default : Graph) with root := Fin.ofNat' 2 0}
+    | _   , true => ↑{(default : Graph) with root := Fin.ofNat' 2 1}
     | _   , _    => self.reduce₁ var_nodes
