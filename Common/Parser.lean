@@ -1,4 +1,3 @@
--- import Batteries
 import Std.Internal.Parsec
 
 namespace ParserLib
