@@ -13,18 +13,26 @@ theorem base_hash_size_eq_two : (HashMap.ofList [(0, Node.isFalse), (1, Node.isT
   apply HashMap.size_ofList
   simp
 
-/-- A set for non-compact indexed nodes
+/-- A HashMap with nifty properties
+Note: It might be non-compact.
 Flow: Array Node → NodeSet → Graph (= NodeSet // compact index family) -/
 structure NodeSet extends HashMap Nat Node where
   filled : NeZero toHashMap.size
+  bounded : ∀k ∈ toHashMap.keys, k < toHashMap.size
+  no_hole : ∀k < toHashMap.size, k ∈ toHashMap
 
 instance : Inhabited NodeSet where
   default :=
     let nodes : HashMap Nat Node := HashMap.ofList [(0, Node.isFalse), (1, Node.isTrue)]
     have : nodes.size = 2 := by exact base_hash_size_eq_two
     have : nodes.size ≠ 0 := by omega
-    have : NeZero nodes.size := by exact {out := this}
-    {toHashMap := nodes, filled := this}
+    have filled : NeZero nodes.size := by exact {out := this}
+    have : nodes.keys = [0, 1] := by sorry
+    { toHashMap := nodes
+      filled := filled
+      bounded := by sorry
+      no_hole := by sorry
+    }
 
 #check (default : NodeSet)
 #eval! (default : NodeSet).toHashMap
@@ -40,9 +48,15 @@ def NodeSet.ofTreeNode' (tree : TreeNode)
         map₂.insert id (.node varId low.index high.index)
 
 def NodeSet.ofHashMap (nodes : HashMap Nat Node) : NodeSet :=
-  if h : 0 < nodes.size then
-    have : NeZero nodes.size := by sorry
-    {toHashMap := nodes, filled := this}
+  if h : 0 < nodes.size
+      ∧ (∀k ∈ nodes.keys, k < nodes.size)
+      ∧ (∀ k < nodes.size, k ∈ nodes)
+  then
+    have : NeZero nodes.size := by exact zero_gt_eq_NeZero nodes.size h.left
+    { toHashMap := nodes
+      filled := this
+      bounded := h.right.left
+      no_hole := h.right.right }
   else
     default
 
