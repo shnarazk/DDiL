@@ -40,16 +40,14 @@ theorem base_hash_has_no_hole : ∀ k < base.size, k ∈ base := by
   {rw [h1] ; exact base_hash_has_one}
 
 theorem base_hash_is_bounded : ∀ k ∈ base, k < base.size := by
-  intro k h
-  have h₁ : base.size = 2 := by
-    apply HashMap.size_ofList
-    simp
-  rw [h₁]
-  have : k ∈ base → k ≤ 1 := by
-    rintro hk
-    sorry
-  rcases this h with h₁
-  omega
+  simp [base, HashMap.mem_ofList]
+  rw [← base, base_hash_size_eq_two]
+  simp
+
+theorem mem_hashmap_eq_mem : ∀ {α : Type} {m : HashMap Nat α}, ∀ k ∈ m.keys, k ∈ m := by
+  intros α m k h
+  rw [HashMap.mem_keys] at h
+  exact h
 
 end Proofs
 
@@ -90,9 +88,12 @@ def NodeSet.ofTreeNode' (tree : TreeNode)
 def NodeSet.ofHashMap (nodes : HashMap Nat Node) : NodeSet :=
   if h : 0 < nodes.size ∧ (∀k ∈ nodes.keys, k < nodes.size) ∧ (∀ k < nodes.size, k ∈ nodes)
   then
-    have : NeZero nodes.size := by
+    have filled : NeZero nodes.size := by
       exact zero_gt_eq_NeZero nodes.size h.left
-    {toHashMap := nodes, filled := this, bounded := h.right.left, no_hole := h.right.right}
+    have bounded : ∀k ∈ nodes, k < nodes.size := by
+      simp [← HashMap.mem_keys]
+      exact h.right.left
+    {toHashMap := nodes, filled := filled, bounded := bounded, no_hole := h.right.right}
   else
     default
 
