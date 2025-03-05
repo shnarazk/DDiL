@@ -16,6 +16,12 @@ theorem base_hash_has_one : 1 ∈ base := by
   rw [base]
   simp
 
+theorem base_hash_has_only_them : ∀ k > 1, k ∉ base := by
+  rw [base]
+  simp
+  rintro k h
+  omega
+
 theorem zero_gt_eq_NeZero (n : Nat) (h : 0 < n) : NeZero n := by
   have : n ≠ 0 := by omega
   exact { out := this }
@@ -25,10 +31,6 @@ theorem base_hash_size_eq_two : base.size = 2 := by
   apply HashMap.size_ofList
   simp
 
-theorem base_hash_is_bounded : ∀ k ∈ base, k < base.size := by
-  simp
-  sorry
-
 theorem base_hash_has_no_hole : ∀ k < base.size, k ∈ base := by
   simp
   intro n h
@@ -36,6 +38,18 @@ theorem base_hash_has_no_hole : ∀ k < base.size, k ∈ base := by
   rcases this with h0 | h1
   {rw [h0] ; exact base_hash_has_zero}
   {rw [h1] ; exact base_hash_has_one}
+
+theorem base_hash_is_bounded : ∀ k ∈ base, k < base.size := by
+  intro k h
+  have h₁ : base.size = 2 := by
+    apply HashMap.size_ofList
+    simp
+  rw [h₁]
+  have : k ∈ base → k ≤ 1 := by
+    rintro hk
+    sorry
+  rcases this h with h₁
+  omega
 
 end Proofs
 
