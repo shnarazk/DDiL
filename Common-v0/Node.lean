@@ -4,58 +4,16 @@ import Common.TreeNode
 
 open Std
 
-structure Ref (o : Nat) where
-  grounded : Bool
-  link : Option (Fin o)
+/--
+Implementation of node linking to two siblings in binary graph
+It holds a boolean value and a unique identifier.
+It is a derivation of `BEq`, `Hashable`, `Repr`, and `DecidableEq`. -/
+inductive Node where
+  | isFalse
+  | isTrue
+  | node (varId low high : Nat)
+deriving BEq, Hashable, Repr
 
-instance {o : Nat} : Inhabited (Ref o) where
-  default := { grounded := false, link := none }
-
-def Ref.isSmaller {r : Nat} (self : Ref r) (n : Nat) : Bool := match self.link with
-  | none => true
-  | some i => i < n
-
-structure Node (n o : Nat) where
-  varId : Fin n
-  li : Ref o
-  hi : Ref o
-
-def varIndexIsOrdered {n o : Nat} (nodes : Array (Node n o)) (vi : Nat) (r : Ref o) : Bool :=
-  match r.link with
-  | none => true
-  | some i => match nodes[i.val]? with
-    | none => false
-    | some node => node.varId < vi
-
-theorem hj {n r : Nat} (nodes : Array (Node n r)) (i : Nat) (h : i < nodes.size) :
-  varIndexIsOrdered nodes nodes[i].varId.val nodes[i].li ∧
-    varIndexIsOrdered nodes nodes[i].varId.val nodes[i].hi
-    := by
-  sorry
-
-structure Graph (n o : Nat) where
-  nodes : Array (Node n o)
-  constant : Option Bool
-  validSize : nodes.size = 0
-  ordered_li : ∀i < nodes.size, (nodes[i]'(by sorry : i < nodes.size)).li.isSmaller i
-  ordered_hi : ∀i < nodes.size, (nodes[i]'(by sorry : i < nodes.size)).hi.isSmaller i
-
-instance {n o : Nat} : Inhabited (Graph n o) where
-  default :=
-    let nodes : Array (Node n o) := Array.empty
-    have nodes₀ : nodes.size = 0 := rfl
-    have li : ∀i < nodes.size, (nodes[i]'(by sorry : i < nodes.size)).li.isSmaller i := by
-      simp [nodes₀]
-    have hi : ∀i < nodes.size, (nodes[i]'(by sorry : i < nodes.size)).hi.isSmaller i := by
-      simp [nodes₀]
-    { nodes := nodes,
-      constant := some false,
-      validSize := rfl,
-      ordered_li := li,
-      ordered_hi := hi }
-
------------------------------------
-/-
 instance : Inhabited Node where
   default := .isFalse
 
@@ -103,4 +61,3 @@ def Node.ofTreeNode' (tree : TreeNode)
 def Node.ofTreeNode (tree : TreeNode) : Array Node :=
   let mapping := Node.ofTreeNode' tree
   (Array.range mapping.size).map (mapping.getD · default)
--/
