@@ -1,58 +1,70 @@
-import Std.Data.HashMap
-import Std.Data.HashSet
 import Common.TreeNode
+import Common.GraphShape
 
 open Std
 
-structure Ref (o : Nat) where
-  grounded : Bool
-  link : Option (Fin o)
+section defs
 
-instance {o : Nat} : Inhabited (Ref o) where
+variable {γ : Type} [GraphShape γ] (g : γ)
+
+structure Ref where
+  grounded : Bool
+  link : Option Nat
+
+instance : Inhabited Ref where
   default := { grounded := false, link := none }
 
-def Ref.isSmaller {r : Nat} (self : Ref r) (n : Nat) : Bool := match self.link with
+def Ref.isSmaller (self : Ref) (n : Nat) : Bool := match self.link with
   | none => true
   | some i => i < n
 
-structure Node (n o : Nat) where
-  varId : Fin n
-  li : Ref o
-  hi : Ref o
+structure Node where
+  varId : Nat
+  li : Ref
+  hi : Ref
 
-def varIndexIsOrdered {n o : Nat} (nodes : Array (Node n o)) (vi : Nat) (r : Ref o) : Bool :=
+def Node.validRef (self : Node) (pos : Nat) : Bool :=
+  match self.li.link, self.hi.link with
+    | some l, some h => l < pos ∧ h < pos
+    | some l, none   => l < pos
+    | none  , some h => h < pos
+    | none  , none   => true
+
+def varIndexIsOrdered (nodes : Array Node) (vi : Nat) (r : Ref) : Bool :=
   match r.link with
   | none => true
-  | some i => match nodes[i.val]? with
+  | some i => match nodes[i]? with
     | none => false
     | some node => node.varId < vi
 
-theorem hj {n r : Nat} (nodes : Array (Node n r)) (i : Nat) (h : i < nodes.size) :
-  varIndexIsOrdered nodes nodes[i].varId.val nodes[i].li ∧
-    varIndexIsOrdered nodes nodes[i].varId.val nodes[i].hi
-    := by
-  sorry
-
-structure Graph (n o : Nat) where
-  nodes : Array (Node n o)
+structure Graph where
+  nodes : Array Node
   constant : Option Bool
   validSize : nodes.size = 0
-  ordered_li : ∀i < nodes.size, (nodes[i]'(by sorry : i < nodes.size)).li.isSmaller i
-  ordered_hi : ∀i < nodes.size, (nodes[i]'(by sorry : i < nodes.size)).hi.isSmaller i
+  validVarIds : ∀ node ∈ nodes, node.varId < nodes.size
+  validRefs : ∀ node ∈ nodes, node.validRef nodes.size
+  -- ordered_li : ∀ i < nodes.size, (nodes[i]'(by sorry : i < nodes.size)).li.isSmaller i
+  -- ordered_hi : ∀ i < nodes.size, (nodes[i]'(by sorry : i < nodes.size)).hi.isSmaller i
 
-instance {n o : Nat} : Inhabited (Graph n o) where
+instance : Inhabited Graph where
   default :=
-    let nodes : Array (Node n o) := Array.empty
+    let nodes : Array Node := Array.empty
     have nodes₀ : nodes.size = 0 := rfl
-    have li : ∀i < nodes.size, (nodes[i]'(by sorry : i < nodes.size)).li.isSmaller i := by
-      simp [nodes₀]
-    have hi : ∀i < nodes.size, (nodes[i]'(by sorry : i < nodes.size)).hi.isSmaller i := by
-      simp [nodes₀]
+    have nodes_def : nodes = #[] := by exact rfl
+    have vi : ∀ node ∈ nodes, node.varId < nodes.size := by
+      rintro node₀ h₀
+      simp [nodes_def] at h₀
+    have refs : ∀ node ∈ nodes, node.validRef nodes.size := by
+      rintro node₀ h₀
+      simp [nodes_def] at h₀
     { nodes := nodes,
+      validVarIds := vi
       constant := some false,
       validSize := rfl,
-      ordered_li := li,
-      ordered_hi := hi }
+      validRefs := refs,
+      -- ordered_li := li,
+      -- ordered_hi := hi
+    }
 
 -----------------------------------
 /-
@@ -104,3 +116,4 @@ def Node.ofTreeNode (tree : TreeNode) : Array Node :=
   let mapping := Node.ofTreeNode' tree
   (Array.range mapping.size).map (mapping.getD · default)
 -/
+end defs
