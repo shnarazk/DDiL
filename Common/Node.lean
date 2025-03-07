@@ -94,7 +94,13 @@ structure Node where
 deriving BEq, Hashable
 
 instance : ToString Node where
-  toString self := s!"Node(varId:{self.varId}, li:{self.li}, hi:{self.hi})"
+  toString self :=
+    let li := toString self.li
+    let hi := toString self.hi
+    if li == hi then
+      s!"Node(var:{self.varId} ↦ {li})"
+    else
+      s!"Node(var:{self.varId}, li:{self.li}, hi:{self.hi})"
 
 def Node.validRef (self : Node) (pos : Nat) : Bool :=
   match self.li.link, self.hi.link with
