@@ -6,14 +6,16 @@ open Std
 
 section proofs
 
-theorem array_element_induction {α : Type} (p : α → Prop) (a : Array α) (h : ∀ x ∈ a, p x)
-    (b : α) (hb : p b) :
-    ∀ x ∈ a.push b, p x := by
+theorem array_element_induction {α : Type} (p : α → Nat) (a : Array α) (h : ∀ x ∈ a, p x < a.size)
+    (b : α) (hb : p b < (a.push b).size) :
+    ∀ x ∈ a.push b, p x < (a.push b).size := by
+  have tr (n : α) {s : Nat} : p n < s → p n < s + 1 := by
+    exact Nat.lt_succ_of_lt
   simp [Array.push]
   intro x h'
   rcases h' with h₁ | h₂
-  { rcases h x h₁ with h₂ ; exact h₂ }
-  { simp [h₂] ; exact hb }
+  { rcases h x h₁ with h₂ ; exact tr x (h x h₁) }
+  { simp [h₂] at * ; exact hb }
 
 #eval ∀ i < 4, i < 8
 
@@ -158,8 +160,9 @@ def Node.ofTreeNode (tree : TreeNode) : Array Node :=
 structure Graph where
   nodes : Array Node
   constant : Option Bool
-  validSize : nodes.size = 0
-  validVarIds : ∀ node ∈ nodes, node.varId < nodes.size
+  validSize : Nat := nodes.size
+  numVars : Nat := 0
+  validVarIds : ∀ node ∈ nodes, (fun s n ↦ n.varId < s) numVars node
   validRefs : ∀ node ∈ nodes, node.validRef nodes.size
   ordered_li : ∀ i < nodes.size, varIndexIsOrdered₀ nodes i
   ordered_hi : ∀ i < nodes.size, varIndexIsOrdered₁ nodes i
@@ -184,7 +187,7 @@ instance : Inhabited Graph where
     { nodes := nodes,
       validVarIds := vi
       constant := some false,
-      validSize := rfl,
+      validSize := 0,
       validRefs := refs,
       ordered_li := li,
       ordered_hi := hi
@@ -193,10 +196,20 @@ instance : Inhabited Graph where
 def Graph.addNewNode (g : Graph) (vi : Nat) (li hi : Ref) : Graph × Nat :=
   let node := { varId := vi, li := li, hi := hi }
   let nodes := g.nodes.push node
-  let g' : Graph := { g with
+  if h : vi < g.numVars ∧ li.isSmaller vi ∧ hi.isSmaller vi then
+    let g' : Graph := { g with
       nodes := nodes
-      validVarIds := by sorry
-  }
-  (g', nodes.size - 1)
+      validSize := nodes.size
+      validVarIds := by
+        simp [nodes]
+        rintro n (h₀ | h₁)
+        { exact g.validVarIds n h₀ }
+        { simp [h₁, node] ; exact h.left }
+      validRefs := by sorry
+      ordered_li := by sorry
+      ordered_hi := by sorry
+    }
+    (g', nodes.size - 1)
+  else (g, 0)
 
 end defs
