@@ -68,9 +68,20 @@ variable {γ : Type} [GraphShape γ] (g : γ)
 structure Ref where
   grounded : Bool
   link : Option Nat
+deriving BEq, Hashable
 
 instance : Inhabited Ref where
   default := { grounded := false, link := none }
+
+  instance : ToString Ref where
+    toString self := match self with
+      | {grounded := false, link := none}   => "⊥"
+      | {grounded := true , link := none}   => "⊤"
+      | {grounded := true , link := some i} => s!"to:{i}"
+      | {grounded := false, link := some i} => s!"to:{i}"
+
+def Ref.bool (b : Bool) : Ref := {grounded := b, link := none}
+def Ref.to (n : Nat) : Ref := {grounded := false, link := some n}
 
 def Ref.isSmaller (self : Ref) (n : Nat) : Bool := match self.link with
   | none => true
@@ -80,6 +91,10 @@ structure Node where
   varId : Nat
   li : Ref
   hi : Ref
+deriving BEq, Hashable
+
+instance : ToString Node where
+  toString self := s!"Node(varId:{self.varId}, li:{self.li}, hi:{self.hi})"
 
 def Node.validRef (self : Node) (pos : Nat) : Bool :=
   match self.li.link, self.hi.link with
