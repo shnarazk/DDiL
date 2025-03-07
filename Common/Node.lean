@@ -193,20 +193,35 @@ instance : Inhabited Graph where
     let nodes : Array Node := Array.empty
     have nodes₀ : nodes.size = 0 := rfl
     have nodes_def : nodes = #[] := by exact rfl
-    have vi : ∀ node ∈ nodes, node.varId < nodes.size := by
+    have vi : ∀ node ∈ nodes, node.varId < 0 := by
       rintro node₀ h₀
       simp [nodes_def] at h₀
     have ordered : ∀ node ∈ nodes.zipIdx, (fun (n, i) ↦ n.validRef i) node := by
       rintro i h
       simp [nodes_def] at h
     { nodes := nodes,
-      validVarIds := vi
+      numVars := 0,
+      validVarIds := vi,
       constant := some false,
       validSize := 0,
       validRefs := ordered,
     }
 
-def Graph.addNewNode (g : Graph) (vi : Nat) (li hi : Ref) : Graph × Nat :=
+instance : ToString Graph where
+  toString g := s!"Graph: {g.nodes}"
+
+def Graph.forVars (n : Nat) : Graph :=
+ let g : Graph := default
+  have vi : ∀ node ∈ g.nodes, node.varId < n := by
+      rintro node₀ h₀
+      have : g.nodes = #[] := by exact rfl
+      rw [this] at h₀
+      simp at h₀
+  { g with
+    numVars := n
+    validVarIds := vi }
+
+def Graph.addNode (g : Graph) (vi : Nat) (li hi : Ref) : Graph × Nat :=
   let node := { varId := vi, li := li, hi := hi }
   let nodes := g.nodes.push node
   if h : vi < g.numVars ∧ node.validRef g.nodes.size then
