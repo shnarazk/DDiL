@@ -24,7 +24,8 @@ theorem le_induction (n : Nat) : ∀ i : Nat, i < n + 1 → i < n ∨ i == n := 
   simp
   exact Nat.lt_succ_iff_lt_or_eq.mp h
 
-theorem array_index_induction {α : Type} (a : Array α) (p : α → Prop) (b : α)
+/-
+theorem array_index_induction {α : Type} (a : Array α) (p : α → Option Nat) (b : α)
     (h : ∀ i < a.size, match a[i]? with | none => true | some e => p e) (pb : p b) :
     ∀ i < (a.push b).size, match (a.push b)[i]? with | none => true | some e => p e := by
   have {q : Nat → Prop} : (∀ i < (a.push b).size, q i) → (∀ i < (a.push b).size - 1, q i) ∨ (q (a.push b).size) := by
@@ -56,6 +57,7 @@ theorem array_index_induction {α : Type} (a : Array α) (p : α → Prop) (b : 
     have : i ≤ a.size := by exact Nat.le_of_lt_succ h'
     have : ¬a.size < i := by exact Nat.not_lt.mpr this
     contradiction }
+-/
 
 end proofs
 
@@ -163,9 +165,7 @@ structure Graph where
   validSize : Nat := nodes.size
   numVars : Nat := 0
   validVarIds : ∀ node ∈ nodes, (fun s n ↦ n.varId < s) numVars node
-  validRefs : ∀ node ∈ nodes, node.validRef nodes.size
-  ordered_li : ∀ i < nodes.size, varIndexIsOrdered₀ nodes i
-  ordered_hi : ∀ i < nodes.size, varIndexIsOrdered₁ nodes i
+  validRefs : ∀ node_index ∈ nodes.zipIdx, (fun (n, i) ↦ n.validRef i) node_index
 
 instance : Inhabited Graph where
   default :=
@@ -175,28 +175,20 @@ instance : Inhabited Graph where
     have vi : ∀ node ∈ nodes, node.varId < nodes.size := by
       rintro node₀ h₀
       simp [nodes_def] at h₀
-    have refs : ∀ node ∈ nodes, node.validRef nodes.size := by
-      rintro node₀ h₀
-      simp [nodes_def] at h₀
-    have li : ∀ i < nodes.size, varIndexIsOrdered₀ nodes i := by
-      rintro i h
-      simp [nodes_def] at h
-    have hi : ∀ i < nodes.size, varIndexIsOrdered₁ nodes i := by
+    have ordered : ∀ node ∈ nodes.zipIdx, (fun (n, i) ↦ n.validRef i) node := by
       rintro i h
       simp [nodes_def] at h
     { nodes := nodes,
       validVarIds := vi
       constant := some false,
       validSize := 0,
-      validRefs := refs,
-      ordered_li := li,
-      ordered_hi := hi
+      validRefs := ordered,
     }
 
 def Graph.addNewNode (g : Graph) (vi : Nat) (li hi : Ref) : Graph × Nat :=
   let node := { varId := vi, li := li, hi := hi }
   let nodes := g.nodes.push node
-  if h : vi < g.numVars ∧ li.isSmaller vi ∧ hi.isSmaller vi then
+  if h : vi < g.numVars ∧ node.validRef g.nodes.size then
     let g' : Graph := { g with
       nodes := nodes
       validSize := nodes.size
@@ -205,11 +197,27 @@ def Graph.addNewNode (g : Graph) (vi : Nat) (li hi : Ref) : Graph × Nat :=
         rintro n (h₀ | h₁)
         { exact g.validVarIds n h₀ }
         { simp [h₁, node] ; exact h.left }
-      validRefs := by sorry
-      ordered_li := by sorry
-      ordered_hi := by sorry
+      validRefs := by
+        simp [nodes]
+        simp [Array.zipIdx]
+        have base : ∀ node ∈ g.nodes.zipIdx, (fun (n, i) ↦ n.validRef i) node := by
+          exact g.validRefs
+        simp [Array.zipIdx] at base
+        intro n i j
+        rcases j with j | j
+        {
+          rcases base n i with base₀
+          rcases j with ⟨jg, k⟩
+          rcases base₀ i jg k with base₁
+          simp at base₁
+          exact base₁
+        }
+        {
+          simp [j.left, j.right]
+          exact h.right
+        }
     }
     (g', nodes.size - 1)
-  else (g, 0)
+  else (g, g.nodes.size)
 
 end defs
