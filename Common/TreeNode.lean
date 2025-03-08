@@ -2,6 +2,7 @@ import Std.Data.HashMap
 import Std.Data.HashSet
 import Std.Internal.Parsec
 import Std.Internal.Parsec.String
+import Common.GraphShape
 import Common.Parser
 
 open Std
@@ -13,68 +14,80 @@ It is a derivation of `BEq`, `Hashable`, `Repr`, and `DecidableEq`. -/
 inductive TreeNode where
   | isFalse
   | isTrue
-  | node (varId : Nat) (low high : TreeNode) (id : Nat)
+  | node (low high : TreeNode) (id : Nat)
 deriving BEq, Hashable, Repr
 
 instance : Inhabited TreeNode where
   default := .isFalse
 
+/-
 def TreeNode.toVarId (self : TreeNode) : Nat := match self with
   | .isFalse => 0
   | .isTrue  => 0
   | .node varId _ _ _ => varId
+-/
 
 def TreeNode.index (self : TreeNode) : Nat := match self with
   | .isFalse => 0
   | .isTrue  => 1
-  | .node _ _ _ id => id
+  | .node _ _ id => id
 
 instance : ToString TreeNode where
   toString (n : TreeNode) : String := match n with
     | .isFalse => "#false"
     | .isTrue  => "#true"
-    | .node varId .isFalse .isFalse id => s!"[#{id} v:{varId}=false]"
-    | .node varId .isFalse .isTrue  id => s!"[#{id} v:{varId}]"
-    | .node varId .isTrue  .isFalse id => s!"[#{id} v:-{varId}]"
-    | .node varId .isTrue  .isTrue  id => s!"[#{id} v:{varId}=true]"
-    | .node varId .isFalse  high    id => s!"[#{id} v:{varId} l:false h:{high.toVarId}]"
-    | .node varId .isTrue   high    id => s!"[#{id} v:{varId} l:true h:{high.toVarId}]"
-    | .node varId  low     .isFalse id => s!"[#{id} v:{varId} l:{low.toVarId} h:false]"
-    | .node varId  low     .isTrue  id => s!"[#{id} v:{varId} l:{low.toVarId} h:true]"
-    | .node varId  low      high    id => s!"[#{id} v:{varId} l:{low.toVarId} h:{high.toVarId}]"
+    | .node .isFalse .isFalse id => s!"[#{id} false]"
+    | .node .isFalse .isTrue  id => s!"[#{id} ⊥⊤]"
+    | .node .isTrue  .isFalse id => s!"[#{id} ⊤⊥]"
+    | .node .isTrue  .isTrue  id => s!"[#{id} true]"
+    | .node .isFalse  high    id => s!"[#{id} l:false h:{high.index}]"
+    | .node .isTrue   high    id => s!"[#{id} l:true h:{high.index}]"
+    | .node  low     .isFalse id => s!"[#{id} l:{low.index} h:false]"
+    | .node  low     .isTrue  id => s!"[#{id} l:{low.index} h:true]"
+    | .node  low      high    id => s!"[#{id} l:{low.index} h:{high.index}]"
+
+def TreeNode.depth (self : TreeNode) : Nat := match self with
+  | .isFalse => 0
+  | .isTrue  => 0
+  | .node low high _ => 1 + max low.depth high.depth
+
+def TreeNode.size (self : TreeNode) : Nat := match self with
+  | .isFalse => 1
+  | .isTrue  => 1
+  | .node low high _ => 1 + low.size + high.size
 
 def TreeNode.is_congruent (a b : TreeNode) : Bool := match a, b with
   | .isFalse, .isFalse => true
   | .isTrue , .isTrue  => true
-  | .node varId1 low1 high1 _, .node varId2 low2 high2 _ => varId1 = varId2 && low1.is_congruent low2 && high1.is_congruent high2
+  | .node low1 high1 _, .node low2 high2 _ => low1.is_congruent low2 && high1.is_congruent high2
   | _, _ => false
 
 def TreeNode.newConstant (value : Bool) : TreeNode := match value with
   | false => .isFalse
   | true  => .isTrue
 
-def TreeNode.newVar (varId : Nat) (low high : TreeNode) (id : Nat) : TreeNode :=
-  .node varId low high id
+def TreeNode.newVar (low high : TreeNode) (id : Nat) : TreeNode :=
+  .node low high id
 
 def TreeNode.isConstant (self : TreeNode) : Option Bool := match self with
-  | .isFalse => some false
-  | .isTrue  => some true
-  | .node _ _ _ _ => none
+  | .isFalse    => some false
+  | .isTrue     => some true
+  | .node _ _ _ => none
 
 def TreeNode.toHashMap (self : TreeNode) (set : Std.HashMap Nat TreeNode := Std.HashMap.empty)
     : Std.HashMap Nat TreeNode := match self with
   | .isFalse => set.insert 0 self
   | .isTrue  => set.insert 1 self
-  | .node _ low high _ => set.insert (self.index) self |> low.toHashMap |> high.toHashMap
+  | .node low high _ => set.insert (self.index) self |> low.toHashMap |> high.toHashMap
 
 def TreeNode.toHashSet (self : TreeNode) (set : Std.HashSet TreeNode := Std.HashSet.empty): Std.HashSet TreeNode := match self with
     | .isFalse | .isTrue => set.insert self
-    | .node _ low high _ => set.insert self |> low.toHashSet |> high.toHashSet
+    | .node low high _   => set.insert self |> low.toHashSet |> high.toHashSet
 
 def TreeNode.satisfiable (self : TreeNode) : Bool := match self with
   | .isFalse => false
   | .isTrue  => true
-  | .node _ low high _ => match low.satisfiable with
+  | .node low high _ => match low.satisfiable with
     | true  => true
     | false => high.satisfiable
 
@@ -82,10 +95,10 @@ def TreeNode.satisfiable (self : TreeNode) : Bool := match self with
 Current version can't handle shared subtrees. -/
 def TreeNode.assignIndex (self : TreeNode) (index : Nat := 2) : TreeNode × Nat := match self with
   | .isFalse | .isTrue => (self, index)
-  | .node varId low high _ =>
+  | .node low high _ =>
     let (l, i₁) := low.assignIndex (index + 1)
     let (h, i₂) := high.assignIndex i₁
-    (TreeNode.newVar varId l h index, i₂)
+    (TreeNode.newVar l h index, i₂)
 
 /--
 Checks if the TreeNode satisfies all conditions.
@@ -96,7 +109,7 @@ def linearCount (counter : Std.HashMap Nat Nat) (n : TreeNode) : Std.HashMap Nat
     match n with
       | .isFalse => (counter, 0)
       | .isTrue  => (counter, 1)
-      | .node _ low high index =>
+      | .node low high index =>
           let (c₁, k₁) := linearCount counter low
           let (c₂, k₂) := linearCount c₁ high
           (c₂.insert index (k₁ + k₂), k₁ + k₂)
@@ -113,6 +126,13 @@ open Std.Internal.Parsec
 open Std.Internal.Parsec.String
 open ParserLib
 
+def parse_comment : Parser String := do
+  let _ ← pchar '"'
+  let s ← many (satisfy (· != '"'))
+  let _ ← pchar '"'
+  return (s.toList.map toString |>String.join)
+
+
 def parse_false : Parser TreeNode := do
   let _ ← pchar 'F'
   return TreeNode.isFalse
@@ -125,26 +145,32 @@ mutual
 
 partial def parse_block : Parser TreeNode := do
   let _ ← pchar '{' <* delimiter?
-  let vi ← number <* delimiter
-  let f ← parse_tf <* delimiter
+  let f ← (orElse (parse_comment *> delimiter? *> parse_tf) (fun _ ↦ parse_tf)) <* delimiter
+  -- let f ← parse_tf <* delimiter
   let t ← parse_tf <* delimiter?
   let _ ← pchar '}'
-  return TreeNode.newVar vi f t 0
+  return TreeNode.newVar f t 0
 
 partial def parse_tf : Parser TreeNode :=
   parse_false <|> parse_true <|> parse_block
 
 end
 
-#eval ParserLib.parse parse_tf "{0 F F}"
+-- #eval ParserLib.parse parse_tf "{0 F F}"
 
 end parser
 
-def TreeNode.ofString (input : String) : TreeNode :=
+def TreeNode.fromString (input : String) : TreeNode :=
   match ParserLib.parse parser.parse_tf input with
     |some tree => tree.assignIndex.fst
     |none => TreeNode.isFalse
 
-example : TreeNode.ofString "F" = TreeNode.isFalse := by sorry
--- example : TreeNode.ofString "T" = TreeNode.isTrue
--- example : TreeNode.ofString "{1 T F}" = TreeNode.newVar 1 TreeNode.isTrue TreeNode.isFalse 0
+-- #eval TreeNode.ofString "F"
+-- #eval TreeNode.ofString "T"
+-- #eval TreeNode.ofString "{1 T F}"
+
+instance : GraphShape TreeNode where
+  numberOfVars := (·.depth)
+  numberOfNodes := (·.size)
+  dumpAsDot _ filename := do return filename
+  dumpAsPng := fun _ filename => do return filename
