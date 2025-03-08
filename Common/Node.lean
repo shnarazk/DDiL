@@ -63,6 +63,9 @@ section defs
 
 variable {γ : Type} [GraphShape γ] (g : γ)
 
+/--
+Reference to other node or a constant, having `grounded` and `link`.
+There are two constructors: `Ref.bool` and `Ref.to`. -/
 structure Ref where
   grounded : Bool
   link : Option Nat
@@ -85,11 +88,16 @@ def Ref.isSmaller (self : Ref) (n : Nat) : Bool := match self.link with
   | none => true
   | some i => i < n
 
+/--
+Node representation for graph, having `varId`, `li`, and `hi`. -/
 structure Node where
   varId : Nat
   li : Ref
   hi : Ref
 deriving BEq, Hashable
+
+instance : Inhabited Node where
+  default := { varId := 0, li := default, hi := default }
 
 instance : ToString Node where
   toString self :=
@@ -106,22 +114,6 @@ def Node.validRef (self : Node) (pos : Nat) : Bool :=
     | some l, none   => l < pos
     | none  , some h => h < pos
     | none  , none   => true
-
-/-
-def Node.ofTreeNode' (tree : TreeNode)
-    (map : HashMap Nat Node := HashMap.empty) : HashMap Nat Node :=
-  match tree with
-    | TreeNode.isFalse => map.insert 0 .isFalse
-    | TreeNode.isTrue  => map.insert 0 .isTrue
-    | TreeNode.node varId low high id =>
-      let map₁ := Node.ofTreeNode' low map
-      let map₂ := Node.ofTreeNode' high map₁
-      map₂.insert id (.node varId low.index high.index)
-
-def Node.ofTreeNode (tree : TreeNode) : Array Node :=
-  let mapping := Node.ofTreeNode' tree
-  (Array.range mapping.size).map (mapping.getD · default)
--/
 
 structure Graph where
   nodes : Array Node
@@ -200,5 +192,45 @@ def Graph.addNode (g : Graph) (vi : Nat) (li hi : Ref) : Graph × Nat :=
 instance : GraphShape Graph where
   numberOfVars := (·.numVars)
   numberOfNodes := (·.nodes.size)
+
+namespace convert
+
+inductive Collector where
+  | bool (val : Bool)
+  | link (mapping : HashMap Nat Node)
+
+instance : Inhabited Collector where
+  default := Collector.link (HashMap.empty)
+
+def collectFromTreeNode (tree : TreeNode)
+    (mapping : HashMap Nat Node := HashMap.empty)
+    (varId : Nat := 1)
+    : Collector :=
+  match tree with
+    | TreeNode.isFalse => Collector.bool false
+    | TreeNode.isTrue  => Collector.bool true
+    | TreeNode.node low high id =>
+      let node : Node := {(default : Node) with varId}
+      let (mapping, node) := match collectFromTreeNode low mapping (varId + 1) with
+        | Collector.bool b => (mapping, {node with li := Ref.bool b})
+        | Collector.link m => (m,       {node with li := Ref.to (m.size - 1)})
+      let (mapping, node) := match collectFromTreeNode high mapping (varId + 1) with
+        | Collector.bool b => (mapping, {node with hi := Ref.bool b})
+        | Collector.link m => (m,       {node with hi := Ref.to (m.size - 1)})
+      Collector.link (mapping.insert id node)
+
+def toCompactArray (h : HashMap Nat Node) : Array Node :=
+    (Array.range h.size).map (h.getD · default)
+
+end convert
+
+open convert in
+def Graph.fromTreeNode (tree : TreeNode) : Graph :=
+  match collectFromTreeNode tree with
+    | Collector.bool b => {(default : Graph) with constant := b}
+    | Collector.link m => m.toList.mergeSort (fun a b ↦ a.fst < b.fst)
+      |>.foldl
+        (fun g (_, node) => g.addNode node.varId node.li node.hi |>.fst)
+        (default : Graph)
 
 end defs
