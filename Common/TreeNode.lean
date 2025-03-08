@@ -115,6 +115,13 @@ open Std.Internal.Parsec
 open Std.Internal.Parsec.String
 open ParserLib
 
+def parse_comment : Parser String := do
+  let _ ← pchar '"'
+  let s ← many (satisfy (· != '"'))
+  let _ ← pchar '"'
+  return (s.toList.map toString |>String.join)
+
+
 def parse_false : Parser TreeNode := do
   let _ ← pchar 'F'
   return TreeNode.isFalse
@@ -127,7 +134,8 @@ mutual
 
 partial def parse_block : Parser TreeNode := do
   let _ ← pchar '{' <* delimiter?
-  let f ← parse_tf <* delimiter
+  let f ← (orElse (parse_comment *> delimiter? *> parse_tf) (fun _ ↦ parse_tf)) <* delimiter
+  -- let f ← parse_tf <* delimiter
   let t ← parse_tf <* delimiter?
   let _ ← pchar '}'
   return TreeNode.newVar f t 0
