@@ -35,3 +35,7 @@ def LogKind.color (kind : LogKind) : String × String := match kind with
 def dbg {α : Type} (label : String) (a : α) (kind : LogKind := LogKind.log) : α :=
   let colors := LogKind.color kind
   dbgTrace s!"{colors.fst}{label}{colors.snd}" (fun _ ↦ a)
+
+def dbg! {α : Type} [ToString α] (label : String) (a : α) (kind : LogKind := LogKind.log) : α :=
+  let colors := LogKind.color kind
+  dbgTrace s!"{colors.fst}{label}: {a}{colors.snd}" (fun _ ↦ a)

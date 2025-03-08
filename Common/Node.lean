@@ -1,3 +1,4 @@
+import Common.Debug
 import Common.TreeNode
 import Common.GraphShape
 import Mathlib.Tactic
@@ -187,11 +188,11 @@ def Graph.addNode (g : Graph) (vi : Nat) (li hi : Ref) : Graph × Nat :=
           exact h.right }
     }
     (g', nodes.size - 1)
-  else (g, g.nodes.size)
-
-instance : GraphShape Graph where
-  numberOfVars := (·.numVars)
-  numberOfNodes := (·.nodes.size)
+  else
+    dbg
+      s!"{g.nodes.size}:{node} violation: vi:{vi} < g.numVars:{g.numVars} or ref:{node.validRef g.nodes.size}"
+      (g, g.nodes.size)
+      LogKind.error
 
 namespace convert
 
@@ -219,6 +220,8 @@ def collectFromTreeNode (tree : TreeNode)
         | Collector.link m => (m,       {node with hi := Ref.to (m.size - 1)})
       Collector.link (mapping.insert id node)
 
+/--
+Renumber ids -/
 def toCompactArray (h : HashMap Nat Node) : Array Node :=
     (Array.range h.size).map (h.getD · default)
 
@@ -228,9 +231,46 @@ open convert in
 def Graph.fromTreeNode (tree : TreeNode) : Graph :=
   match collectFromTreeNode tree with
     | Collector.bool b => {(default : Graph) with constant := b}
-    | Collector.link m => m.toList.mergeSort (fun a b ↦ a.fst < b.fst)
+    | Collector.link m => m.toList.mergeSort (fun a b ↦ a.fst > b.fst)
       |>.foldl
         (fun g (_, node) => g.addNode node.varId node.li node.hi |>.fst)
-        (default : Graph)
+        (Graph.forVars (GraphShape.numberOfVars tree))
+
+def Graph.dumpAsDot (self : Graph) (path : String) : IO String := do
+  let buffer := "digraph regexp {
+    fontname=\"Helvetica,Arial,sans-serif\"
+    node [fontname=\"Helvetica,Arial,sans-serif\"]
+    edge [fontname=\"Helvetica,Arial,sans-serif\", color=blue]
+      0 [style=filled, fillcolor=\"gray80\",label=\"false\",shape=\"box\"];
+      1 [style=filled, fillcolor=\"gray95\",label=\"true\",shape=\"box\"];
+  "
+  let nodes := self.nodes.toList.zipIdx.map
+      (fun (node, i) ↦  s!"  {i + 2} [label=\"{node.varId}\"];\n")
+    |> String.join
+  let edges := self.nodes.toList.zipIdx.map
+      (fun (node, i) ↦ if node.li == node.hi then
+              s!" {i + 2} -> {node.li} [color=black,penwidth=2];\n"
+            else
+              s!" {i + 2} -> {node.li} [color=red,style=\"dotted\"];\n" ++
+              s!" {i + 2} -> {node.hi} [color=blue];\n" )
+    |> String.join
+  IO.FS.writeFile path (buffer ++ "\n" ++ nodes ++ "\n" ++ edges ++ "\n}\n")
+  return path
+
+def Graph.dumpAsPng (self : Graph) (path : String) : IO String := do
+  try
+    let gv := s!"{path}.gv"
+    let _ ← self.dumpAsDot gv
+    let _ ← IO.Process.run { cmd := "dot", args := #["-T", "png", "-o", path, gv]}
+    IO.FS.removeFile gv
+    return path
+  catch e =>
+    return s!"Error dumping graph to PNG: {e}"
+
+instance : GraphShape Graph where
+  numberOfVars := (·.numVars)
+  numberOfNodes := (·.nodes.size)
+  dumpAsDot := Graph.dumpAsDot
+  dumpAsPng := Graph.dumpAsPng
 
 end defs

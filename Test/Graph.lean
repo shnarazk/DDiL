@@ -11,6 +11,7 @@ def g₁ : Graph := { (default : Graph) with
   }
 def g₁₁ := Graph.forVars 3
 def g₂ : Graph := g₁.addNode 1 (Ref.bool true) (Ref.bool false) |>.fst
+def g₃ : Graph := TreeNode.fromString "{{{T F} {F F}} {{T F} {F F}}}" |> Graph.fromTreeNode
 
 def independent_tree := TreeNode.fromString
   "{  { { {{{T T} {T F}} {{T T} {F F}}}
@@ -24,30 +25,6 @@ def independent_tree := TreeNode.fromString
 
 def independent := Graph.fromTreeNode independent_tree
 
--- def g2 : Graph := {
---   nodes := #[
---      .isFalse,
---      .isTrue,
---      .node 1 3 4,
---      .node 2 0 0,
---      .node 2 1 0],
---   root := Fin.ofNat' 5 2,
---   filled := by exact Nat.instNeZeroSucc
--- }
-
--- def g3 : Graph := {
---   nodes := #[
---      .isFalse,
---      .isTrue,
---      .node 1 3 4,
---      .node 2 0 0,
---      .node 2 1 0,
---      .node 2 0 0,
---      .node 2 1 1],
---   root := Fin.ofNat' 7 2,
---   filled := by exact Nat.instNeZeroSucc
--- }
-
 def run : IO Unit := do
   let (start, done) := LogKind.warn.color
   IO.println start
@@ -55,6 +32,11 @@ def run : IO Unit := do
   IO.println s!"Graph g₁: {g₁}"
   IO.println s!"Graph g₁₁: {g₁₁}"
   IO.println s!"Graph g₂: {g₂}"
+  IO.println s!"GraphShape.ofShape g₃: {GraphShape.shapeOf g₃}"
+  try
+    let file ← g₂.dumpAsPng "lake-test_g2.png"
+    IO.println s!"Graph g₂ dumped as PNG: {file}"
+  catch e => IO.println s!"Error: {e}"
   IO.println s!"GraphShape.numberOfVars g₂: {GraphShape.numberOfVars g₂}"
   IO.println s!"GraphShape.numberOfNodes g₂: {GraphShape.numberOfNodes g₂}"
   IO.println s!"independent: {independent}"

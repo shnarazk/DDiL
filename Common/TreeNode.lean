@@ -56,10 +56,6 @@ def TreeNode.size (self : TreeNode) : Nat := match self with
   | .isTrue  => 1
   | .node low high _ => 1 + low.size + high.size
 
-instance : GraphShape TreeNode where
-  numberOfVars := (·.depth)
-  numberOfNodes := (·.size)
-
 def TreeNode.is_congruent (a b : TreeNode) : Bool := match a, b with
   | .isFalse, .isFalse => true
   | .isTrue , .isTrue  => true
@@ -172,3 +168,9 @@ def TreeNode.fromString (input : String) : TreeNode :=
 -- #eval TreeNode.ofString "F"
 -- #eval TreeNode.ofString "T"
 -- #eval TreeNode.ofString "{1 T F}"
+
+instance : GraphShape TreeNode where
+  numberOfVars := (·.depth)
+  numberOfNodes := (·.size)
+  dumpAsDot _ filename := do return filename
+  dumpAsPng := fun _ filename => do return filename

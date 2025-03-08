@@ -3,6 +3,8 @@ class GraphShape (γ : Type) where
   numberOfVars : γ → Nat
   numberOfNodes : γ → Nat
   shapeOf : γ → (Nat × Nat) := fun g ↦ (numberOfVars g, numberOfNodes g)
+  dumpAsDot : γ → String → IO String
+  dumpAsPng : γ → String → IO String
 
 /-
 structure A
