@@ -12,6 +12,18 @@ def g₁ : Graph := { (default : Graph) with
 def g₁₁ := Graph.forVars 3
 def g₂ : Graph := g₁.addNode 1 (Ref.bool true) (Ref.bool false) |>.fst
 
+def independent_tree := TreeNode.fromString
+  "{  { { {{{T T} {T F}} {{T T} {F F}}}
+          {{{T T} {T F}} {{F F} {F F}}} }
+        { {{{T T} {T F}} {{T T} {F F}}}
+          {{{F F} {F F}} {{F F} {F F}}} } }
+      { { {{{T F} {T F}} {{T F} {F F}}}
+          {{{T F} {T F}} {{F F} {F F}}} }
+        { {{{F F} {F F}} {{F F} {F F}}}
+          {{{F F} {F F}} {{F F} {F F}}} } } }"
+
+def independent := Graph.fromTreeNode independent_tree
+
 -- def g2 : Graph := {
 --   nodes := #[
 --      .isFalse,
@@ -36,23 +48,6 @@ def g₂ : Graph := g₁.addNode 1 (Ref.bool true) (Ref.bool false) |>.fst
 --   filled := by exact Nat.instNeZeroSucc
 -- }
 
--- def independent : Graph := ↑(TreeNode.ofString
---   "{ 1
---     { 2
---       { 3
---         {4 {5 {6 T T} {6 T F}} {5 {6 T T} {6 F F}}}
---         {4 {5 {6 T T} {6 T F}} {5 {6 F F} {6 F F}}} }
---       { 3
---         {4 {5 {6 T T} {6 T F}} {5 {6 T T} {6 F F}}}
---         {4 {5 {6 F F} {6 F F}} {5 {6 F F} {6 F F}}} } }
---     { 2
---       { 3
---         {4 {5 {6 T F} {6 T F}} {5 {6 T F} {6 F F}}}
---         {4 {5 {6 T F} {6 T F}} {5 {6 F F} {6 F F}}} }
---       { 3
---         {4 {5 {6 F F} {6 F F}} {5 {6 F F} {6 F F}}}
---         {4 {5 {6 F F} {6 F F}} {5 {6 F F} {6 F F}}} } } }")
-
 def run : IO Unit := do
   let (start, done) := LogKind.warn.color
   IO.println start
@@ -62,6 +57,8 @@ def run : IO Unit := do
   IO.println s!"Graph g₂: {g₂}"
   IO.println s!"GraphShape.numberOfVars g₂: {GraphShape.numberOfVars g₂}"
   IO.println s!"GraphShape.numberOfNodes g₂: {GraphShape.numberOfNodes g₂}"
+  IO.println s!"independent: {independent}"
+  IO.println s!"GraphShape.ofShape independent: {GraphShape.shapeOf independent}"
   -- IO.println s!"Graph: {(g1, 3)}"
   -- IO.println s!"Graph.toHashMap: {g1.toHashMap.toList}"
   -- IO.println s!"Graph.toHashSet: {g1.toHashSet.toList}"
