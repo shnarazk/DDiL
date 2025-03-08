@@ -136,7 +136,7 @@ partial def parse_tf : Parser TreeNode :=
 
 end
 
-#eval ParserLib.parse parse_tf "{0 F F}"
+-- #eval ParserLib.parse parse_tf "{0 F F}"
 
 end parser
 
@@ -145,6 +145,6 @@ def TreeNode.ofString (input : String) : TreeNode :=
     |some tree => tree.assignIndex.fst
     |none => TreeNode.isFalse
 
-example : TreeNode.ofString "F" = TreeNode.isFalse := by sorry
--- example : TreeNode.ofString "T" = TreeNode.isTrue
--- example : TreeNode.ofString "{1 T F}" = TreeNode.newVar 1 TreeNode.isTrue TreeNode.isFalse 0
+-- #eval TreeNode.ofString "F"
+-- #eval TreeNode.ofString "T"
+-- #eval TreeNode.ofString "{1 T F}"

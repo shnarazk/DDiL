@@ -17,8 +17,6 @@ theorem array_element_induction {α : Type} (p : α → Nat) (a : Array α) (h :
   {rcases h x h₁ with h₂ ; exact tr x (h x h₁)}
   {simp [h₂] at * ; exact hb}
 
-#eval ∀ i < 4, i < 8
-
 theorem le_induction (n : Nat) : ∀ i : Nat, i < n + 1 → i < n ∨ i == n := by
   intro i h
   simp
@@ -198,5 +196,9 @@ def Graph.addNode (g : Graph) (vi : Nat) (li hi : Ref) : Graph × Nat :=
     }
     (g', nodes.size - 1)
   else (g, g.nodes.size)
+
+instance : GraphShape Graph where
+  numberOfVars := (·.numVars)
+  numberOfNodes := (·.nodes.size)
 
 end defs

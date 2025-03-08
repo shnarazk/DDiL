@@ -60,6 +60,8 @@ def run : IO Unit := do
   IO.println s!"Graph g₁: {g₁}"
   IO.println s!"Graph g₁₁: {g₁₁}"
   IO.println s!"Graph g₂: {g₂}"
+  IO.println s!"GraphShape.numberOfVars g₂: {GraphShape.numberOfVars g₂}"
+  IO.println s!"GraphShape.numberOfNodes g₂: {GraphShape.numberOfNodes g₂}"
   -- IO.println s!"Graph: {(g1, 3)}"
   -- IO.println s!"Graph.toHashMap: {g1.toHashMap.toList}"
   -- IO.println s!"Graph.toHashSet: {g1.toHashSet.toList}"

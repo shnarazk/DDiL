@@ -1,3 +1,4 @@
+import Common.Debug
 import Common.TreeNode
 
 namespace Test_TreeNode
@@ -26,8 +27,10 @@ def independent := TreeNode.ofString
     }"
 
 def test : IO Unit := do
-  IO.println "Hello, World!"
+  let (start, done) := LogKind.info.color
+  IO.println start
   IO.println s!"TreeNode: {f}"
   IO.println s!"independent: {independent}"
+  IO.println done
 
 end Test_TreeNode

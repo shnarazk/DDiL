@@ -3,7 +3,6 @@ import Common.Node
 import Common.GraphShape
 
 open Std
--- class NodeOf (γ : Type) [GraphShape γ] where
 
 /--
 Interface for decision diagram built from `Node`.
