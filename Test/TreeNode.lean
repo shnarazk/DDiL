@@ -5,26 +5,18 @@ namespace Test_TreeNode
 
 def f := TreeNode.newConstant false
 def t := TreeNode.newConstant true
-def n2 := TreeNode.newVar 2 f t 2 |>.assignIndex |>.fst
-def n3 := TreeNode.newVar 1 f n2 3 |>.assignIndex |>.fst
-
+def n2 := TreeNode.newVar f t 2 |>.assignIndex |>.fst
+def n3 := TreeNode.newVar f n2 3 |>.assignIndex |>.fst
+def s1 := TreeNode.ofString "{F T}"
 def independent := TreeNode.ofString
-  "{ 1
-      { 2
-        { 3
-          {4 {5 {6 T T} {6 T F}} {5 {6 T T} {6 F F}}}
-          {4 {5 {6 T T} {6 T F}} {5 {6 F F} {6 F F}}} }
-        { 3
-          {4 {5 {6 T T} {6 T F}} {5 {6 T T} {6 F F}}}
-          {4 {5 {6 F F} {6 F F}} {5 {6 F F} {6 F F}}} } }
-      { 2
-        { 3
-          {4 {5 {6 T F} {6 T F}} {5 {6 T F} {6 F F}}}
-          {4 {5 {6 T F} {6 T F}} {5 {6 F F} {6 F F}}} }
-        { 3
-          {4 {5 {6 F F} {6 F F}} {5 {6 F F} {6 F F}}}
-          {4 {5 {6 F F} {6 F F}} {5 {6 F F} {6 F F}}} } }
-    }"
+  "{  { { {{{T T} {T F}} {{T T} {F F}}}
+          {{{T T} {T F}} {{F F} {F F}}} }
+        { {{{T T} {T F}} {{T T} {F F}}}
+          {{{F F} {F F}} {{F F} {F F}}} } }
+      { { {{{T F} {T F}} {{T F} {F F}}}
+          {{{T F} {T F}} {{F F} {F F}}} }
+        { {{{F F} {F F}} {{F F} {F F}}}
+          {{{F F} {F F}} {{F F} {F F}}} } } }"
 
 def test : IO Unit := do
   let (start, done) := LogKind.info.color
