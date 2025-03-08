@@ -149,7 +149,7 @@ end
 
 end parser
 
-def TreeNode.ofString (input : String) : TreeNode :=
+def TreeNode.fromString (input : String) : TreeNode :=
   match ParserLib.parse parser.parse_tf input with
     |some tree => tree.assignIndex.fst
     |none => TreeNode.isFalse
