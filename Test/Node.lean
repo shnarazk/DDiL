@@ -8,7 +8,7 @@ def t := Node.mk 2 (Ref.bool true) (Ref.bool true)
 -- def n2 := Node.newNode 2 0 1
 -- def n3 := Node.newNode 1 1 3
 
-def test : IO Unit := do
+def run : IO Unit := do
   IO.println s!"Node f: {f}"
   IO.println s!"Node t: {t}"
   -- IO.println s!"Node: {n3}"

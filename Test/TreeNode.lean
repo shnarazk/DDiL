@@ -1,4 +1,5 @@
 import Common.Debug
+import Common.GraphShape
 import Common.TreeNode
 
 namespace Test_TreeNode
@@ -20,14 +21,14 @@ def independent := TreeNode.fromString
         { {{{F F} {F F}} {{F F} {F F}}}
           {{{F F} {F F}} {{F F} {F F}}} } } }"
 
-def test : IO Unit := do
+def run : IO Unit := do
   let (start, done) := LogKind.info.color
   IO.println start
   IO.println s!"TreeNode: {f}"
-  IO.println s!"parse w/o comment: {s1_noComment}"
-  IO.println s!"parse w comment1: {s1_comment1}"
-  IO.println s!"parse w comment2: {s1_comment2}"
-  IO.println s!"independent: {independent}"
+  IO.println s!"parse w/o comment→shape: {GraphShape.shapeOf s1_noComment}"
+  IO.println s!"parse w comment1 →shape: {GraphShape.shapeOf s1_comment1}"
+  IO.println s!"parse w comment2 →shape: {GraphShape.shapeOf s1_comment2}"
+  IO.println s!"independent      →shape: {GraphShape.shapeOf independent}"
   IO.println done
 
 end Test_TreeNode

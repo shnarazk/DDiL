@@ -2,6 +2,7 @@ import Std.Data.HashMap
 import Std.Data.HashSet
 import Std.Internal.Parsec
 import Std.Internal.Parsec.String
+import Common.GraphShape
 import Common.Parser
 
 open Std
@@ -44,6 +45,20 @@ instance : ToString TreeNode where
     | .node  low     .isFalse id => s!"[#{id} l:{low.index} h:false]"
     | .node  low     .isTrue  id => s!"[#{id} l:{low.index} h:true]"
     | .node  low      high    id => s!"[#{id} l:{low.index} h:{high.index}]"
+
+def TreeNode.depth (self : TreeNode) : Nat := match self with
+  | .isFalse => 0
+  | .isTrue  => 0
+  | .node low high _ => 1 + max low.depth high.depth
+
+def TreeNode.size (self : TreeNode) : Nat := match self with
+  | .isFalse => 1
+  | .isTrue  => 1
+  | .node low high _ => 1 + low.size + high.size
+
+instance : GraphShape TreeNode where
+  numberOfVars := (·.depth)
+  numberOfNodes := (·.size)
 
 def TreeNode.is_congruent (a b : TreeNode) : Bool := match a, b with
   | .isFalse, .isFalse => true
