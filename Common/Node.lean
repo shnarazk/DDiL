@@ -14,8 +14,8 @@ theorem array_element_induction {α : Type} (p : α → Nat) (a : Array α) (h :
   simp [Array.push]
   intro x h'
   rcases h' with h₁ | h₂
-  { rcases h x h₁ with h₂ ; exact tr x (h x h₁) }
-  { simp [h₂] at * ; exact hb }
+  {rcases h x h₁ with h₂ ; exact tr x (h x h₁)}
+  {simp [h₂] at * ; exact hb}
 
 #eval ∀ i < 4, i < 8
 
@@ -71,7 +71,7 @@ structure Ref where
 deriving BEq, Hashable
 
 instance : Inhabited Ref where
-  default := { grounded := false, link := none }
+  default := {grounded := false, link := none}
 
   instance : ToString Ref where
     toString self := match self with
@@ -109,62 +109,7 @@ def Node.validRef (self : Node) (pos : Nat) : Bool :=
     | none  , some h => h < pos
     | none  , none   => true
 
-def varIndexIsOrdered₀ (nodes : Array Node) (vi : Nat) : Bool :=
-  if h : vi < nodes.size then
-    match (nodes[vi]'h).li.link with
-    | none => true
-    | some i => match nodes[i]? with
-      | none => false
-      | some node => node.varId < vi
-  else
-    false
-
-def varIndexIsOrdered₁ (nodes : Array Node) (vi : Nat) : Bool :=
-  if h : vi < nodes.size then
-    match (nodes[vi]'h).li.link with
-    | none => true
-    | some i => match nodes[i]? with
-      | none => false
-      | some node => node.varId < vi
-  else
-    false
-
------------------------------------
 /-
-instance : Inhabited Node where
-  default := .isFalse
-
-def Node.toVarId (self : Node) : Nat := match self with
-  | .isFalse => 0
-  | .isTrue  => 0
-  | .node varId _ _ => varId
-
-def Node.newNode (varId low high: Nat) : Node :=
-  .node varId low high
-
-instance : ToString Node where
-  toString (n : Node) : String := match n with
-    | .isFalse => "#false"
-    | .isTrue  => "#true"
-    | .node varId 0 0 => s!"[v:{varId}=false]"
-    | .node varId 0 1 => s!"[v:{varId}]"
-    | .node varId 1 0 => s!"[v:-{varId}]"
-    | .node varId 1 1 => s!"[v:{varId}=true]"
-    | .node varId 0 h => s!"[v:{varId} l:false h:{h}]"
-    | .node varId 1 h => s!"[v:{varId} l:true h:{h}]"
-    | .node varId l 0 => s!"[v:{varId} l:{l} h:false]"
-    | .node varId l 1 => s!"[v:{varId} l:{l} h:true]"
-    | .node varId l h => s!"[v:{varId} l:{l} h:{h}]"
-
-def Node.newConstant (value : Bool) : Node := match value with
-  | false => .isFalse
-  | true  => .isTrue
-
-def Node.isConstant (self : Node) : Option Bool := match self with
-  | .isFalse => some false
-  | .isTrue  => some true
-  | .node _ _ _ => none
-
 def Node.ofTreeNode' (tree : TreeNode)
     (map : HashMap Nat Node := HashMap.empty) : HashMap Nat Node :=
   match tree with
@@ -185,7 +130,7 @@ structure Graph where
   constant : Option Bool
   validSize : Nat := nodes.size
   numVars : Nat := 0
-  validVarIds : ∀ node ∈ nodes, (fun s n ↦ n.varId < s) numVars node
+  validVarIds : ∀ node ∈ nodes, (fun s n ↦ n.varId ≤ s) numVars node
   validRefs : ∀ node_index ∈ nodes.zipIdx, (fun (n, i) ↦ n.validRef i) node_index
 
 instance : Inhabited Graph where
@@ -193,7 +138,7 @@ instance : Inhabited Graph where
     let nodes : Array Node := Array.empty
     have nodes₀ : nodes.size = 0 := rfl
     have nodes_def : nodes = #[] := by exact rfl
-    have vi : ∀ node ∈ nodes, node.varId < 0 := by
+    have vi : ∀ node ∈ nodes, node.varId ≤ 0 := by
       rintro node₀ h₀
       simp [nodes_def] at h₀
     have ordered : ∀ node ∈ nodes.zipIdx, (fun (n, i) ↦ n.validRef i) node := by
@@ -212,7 +157,7 @@ instance : ToString Graph where
 
 def Graph.forVars (n : Nat) : Graph :=
  let g : Graph := default
-  have vi : ∀ node ∈ g.nodes, node.varId < n := by
+  have vi : ∀ node ∈ g.nodes, node.varId ≤ n := by
       rintro node₀ h₀
       have : g.nodes = #[] := by exact rfl
       rw [this] at h₀
@@ -224,15 +169,15 @@ def Graph.forVars (n : Nat) : Graph :=
 def Graph.addNode (g : Graph) (vi : Nat) (li hi : Ref) : Graph × Nat :=
   let node := { varId := vi, li := li, hi := hi }
   let nodes := g.nodes.push node
-  if h : vi < g.numVars ∧ node.validRef g.nodes.size then
+  if h : vi ≤ g.numVars ∧ node.validRef g.nodes.size then
     let g' : Graph := { g with
       nodes := nodes
       validSize := nodes.size
       validVarIds := by
         simp [nodes]
         rintro n (h₀ | h₁)
-        { exact g.validVarIds n h₀ }
-        { simp [h₁, node] ; exact h.left }
+        {exact g.validVarIds n h₀}
+        {simp [h₁, node] ; exact h.left}
       validRefs := by
         simp [nodes]
         simp [Array.zipIdx]
@@ -246,12 +191,10 @@ def Graph.addNode (g : Graph) (vi : Nat) (li hi : Ref) : Graph × Nat :=
           rcases j with ⟨jg, k⟩
           rcases base₀ i jg k with base₁
           simp at base₁
-          exact base₁
-        }
+          exact base₁ }
         {
           simp [j.left, j.right]
-          exact h.right
-        }
+          exact h.right }
     }
     (g', nodes.size - 1)
   else (g, g.nodes.size)
