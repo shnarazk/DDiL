@@ -198,19 +198,17 @@ namespace convert
 
 inductive Collector where
   | bool (val : Bool)
-  | link (mapping : HashMap Nat Node)
+  | link (mapping : Array Node)
 
 instance : Inhabited Collector where
-  default := Collector.link (HashMap.empty)
+  default := Collector.link (#[])
 
-def collectFromTreeNode (tree : TreeNode)
-    (mapping : HashMap Nat Node := HashMap.empty)
-    (varId : Nat := 1)
+def collectFromTreeNode (tree : TreeNode) (mapping : Array Node := #[]) (varId : Nat := 1)
     : Collector :=
   match tree with
     | TreeNode.isFalse => Collector.bool false
     | TreeNode.isTrue  => Collector.bool true
-    | TreeNode.node low high id =>
+    | TreeNode.node low high _ =>
       let node : Node := {(default : Node) with varId}
       let (mapping, node) := match collectFromTreeNode low mapping (varId + 1) with
         | Collector.bool b => (mapping, {node with li := Ref.bool b})
@@ -218,12 +216,7 @@ def collectFromTreeNode (tree : TreeNode)
       let (mapping, node) := match collectFromTreeNode high mapping (varId + 1) with
         | Collector.bool b => (mapping, {node with hi := Ref.bool b})
         | Collector.link m => (m,       {node with hi := Ref.to (m.size - 1)})
-      Collector.link (mapping.insert id node)
-
-/--
-Renumber ids -/
-def toCompactArray (h : HashMap Nat Node) : Array Node :=
-    (Array.range h.size).map (h.getD · default)
+      Collector.link (mapping.push node)
 
 end convert
 
@@ -231,9 +224,8 @@ open convert in
 def Graph.fromTreeNode (tree : TreeNode) : Graph :=
   match collectFromTreeNode tree with
     | Collector.bool b => {(default : Graph) with constant := b}
-    | Collector.link m => m.toList.mergeSort (fun a b ↦ a.fst > b.fst)
-      |>.foldl
-        (fun g (_, node) => g.addNode node.varId node.li node.hi |>.fst)
+    | Collector.link m => m.foldl
+        (fun g node => g.addNode node.varId node.li node.hi |>.fst)
         (Graph.forVars (GraphShape.numberOfVars tree))
 
 def Graph.dumpAsDot (self : Graph) (path : String) : IO String := do
@@ -248,11 +240,20 @@ def Graph.dumpAsDot (self : Graph) (path : String) : IO String := do
       (fun (node, i) ↦  s!"  {i + 2} [label=\"{node.varId}\"];\n")
     |> String.join
   let edges := self.nodes.toList.zipIdx.map
-      (fun (node, i) ↦ if node.li == node.hi then
-              s!" {i + 2} -> {node.li} [color=black,penwidth=2];\n"
+      (fun (node, i) ↦
+        let li := match node.li.link, node.li.grounded with
+          | none, false => 0
+          | none, true  => 1
+          | some i, _   => i + 2
+        let hi := match node.hi.link, node.hi.grounded with
+          | none, false => 0
+          | none, true  => 1
+          | some i, _   => i + 2
+        if li == hi then
+              s!" {i + 2} -> {li} [color=black,penwidth=2];\n"
             else
-              s!" {i + 2} -> {node.li} [color=red,style=\"dotted\"];\n" ++
-              s!" {i + 2} -> {node.hi} [color=blue];\n" )
+              s!" {i + 2} -> {li} [color=red,style=\"dotted\"];\n" ++
+              s!" {i + 2} -> {hi} [color=blue];\n" )
     |> String.join
   IO.FS.writeFile path (buffer ++ "\n" ++ nodes ++ "\n" ++ edges ++ "\n}\n")
   return path
