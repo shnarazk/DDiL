@@ -122,11 +122,8 @@ def reduce₁ (g: Graph) (var_nodes: HashMap Nat (Array Ref)) : BDD :=
 
 end reducing
 
-/-- Check the trivial cases. Otherwise pass to `reduce₁`.
-FIXME: don't take BDD. It shold be a `Array Node`.
--/
-def BDD.reduce (self : BDD) : BDD :=
-  let g := self.toGraph
+/-- Check the trivial cases. Otherwise pass to `reduce₁`. -/
+def Graph.toBDD (g : Graph) : BDD :=
   -- build a mapping from `varId` to `List node`
   let (all_false, all_true, var_nodes) := g.nodes.zipIdx.foldl
     (fun (falses, trues, mapping) (node, i) =>
