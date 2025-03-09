@@ -75,18 +75,36 @@ deriving BEq, Hashable
 instance : Inhabited Ref where
   default := {grounded := false, link := none}
 
-  instance : ToString Ref where
-    toString self := match self with
-      | {grounded := false, link := none}   => "⊥"
-      | {grounded := true , link := none}   => "⊤"
-      | {grounded := true , link := some i} => s!"to:{i}"
-      | {grounded := false, link := some i} => s!"to:{i}"
+instance : ToString Ref where
+  toString self := match self with
+    | {grounded := false, link := none}   => "⊥"
+    | {grounded := true , link := none}   => "⊤"
+    | {grounded := true , link := some i} => s!"to:{i}"
+    | {grounded := false, link := some i} => s!"to:{i}"
+
+def Ref.lt (self other : Ref) : Prop := match self.link, other.link with
+  | none  , none   => False
+  | none  , some _ => True
+  | some _, none   => False
+  | some i, some j => i < j
+
+instance : LT Ref where
+  lt := Ref.lt
+
+instance DecidableLTRef : DecidableLT Ref
+  | {grounded := _, link := none}  , {grounded := _, link := none}    => isFalse not_false
+  | {grounded := _, link := none}  , {grounded := _, link := some _}  => isTrue trivial
+  | {grounded := _, link := some _}, {grounded := _, link := none}    => isFalse not_false
+  | {grounded := _, link := some i}, {grounded := _, link := some j}  =>
+      if h : i < j then isTrue h else isFalse h
 
 /-- Ref constructor for boolean values -/
 def Ref.bool (b : Bool) : Ref := {grounded := b, link := none}
 
 /-- Ref constructor for node references -/
 def Ref.to (n : Nat) : Ref := {grounded := false, link := some n}
+
+-- #eval (Ref.to 3) < (Ref.to 4)
 
 /-- Return `some bool_value` if the reference is constant, `none` otherwise -/
 def Ref.asBool (self : Ref) : Option Bool := match self.link with
@@ -99,7 +117,8 @@ def Ref.isSmaller (self : Ref) (n : Nat) : Bool := match self.link with
   | some i => i < n
 
 /--
-Node representation for graph, having `varId`, `li`, and `hi`. -/
+Node representation for graph, having `varId`, `li`, and `hi`.
+This has an order that matches the occurence order of the nodes in the `Graph.nodes`. -/
 structure Node where
   varId : Nat
   li : Ref
@@ -117,6 +136,20 @@ instance : ToString Node where
       s!"Node(var:{self.varId} ↦ {li})"
     else
       s!"Node(var:{self.varId}, li:{self.li}, hi:{self.hi})"
+
+/- FIXME: implement `decidable eq` -/
+def Node.lt (a b : Node) : Prop :=
+  a.varId > b.varId ∨ (a.varId == b.varId ∧ (a.li < b.li ∨ (a.li == b.li ∧ a.hi < b.hi)))
+
+/- This order matches the occurence order of the nodes in the `Graph.nodes`. -/
+instance : LT Node where
+  lt := Node.lt
+
+instance DecidableLTNode : DecidableLT Node
+  | a, b =>
+    if h : a.varId > b.varId ∨ (a.varId == b.varId ∧ (a.li < b.li ∨ (a.li == b.li ∧ a.hi < b.hi)))
+      then isTrue h
+      else isFalse h
 
 def Node.validRef (self : Node) (pos : Nat) : Bool :=
   match self.li.link, self.hi.link with
