@@ -278,6 +278,9 @@ def Graph.fromTreeNode (tree : TreeNode) : Graph :=
         (fun g node => g.addNode node.varId node.li node.hi |>.fst)
         (Graph.forVars (GraphShape.numberOfVars tree))
 
+def Graph.fromNodes (n : Nat) (nodes : Array Node) : Graph :=
+  nodes.foldl (fun g n ↦ g.addNode n.varId n.li n.hi |>.fst) (Graph.forVars n)
+
 def Graph.dumpAsDot (self : Graph) (path : String) : IO String := do
   let buffer := "digraph regexp {
     fontname=\"Helvetica,Arial,sans-serif\"

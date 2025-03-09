@@ -6,6 +6,12 @@ import Common.DecisionDiagram
 
 open Std
 
+open Option in
+def Option.unwrap {α : Type} [Inhabited α] (self : Option α) : α :=
+  match self with | some a => a | none => default
+
+#eval (some (3 : Nat)).unwrap
+
 /-
 theorem nodes_contains_false (nodes : HashMap Nat Node) : (nodes.insertMany [(0, .isFalse), (1, .isTrue)]).contains 0 := by
   rw [HashMap.contains_insertMany_list]
@@ -56,21 +62,7 @@ namespace reducing
 
 variable (g : Graph)
 
-def order_to_scan (ia ib : Nat) : Bool :=
-  if h : g.nodes[ia]! < g.nodes[ib]! then true else false
-
-/-- ddirの`for n in vlist[vi].iter().cloned()` に対応 -/
-def trim_nodes (updatedRef: HashMap Ref Ref) (targets: Array Nat) : Array Nat × HashMap Ref Ref :=
-  targets.foldl
-    (fun (acc, updatedRef) (id: Nat) ↦
-      let node := g.nodes[id]!
-      let li := updatedRef.getD node.li node.li
-      let hi := updatedRef.getD node.hi node.hi
-      if li == hi
-      then (acc, updatedRef.insert (Ref.to id) li)
-      else (acc.push id, updatedRef)
-    )
-    (#[], updatedRef)
+def order_to_scan (ia ib : Nat) : Bool := g.nodes[ia]! < g.nodes[ib]!
 
 def BBD.compact (nodes : Array Node) (start : Nat) : BDD :=
   if h : 0 < nodes.size then
@@ -80,43 +72,51 @@ def BBD.compact (nodes : Array Node) (start : Nat) : BDD :=
   else
     default
 
+/-- Trim nodes that have the same li and hi refs. -/
+def trim_nodes (updatedRef: HashMap Ref Ref) (targets: Array Ref) : Array Ref × HashMap Ref Ref :=
+  targets.foldl
+    (fun (acc, updatedRef) (ref: Ref) ↦
+      let node := g.nodes[ref.link.unwrap]!
+      let li := updatedRef.getD node.li node.li
+      let hi := updatedRef.getD node.hi node.hi
+      if li == hi
+        then (acc, updatedRef.insert ref li)
+        else (acc.push ref, updatedRef) )
+    (#[], updatedRef)
+
+
 /-- Called from `reduce`. Rebuild and merge mergeable nodes. -/
-def reduce₁ (g: Graph) (var_nodes: HashMap Nat (Array Nat)) : BDD :=
+def reduce₁ (g: Graph) (var_nodes: HashMap Nat (Array Ref)) : BDD :=
   -- mapping from old ref to new ref
   let updatedRef : HashMap Ref Ref := HashMap.empty
-  let next_id := g.nodes.size
+  -- let next_id := g.nodes.size
   var_nodes.toList.mergeSort (fun a b ↦ a.fst > b.fst) -- from bottom var to top var
     |>.foldl
-        (fun (next_id, updatedRef, nodes) (v_list : (Nat × List Node)) ↦
-          let (q, updatedRef) : List ((Nat × Nat) × Node) × HashMap Ref Ref
-            := trim_nodes updatedRef v_list.snd
-          q.foldl
-              (fun (next_id, updatedRef, nodes, oldKey) (key, node) ↦
-                if oldKey == key then
-                  (next_id, updatedRef.insert node next_id, nodes, key)
-                else
-                  -- FIXME: nothing done: update nodes using updatedRef
-                  let next_id₁ := next_id + 1
-                  match node with
-                    | .isFalse | .isTrue => (next_id₁, updatedRef.insert node next_id₁, nodes.insert next_id₁ node, key)
-                    | .node vi li hi =>
-                      let newNode := Node.node vi li hi
-                      let updatedRef := updatedRef.insert node next_id₁
-                      let updatedRef := updatedRef.insert newNode next_id₁
-                      (next_id₁, updatedRef, nodes.insert next_id₁ newNode, key)
-                    )
-              (next_id, updatedRef, nodes, (0,0))
-            |> (fun (i, h, n, _) ↦ (i, h, n)) )
-        (updatedRef.size, updatedRef, g.toHashMap)
-    |> (fun (_, _, nodes) ↦
-          nodes.toArray
-            |>.insertionSort (·.fst < ·.fst)
-            |>.map (·.snd))
-    |> (fun (nodes : Array Node) ↦ if h : 0 < nodes.size
+      (fun (updatedRef, nodes) (vi, refs) ↦
+        let (targets, updatedRef) : Array Ref × HashMap Ref Ref := trim_nodes g updatedRef refs
+        targets.foldl
+            (fun (updatedRef, nodes, prevRef) nodeRef /- (key, node) -/ ↦
+              let prev := nodes.getD prevRef.link.unwrap default
+              let node := nodes[nodeRef.link.unwrap]!
+              if prev == node then
+                (updatedRef.insert nodeRef prevRef, nodes, prevRef)
+              else
+                -- FIXME: nothing done: update nodes using updatedRef
+                -- let newNode := Node.node vi li hi
+                -- let updatedRef := updatedRef.insert node next_id₁
+                -- let updatedRef := updatedRef.insert newNode next_id₁
+                -- (updatedRef, nodes.insert next_id₁ newNode, prevRef) )
+                (updatedRef, nodes, nodeRef))
+            (updatedRef, nodes, Ref.to nodes.size)
+          |> (fun (updateRef, nodes, _) ↦ (updateRef, nodes)) )
+      (updatedRef, g.nodes)
+    -- |> (fun (_, nodes) ↦ nodes.toArray |>.insertionSort (·.fst < ·.fst) |>.map (·.snd))
+    |> (fun (_, (nodes : Array Node)) ↦ if h : 0 < nodes.size
           then
-            have : NeZero (nodes.size) := by sorry
-            {nodes, root := @Fin.ofNat' nodes.size this next_id, filled := this }
-          else default)
+            -- have : NeZero (nodes.size) := by sorry
+            -- {nodes, root := @Fin.ofNat' nodes.size this next_id, filled := this}
+            Graph.fromNodes g.numVars nodes
+          else default )
     |> (fun (g : Graph) ↦ ((↑g) : BDD))
     -- BBD.compact (nodes.toArray |>.insertionSort (·.fst < ·.fst) |>.map (·.snd)) next_id)
 
@@ -129,13 +129,15 @@ def BDD.reduce (self : BDD) : BDD :=
   let g := self.toGraph
   -- build a mapping from `varId` to `List node`
   let (all_false, all_true, var_nodes) := g.nodes.zipIdx.foldl
-      (fun (falses, trues, mapping) (node, i) => (
-        falses && (node.asBool == some false),
-        trues && (node.asBool == some true),
-        mapping.alter node.varId (fun list => match list with
-          | none => some #[i]
-          | some l => some (l.push i))))
-    (true, true, (HashMap.empty : HashMap Nat (Array Nat)))
+    (fun (falses, trues, mapping) (node, i) =>
+     ( falses && (node.asBool == some false),
+       trues && (node.asBool == some true),
+       mapping.alter
+         node.varId
+         (fun list => match list with
+           | none => some #[Ref.to i]
+           | some l => some (l.push (Ref.to i)) )))
+    (true, true, (HashMap.empty : HashMap Nat (Array Ref)))
   match all_false, all_true with
     | true, _    => ↑{(default : Graph) with constant := false}
     | _   , true => ↑{(default : Graph) with constant := true}
