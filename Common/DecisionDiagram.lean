@@ -1,5 +1,5 @@
 import Std.Data.HashSet
-import Common.Node
+import Common.Graph
 import Common.GraphShape
 
 open Std

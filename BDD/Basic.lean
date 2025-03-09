@@ -1,11 +1,12 @@
 import Std
 import Std.Data.HashMap
-import Common.Node
 import Common.Graph
+import Common.GraphShape
 import Common.DecisionDiagram
 
 open Std
 
+/-
 theorem nodes_contains_false (nodes : HashMap Nat Node) : (nodes.insertMany [(0, .isFalse), (1, .isTrue)]).contains 0 := by
   rw [HashMap.contains_insertMany_list]
   exact Eq.symm ((fun {a b} ↦ Bool.iff_or_self.mpr) (congrFun rfl))
@@ -13,10 +14,11 @@ theorem nodes_contains_false (nodes : HashMap Nat Node) : (nodes.insertMany [(0,
 theorem nodes_contains_true (nodes : HashMap Nat Node) : (nodes.insertMany [(0, .isFalse), (1, .isTrue)]).contains 1 := by
   rw [HashMap.contains_insertMany_list]
   exact Eq.symm ((fun {a b} ↦ Bool.iff_or_self.mpr) (congrFun rfl))
+-/
 
 structure BDD extends Graph
 
-instance : Inhabited BDD := ⟨{ toGraph := default }⟩
+instance : Inhabited BDD := ⟨{toGraph := default}⟩
 
 instance : ToString BDD where
   toString bdd := s!"[bdd {bdd.toGraph}]"
@@ -29,44 +31,53 @@ instance : Coe Graph BDD where
 
 def BDD.unusedId (self : BDD) : Nat := self.nodes.size
 
-def BDD.mkConstant (self: BDD) (value : Bool) : Node × BDD :=
-  (self.toGraph.constant value, self)
+-- def BDD.mkConstant (self: BDD) (value : Bool) : Node × BDD :=
+--   (self.toGraph.constant value, self)
 
-def BDD.addNewNode (self: BDD) (varId : Nat) (li hi : Nat) : Nat × BDD :=
-  self.toGraph.addNewNode varId li hi
-    |> fun (n, g) => (n, { self with toGraph := g })
+def BDD.addNode (self: BDD) (varId : Nat) (li hi : Ref) : BDD × Nat :=
+  self.toGraph.addNode varId li hi
+    |> fun (g, n) => ({self with toGraph := g}, n)
+
+instance : GraphShape BDD where
+  numberOfVars bdd := GraphShape.numberOfVars bdd.toGraph
+  numberOfNodes _bdd := 0
+  shapeOf bdd := GraphShape.shapeOf bdd.toGraph
+  dumpAsDot bdd := GraphShape.dumpAsDot bdd.toGraph
+  dumpAsPng bdd := GraphShape.dumpAsPng bdd.toGraph
 
 instance : DecisionDiagram BDD where
-  allNodes (self : BDD) := self.toGraph.nodes |> HashSet.ofArray
-  addNewConstant := BDD.mkConstant
-  addNewNode := BDD.addNewNode
+  allNodes (self : BDD) :=
+    self.toGraph.nodes.zipIdx |>.map (fun (n, i) => (i, n)) |> HashSet.ofArray
+  numberOfPaths (_self : BDD) := 0
 
-example : (default : Node).toVarId = 0 := rfl
+-- example : (default : Node).toVarId = 0 := rfl
 
-def lhn_le (a b : ((Nat × Nat) × Node)) : Bool :=
+namespace reducing
+/-
+def order_to_scan (a b : ((Nat × Nat) × Node)) : Bool :=
   a.fst.fst < b.fst.fst || (a.fst.fst == b.fst.fst && a.fst.snd < b.fst.snd)
 
 /-- ddirの`for n in vlist[vi].iter().cloned()` に対応 -/
-def aux_merge (indexer: HashMap Node Nat) (nodes: List Node) : (List ((Nat × Nat) × Node)) × HashMap Node Nat :=
+private def trim_nodes (indexer: HashMap Ref Ref) (nodes: List Node) : (List ((Nat × Nat) × Node)) × HashMap Node Nat :=
   nodes.foldl
-      (fun (acc, indexer) (node: Node) ↦ match node with
-        | .isFalse | .isTrue => (acc, indexer)
-        | .node _vi li hi =>
-          if li == hi
-          then (acc, indexer.insert node li)
-          else (acc ++ [((li, hi), node)], indexer))
+      (fun (acc, indexer) (node: Node) ↦
+        let li := indexer.getD node.li node.li
+        let hi := indexer.getD node.hi node.hi
+        if li == hi
+        then (acc, indexer.insert node li)
+        else (acc ++ [((li, hi), node)], indexer) )
       ([], indexer)
-    |> (fun (added, indexer) ↦ (added.mergeSort lhn_le, indexer))
+    |> (fun (added, indexer) ↦ (added.mergeSort order_to_scan, indexer))
 
 def BBD.compact (nodes : Array Node) (start : Nat) : BDD :=
   if h : 0 < nodes.size then
     have : NeZero nodes.size := by sorry
-    { nodes := nodes, root := Fin.ofNat' nodes.size start, filled := this }
+    {nodes := nodes, root := Fin.ofNat' nodes.size start, filled := this}
   else
     default
 
 /-- Called from `reduce`. Rebuild and merge mergeable nodes. -/
-def BDD.reduce₁ (g: Graph) (var_nodes: HashMap Nat (List Node)) : BDD :=
+def reduce₁ (g: Graph) (var_nodes: HashMap Nat (List Node)) : BDD :=
   let indexer : HashMap Node Nat := HashMap.empty
   let next_id := g.nodes.size
   var_nodes.toList.mergeSort (fun a b ↦ a.fst < b.fst)
@@ -74,7 +85,7 @@ def BDD.reduce₁ (g: Graph) (var_nodes: HashMap Nat (List Node)) : BDD :=
     |>.foldl
         (fun (next_id, indexer, nodes) (v_list : (Nat × List Node)) ↦
           let (q, indexer) : List ((Nat × Nat) × Node) × HashMap Node Nat
-            := aux_merge indexer v_list.snd
+            := trim_nodes indexer v_list.snd
           q.foldl
               (fun (next_id, indexer, nodes, oldKey) (key, node) ↦
                 if oldKey == key then
@@ -104,6 +115,8 @@ def BDD.reduce₁ (g: Graph) (var_nodes: HashMap Nat (List Node)) : BDD :=
           else default)
     |> (fun (g : Graph) ↦ ((↑g) : BDD))
     -- BBD.compact (nodes.toArray |>.insertionSort (·.fst < ·.fst) |>.map (·.snd)) next_id)
+-/
+end reducing
 
 /-- Check the trivial cases. Otherwise pass to `reduce₁`.
 FIXME: don't take BDD. It shold be a `Array Node`.
@@ -111,18 +124,15 @@ FIXME: don't take BDD. It shold be a `Array Node`.
 def BDD.reduce (self : BDD) : BDD :=
   let g := self.toGraph
   -- build a mapping from `varId` to `List node`
-  let (_, all_false, all_true, var_nodes) := g.nodes
-      |>.toSubarray 2
-      |>.foldl
-        (fun (id, falses, trues, map) node => (
-          id + 1,
-          falses && (node == .isFalse),
-          trues && (node == .isTrue),
-          map.alter id (fun o => match o with
-            | none => some [node]
-            | some l => some (node :: l))))
-      (0, true, true, (HashMap.empty : HashMap Nat (List Node)))
+  let (all_false, all_true, var_nodes) := g.nodes.zipIdx.foldl
+      (fun (falses, trues, mapping) (node, i) => (
+        falses && (node.asBool == some false),
+        trues && (node.asBool == some true),
+        mapping.alter node.varId (fun list => match list with
+          | none => some #[i]
+          | some l => some (l.push i))))
+    (true, true, (HashMap.empty : HashMap Nat (Array Nat)))
   match all_false, all_true with
-    | true, _    => ↑{(default : Graph) with root := Fin.ofNat' 2 0}
-    | _   , true => ↑{(default : Graph) with root := Fin.ofNat' 2 1}
-    | _   , _    => BDD.reduce₁ g var_nodes
+    | true, _    => ↑{(default : Graph) with constant := false}
+    | _   , true => ↑{(default : Graph) with constant := true}
+    | _   , _    => self -- reducing.reduce₁ g var_nodes
