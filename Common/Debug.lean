@@ -36,6 +36,12 @@ def dbg {α : Type} (label : String) (a : α) (kind : LogKind := LogKind.log) : 
   let colors := LogKind.color kind
   dbgTrace s!"{colors.fst}{label}{colors.snd}" (fun _ ↦ a)
 
-def dbg! {α : Type} [ToString α] (label : String) (a : α) (kind : LogKind := LogKind.log) : α :=
+/-- Display debug info without the value -/
+def dbg! {α : Type} (label : String) (a : α) (kind : LogKind := LogKind.log) : α :=
+  let colors := LogKind.color kind
+  dbgTrace s!"{colors.fst}{label}{colors.snd}" (fun _ ↦ a)
+
+/-- Display debug info with the value -/
+def dbg? {α : Type} [ToString α] (label : String) (a : α) (kind : LogKind := LogKind.log) : α :=
   let colors := LogKind.color kind
   dbgTrace s!"{colors.fst}{label}: {a}{colors.snd}" (fun _ ↦ a)

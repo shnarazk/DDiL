@@ -32,8 +32,8 @@ instance : ToString BDD where
 instance : BEq BDD where
   beq a b := a.toGraph == b.toGraph
 
-instance : Coe Graph BDD where
-  coe g := { toGraph := g }
+-- instance : Coe Graph BDD where
+--   coe g := { toGraph := g }
 
 def BDD.unusedId (self : BDD) : Nat := self.nodes.size
 
@@ -80,7 +80,7 @@ def trim_nodes (updatedRef: HashMap Ref Ref) (targets: Array Ref) : Array Ref ×
       let li := updatedRef.getD node.li node.li
       let hi := updatedRef.getD node.hi node.hi
       if li == hi
-        then (acc, updatedRef.insert ref li)
+        then (dbg! "trim" acc, updatedRef.insert ref li)
         else (acc.push ref, updatedRef) )
     (#[], updatedRef)
 
@@ -98,26 +98,30 @@ def reduce₁ (g: Graph) (var_nodes: HashMap Nat (Array Ref)) : BDD :=
             (fun (updatedRef, nodes, prevRef) nodeRef /- (key, node) -/ ↦
               let prev := nodes.getD prevRef.link.unwrap default
               let node := nodes[nodeRef.link.unwrap]!
-              if prev == node then
-                (updatedRef.insert nodeRef prevRef, nodes, prevRef)
+              let node' := { node with
+                              li := updatedRef.getD node.li node.li
+                              hi := updatedRef.getD node.hi node.hi }
+              if prev == node' then
+                dbg! "merge" (updatedRef.insert nodeRef prevRef, nodes, prevRef)
               else
                 -- FIXME: nothing done: update nodes using updatedRef
                 -- let newNode := Node.node vi li hi
                 -- let updatedRef := updatedRef.insert node next_id₁
                 -- let updatedRef := updatedRef.insert newNode next_id₁
-                -- (updatedRef, nodes.insert next_id₁ newNode, prevRef) )
-                (updatedRef, nodes, nodeRef))
+                -- (updatedRef, nodes.get next_id₁ newNode, prevRef) )
+                (updatedRef, nodes.set! nodeRef.link.unwrap node', nodeRef)
+            )
             (updatedRef, nodes, Ref.to nodes.size)
           |> (fun (updateRef, nodes, _) ↦ (updateRef, nodes)) )
       (updatedRef, g.nodes)
     -- |> (fun (_, nodes) ↦ nodes.toArray |>.insertionSort (·.fst < ·.fst) |>.map (·.snd))
-    |> (fun (_, (nodes : Array Node)) ↦ if h : 0 < nodes.size
-          then
+    |> (fun (_, (nodes : Array Node)) ↦ if 0 < (dbg? s!"g: {g.nodes}\nafter" nodes).size then
             -- have : NeZero (nodes.size) := by sorry
             -- {nodes, root := @Fin.ofNat' nodes.size this next_id, filled := this}
-            Graph.fromNodes g.numVars nodes
-          else default )
-    |> (fun (g : Graph) ↦ ((↑g) : BDD))
+            dbg! "reduce₁: ok" <| Graph.fromNodes g.numVars nodes
+          else
+            dbg! "reduce₁: something is wrong" default )
+    |> (fun (g : Graph) ↦ dbg! "??" {toGraph := g}) --  ((↑g) : BDD))
     -- BBD.compact (nodes.toArray |>.insertionSort (·.fst < ·.fst) |>.map (·.snd)) next_id)
 
 end reducing
@@ -138,4 +142,4 @@ def Graph.toBDD (g : Graph) : BDD :=
   match all_false, all_true with
     | true, _    => ↑{(default : Graph) with constant := false}
     | _   , true => ↑{(default : Graph) with constant := true}
-    | _   , _    => reducing.reduce₁ g var_nodes
+    | _   , _    => reducing.reduce₁ (dbg? "calling" g) var_nodes
