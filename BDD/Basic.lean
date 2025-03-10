@@ -118,3 +118,26 @@ def Graph.toBDD (g : Graph) : BDD :=
     | true, _    => ↑{(default : Graph) with constant := false}
     | _   , true => ↑{(default : Graph) with constant := true}
     | _   , _    => reducing.reduce₁ g var_nodes
+
+namespace bdd_operations
+
+variable (bdd : BDD)
+
+def apply (f : Bool → Bool → Bool) (unit : Bool) : BDD :=
+  bdd
+
+def compose (other : BDD) (varIndex : Nat) : BDD :=
+  bdd
+
+end bdd_operations
+
+def BDD.apply (self : BDD) (f : Bool → Bool → Bool) (unit : Bool) : BDD :=
+  bdd_operations.apply self f unit
+
+def BDD.compose (self : BDD) (other : BDD) (varIndex : Nat) : BDD :=
+  bdd_operations.compose self other varIndex
+--
+
+instance : ReducibleDecisionDiagram BDD where
+  apply := BDD.apply
+  compose := BDD.compose

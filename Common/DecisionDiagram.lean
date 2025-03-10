@@ -13,8 +13,6 @@ class DecisionDiagram (α : Type) [BEq α] [GraphShape α] where
   allNodes : α → HashSet (Nat × Node)
 
 class ReducibleDecisionDiagram (α : Type) [BEq α] [GraphShape α] [DecisionDiagram α] where
-  /-- Normalize to a valid representation -/
-  reduce : α → α
   apply : α → (Bool → Bool → Bool) → Bool → α
   /-- Combine two diagrams into one -/
-  compose : α → α → α
+  compose : α → α → Nat → α
