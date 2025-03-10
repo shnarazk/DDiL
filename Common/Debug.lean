@@ -7,9 +7,10 @@ def assert_eq {α : Type} [BEq α] [ToString α] (s : String) (a b : α) : IO Un
     IO.println s!"🆖 Assertion: {s} == {b}"
 
 inductive LogKind : Type where
-| log : LogKind
-| warn : LogKind
-| error : LogKind
+  | info  : LogKind
+  | log   : LogKind
+  | warn  : LogKind
+  | error : LogKind
 
 namespace Debug
 
@@ -26,10 +27,21 @@ end Debug
 
 open Debug in
 def LogKind.color (kind : LogKind) : String × String := match kind with
-  | .log => (green, reset)
-  | .warn => (blue, reset)
-  | .error => (red, reset)
+  | .info  => (cyan , reset)
+  | .log   => (green, reset)
+  | .warn  => (blue , reset)
+  | .error => (red  , reset)
 
 def dbg {α : Type} (label : String) (a : α) (kind : LogKind := LogKind.log) : α :=
   let colors := LogKind.color kind
   dbgTrace s!"{colors.fst}{label}{colors.snd}" (fun _ ↦ a)
+
+/-- Display debug info without the value -/
+def dbg! {α : Type} (label : String) (a : α) (kind : LogKind := LogKind.log) : α :=
+  let colors := LogKind.color kind
+  dbgTrace s!"{colors.fst}{label}{colors.snd}" (fun _ ↦ a)
+
+/-- Display debug info with the value -/
+def dbg? {α : Type} [ToString α] (label : String) (a : α) (kind : LogKind := LogKind.log) : α :=
+  let colors := LogKind.color kind
+  dbgTrace s!"{colors.fst}{label}: {a}{colors.snd}" (fun _ ↦ a)

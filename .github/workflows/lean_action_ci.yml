@@ -1,9 +1,12 @@
 name: Lean Action CI
 
 on:
-  push:
-  pull_request:
-  workflow_dispatch:
+  # push:
+  # pull_request:
+  # workflow_dispatch:
+  workflow_run:
+    workflows: ["Pull Request Workflow"]
+    types: [completed]
 
 jobs:
   build:

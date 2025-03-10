@@ -1,89 +1,86 @@
 import Common.Debug
 import Common.Graph
-import Common.Node
+
+namespace Test_Node
+
+def f := Node.mk 1 (Ref.bool false) (Ref.bool true)
+def t := Node.mk 2 (Ref.bool true) (Ref.bool true)
+-- def t := Node.newConstant true
+-- def n2 := Node.newNode 2 0 1
+-- def n3 := Node.newNode 1 1 3
+
+def run : IO Unit := do
+  IO.println s!"Node f: {f}"
+  IO.println s!"Node t: {t}"
+  -- IO.println s!"Node: {n3}"
+  IO.println "test tree"
+
+end Test_Node
 
 namespace Test_Graph
 
-def g1 : Graph := {
-  nodes := #[
-     .isFalse,
-     .isTrue,
-     .node 1 0 3,
-     .node 2 1 0],
-  root := Fin.ofNat' 4 2,
-  filled := by exact Nat.instNeZeroSucc
-}
+def g₀ : Graph := default
+def g₁ : Graph := { (default : Graph) with
+    numVars := 3
+    validVarIds := by decide
+  }
+def g₁₁ := Graph.forVars 3
+def g₂ : Graph := g₁.addNode' 1 (Ref.bool true) (Ref.bool false) |>.fst
+def g₃ : Graph := TreeNode.fromString "{{{T F} {F F}} {{T F} {F F}}}" |> Graph.fromTreeNode
 
-def g2 : Graph := {
-  nodes := #[
-     .isFalse,
-     .isTrue,
-     .node 1 3 4,
-     .node 2 0 0,
-     .node 2 1 0],
-  root := Fin.ofNat' 5 2,
-  filled := by exact Nat.instNeZeroSucc
-}
+def independent_tree := TreeNode.fromString
+  "{  { { {{{T T} {T F}} {{T T} {F F}}}
+          {{{T T} {T F}} {{F F} {F F}}} }
+        { {{{T T} {T F}} {{T T} {F F}}}
+          {{{F F} {F F}} {{F F} {F F}}} } }
+      { { {{{T F} {T F}} {{T F} {F F}}}
+          {{{T F} {T F}} {{F F} {F F}}} }
+        { {{{F F} {F F}} {{F F} {F F}}}
+          {{{F F} {F F}} {{F F} {F F}}} } } }"
 
-def g3 : Graph := {
-  nodes := #[
-     .isFalse,
-     .isTrue,
-     .node 1 3 4,
-     .node 2 0 0,
-     .node 2 1 0,
-     .node 2 0 0,
-     .node 2 1 1],
-  root := Fin.ofNat' 7 2,
-  filled := by exact Nat.instNeZeroSucc
-}
-
-def independent : Graph := ↑(TreeNode.ofString
-  "{ 1
-    { 2
-      { 3
-        {4 {5 {6 T T} {6 T F}} {5 {6 T T} {6 F F}}}
-        {4 {5 {6 T T} {6 T F}} {5 {6 F F} {6 F F}}} }
-      { 3
-        {4 {5 {6 T T} {6 T F}} {5 {6 T T} {6 F F}}}
-        {4 {5 {6 F F} {6 F F}} {5 {6 F F} {6 F F}}} } }
-    { 2
-      { 3
-        {4 {5 {6 T F} {6 T F}} {5 {6 T F} {6 F F}}}
-        {4 {5 {6 T F} {6 T F}} {5 {6 F F} {6 F F}}} }
-      { 3
-        {4 {5 {6 F F} {6 F F}} {5 {6 F F} {6 F F}}}
-        {4 {5 {6 F F} {6 F F}} {5 {6 F F} {6 F F}}} } } }")
+def independent := Graph.fromTreeNode independent_tree
 
 def run : IO Unit := do
   let (start, done) := LogKind.warn.color
   IO.println start
-  IO.println s!"Graph: {(g1, 2)}"
-  IO.println s!"Graph: {(g1, 3)}"
-  IO.println s!"Graph.toHashMap: {g1.toHashMap.toList}"
-  IO.println s!"Graph.toHashSet: {g1.toHashSet.toList}"
-  IO.println s!"g1 ≃ g1: {Graph.is_congruent g1 g1}"
-  IO.println s!"g1 ≃ g2: {Graph.is_congruent g1 g2}"
-  IO.println s!"g1.compact: {g1.compactNodes.toHashMap.toList}"
-  IO.println s!"g2.compact: {g2.compactNodes.toHashMap.toList}"
-  IO.println s!"g3.compact: {g3.compactNodes.toHashMap.toList}"
-  IO.println s!"independent.root: {independent.root.val}"
-  IO.println s!"independent: {(independent, independent.root.val)}"
+  IO.println s!"Graph g₀: {g₀}"
+  IO.println s!"Graph g₁: {g₁}"
+  IO.println s!"Graph g₁₁: {g₁₁}"
+  IO.println s!"Graph g₂: {g₂}"
+  IO.println s!"GraphShape.ofShape g₃: {GraphShape.shapeOf g₃}"
+  IO.println s!"GraphShape.numberOfVars g₂: {GraphShape.numberOfVars g₂}"
+  IO.println s!"GraphShape.numberOfNodes g₂: {GraphShape.numberOfNodes g₂}"
+  -- IO.println s!"independent: {independent}"
+  IO.println s!"GraphShape.ofShape independent: {GraphShape.shapeOf independent}"
   try
-    let gv1 := "lake-test_g2.gv"
-    g2.dumpAsDot gv1
-    IO.println gv1 <* IO.Process.run { cmd := "dot", args := #["-T", "png", "-O", gv1]}
-    IO.FS.removeFile gv1
-    let gv2 := "lake-test_g2-compact.gv"
-    g2.compactNodes.dumpAsDot gv2
-    IO.println gv2 <* IO.Process.run { cmd := "dot", args := #["-T", "png", "-O", gv2]}
-    IO.FS.removeFile gv2
-    let gv3 := "lake-test_independent.gv"
-    independent.dumpAsDot gv3
-    IO.println gv3 <* IO.Process.run { cmd := "dot", args := #["-T", "png", "-O", gv3]}
-    IO.FS.removeFile gv3
-  catch
-    | e => IO.println s!"Failed to make a png: {e}"
+    let file ← independent.dumpAsPng "lake-test_independent.png"
+    IO.println s!"Graph g₂ dumped as: {file}"
+  catch e => IO.println s!"Error: {e}"
+  -- IO.println s!"Graph: {(g1, 3)}"
+  -- IO.println s!"Graph.toHashMap: {g1.toHashMap.toList}"
+  -- IO.println s!"Graph.toHashSet: {g1.toHashSet.toList}"
+  -- IO.println s!"g1 ≃ g1: {Graph.is_congruent g1 g1}"
+  -- IO.println s!"g1 ≃ g2: {Graph.is_congruent g1 g2}"
+  -- IO.println s!"g1.compact: {g1.compactNodes.toHashMap.toList}"
+  -- IO.println s!"g2.compact: {g2.compactNodes.toHashMap.toList}"
+  -- IO.println s!"g3.compact: {g3.compactNodes.toHashMap.toList}"
+  -- IO.println s!"independent.root: {independent.root.val}"
+  -- IO.println s!"independent: {(independent, independent.root.val)}"
+  -- try
+  --   let gv1 := "lake-test_g2.gv"
+  --   g2.dumpAsDot gv1
+  --   IO.println gv1 <* IO.Process.run { cmd := "dot", args := #["-T", "png", "-O", gv1]}
+  --   IO.FS.removeFile gv1
+  --   let gv2 := "lake-test_g2-compact.gv"
+  --   g2.compactNodes.dumpAsDot gv2
+  --   IO.println gv2 <* IO.Process.run { cmd := "dot", args := #["-T", "png", "-O", gv2]}
+  --   IO.FS.removeFile gv2
+  --   let gv3 := "lake-test_independent.gv"
+  --   independent.dumpAsDot gv3
+  --   IO.println gv3 <* IO.Process.run { cmd := "dot", args := #["-T", "png", "-O", gv3]}
+  --   IO.FS.removeFile gv3
+  -- catch
+  --   | e => IO.println s!"Failed to make a png: {e}"
   IO.println done
 
 end Test_Graph
