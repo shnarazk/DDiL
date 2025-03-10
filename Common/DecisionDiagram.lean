@@ -1,8 +1,4 @@
--- import Std.Data.HashSet
--- import Common.Graph
 import Common.GraphShape
-
-open Std
 
 /--
 Interface for decision diagram built from `Node`.

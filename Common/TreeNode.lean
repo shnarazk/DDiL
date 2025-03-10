@@ -101,29 +101,29 @@ def TreeNode.assignIndex (self : TreeNode) (index : Nat := 2) : TreeNode × Nat 
     let (h, i₂) := high.assignIndex i₁
     (TreeNode.newVar l h index, i₂)
 
-namespace counting
+namespace TreeNode_private
 /--
 Checks if the TreeNode satisfies all conditions.
 Tree traversing approach isn't efficient because it visits subtrees many times. -/
-def linearCount (counter : Std.HashMap Nat Nat) (n : TreeNode) : Std.HashMap Nat Nat × Nat :=
+def count (counter : Std.HashMap Nat Nat) (n : TreeNode) : Std.HashMap Nat Nat × Nat :=
   if let some count := counter[n.index]? then (counter, count)
   else
     match n with
       | .isFalse => (counter, 0)
       | .isTrue  => (counter, 1)
       | .node low high index =>
-          let (c₁, k₁) := linearCount counter low
-          let (c₂, k₂) := linearCount c₁ high
+          let (c₁, k₁) := count counter low
+          let (c₂, k₂) := count c₁ high
           (c₂.insert index (k₁ + k₂), k₁ + k₂)
 
-end counting
+end TreeNode_private
 /--
 Returns the number of satisfying assignments for the given TreeNode.
 This is the number of paths. -/
 def TreeNode.numSatisfies (self : TreeNode) : Nat :=
-  counting.linearCount Std.HashMap.empty self |>.snd
+  TreeNode_private.count Std.HashMap.empty self |>.snd
 
-namespace parser
+namespace TreeNode_parser
 
 open Std.Internal.Parsec
 open Std.Internal.Parsec.String
@@ -161,10 +161,10 @@ end -- of mutual
 
 -- #eval ParserLib.parse parse_tf "{0 F F}"
 
-end parser
+end TreeNode_parser
 
 def TreeNode.fromString (input : String) : TreeNode :=
-  match ParserLib.parse parser.parse_tf input with
+  match ParserLib.parse TreeNode_parser.parse_tf input with
     |some tree => tree.assignIndex.fst
     |none => TreeNode.isFalse
 
