@@ -1,5 +1,6 @@
 import Std.Data.HashMap
 import Common.Debug
+import Common.DecisionDiagram
 import Common.TreeNode
 import Common.GraphShape
 import Mathlib.Tactic
@@ -368,5 +369,34 @@ instance : GraphShape Graph where
   numberOfNodes := (·.nodes.size)
   dumpAsDot := Graph.dumpAsDot
   dumpAsPng := Graph.dumpAsPng
+
+namespace graph_counting
+
+/--
+Checks if the TreeNode satisfies all conditions.
+Tree traversing approach isn't efficient because it visits subtrees many times. -/
+partial def linearCount (g : Graph) (counter : Std.HashMap Ref Nat) (r : Ref) : Std.HashMap Ref Nat × Nat :=
+  match r.link with
+  | none => (counter, if r.grounded then 1 else 0)
+  | some i =>
+    if let some count := counter[r]? then (counter, count)
+    else
+      let node := g.nodes[i]!
+      let (counter, a) := linearCount g counter node.li
+      let (counter, b) := linearCount g counter node.hi
+      (counter.insert r (a + b), (a + b))
+
+end graph_counting
+
+/--
+Returns the number of satisfying assignments for the given TreeNode.
+This is the number of paths. -/
+def Graph.numSatisfies (self : Graph) : Nat :=
+    graph_counting.linearCount self Std.HashMap.empty (Ref.to (self.nodes.size - 1)) |>.snd
+
+instance : DecisionDiagram Graph where
+  numberOfSatisfyingPaths (g : Graph) := g.numSatisfies
+  apply (g : Graph) (_f : Bool → Bool → Bool) (_unit : Bool) : Graph := g
+  compose (self _other : Graph) (_varId : Nat) : Graph := self
 
 end defs

@@ -4,7 +4,7 @@ def assert_eq {α : Type} [BEq α] [ToString α] (s : String) (a b : α) : IO Un
   if a == b then
     IO.println s!"✅ Assertion: {s} == {b}"
   else
-    IO.println s!"🆖 Assertion: {s} == {b}"
+    IO.println s!"🆖 Assertion: {s} → {a} ≠ {b}"
 
 inductive LogKind : Type where
   | info  : LogKind

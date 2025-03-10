@@ -2,6 +2,7 @@ import Std.Data.HashMap
 import Std.Data.HashSet
 import Std.Internal.Parsec
 import Std.Internal.Parsec.String
+import Common.DecisionDiagram
 import Common.GraphShape
 import Common.Parser
 
@@ -100,6 +101,7 @@ def TreeNode.assignIndex (self : TreeNode) (index : Nat := 2) : TreeNode × Nat 
     let (h, i₂) := high.assignIndex i₁
     (TreeNode.newVar l h index, i₂)
 
+namespace counting
 /--
 Checks if the TreeNode satisfies all conditions.
 Tree traversing approach isn't efficient because it visits subtrees many times. -/
@@ -114,11 +116,12 @@ def linearCount (counter : Std.HashMap Nat Nat) (n : TreeNode) : Std.HashMap Nat
           let (c₂, k₂) := linearCount c₁ high
           (c₂.insert index (k₁ + k₂), k₁ + k₂)
 
+end counting
 /--
 Returns the number of satisfying assignments for the given TreeNode.
 This is the number of paths. -/
 def TreeNode.numSatisfies (self : TreeNode) : Nat :=
-  linearCount Std.HashMap.empty self |>.snd
+  counting.linearCount Std.HashMap.empty self |>.snd
 
 namespace parser
 
@@ -154,7 +157,7 @@ partial def parse_block : Parser TreeNode := do
 partial def parse_tf : Parser TreeNode :=
   parse_false <|> parse_true <|> parse_block
 
-end
+end -- of mutual
 
 -- #eval ParserLib.parse parse_tf "{0 F F}"
 
@@ -174,3 +177,8 @@ instance : GraphShape TreeNode where
   numberOfNodes := (·.size)
   dumpAsDot _ filename := do return filename
   dumpAsPng := fun _ filename => do return filename
+
+instance : DecisionDiagram TreeNode where
+  numberOfSatisfyingPaths (t : TreeNode) := t.numSatisfies
+  apply (t : TreeNode) (_f : Bool → Bool → Bool) (_unit : Bool) : TreeNode := t
+  compose (self _other : TreeNode) (_varId : Nat) : TreeNode := self

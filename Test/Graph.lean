@@ -1,4 +1,5 @@
 import Common.Debug
+import Common.DecisionDiagram
 import Common.Graph
 
 namespace Test_Node
@@ -43,18 +44,18 @@ def independent := Graph.fromTreeNode independent_tree
 def run : IO Unit := do
   let (start, done) := LogKind.warn.color
   IO.println start
+  IO.println "#Test_Graph"
   IO.println s!"Graph g₀: {g₀}"
   IO.println s!"Graph g₁: {g₁}"
-  IO.println s!"Graph g₁₁: {g₁₁}"
+  assert_eq "Graph.forVars 3" g₁₁ g₁
   IO.println s!"Graph g₂: {g₂}"
-  IO.println s!"GraphShape.ofShape g₃: {GraphShape.shapeOf g₃}"
-  IO.println s!"GraphShape.numberOfVars g₂: {GraphShape.numberOfVars g₂}"
-  IO.println s!"GraphShape.numberOfNodes g₂: {GraphShape.numberOfNodes g₂}"
-  -- IO.println s!"independent: {independent}"
-  IO.println s!"GraphShape.ofShape independent: {GraphShape.shapeOf independent}"
+  assert_eq "GraphShape.ofShape g₃" (GraphShape.shapeOf g₃) (3, 7)
+  assert_eq "GraphShape.OfShape g₂" (GraphShape.shapeOf g₂) (3, 1)
+  assert_eq "GraphShape.ofShape independent" (GraphShape.shapeOf independent) (6, 63)
+  assert_eq "independent.pathes" (DecisionDiagram.numberOfSatisfyingPaths independent) 18
   try
     let file ← independent.dumpAsPng "lake-test_independent.png"
-    IO.println s!"Graph g₂ dumped as: {file}"
+    IO.println s!"📈 independent was dumped as: {file}"
   catch e => IO.println s!"Error: {e}"
   -- IO.println s!"Graph: {(g1, 3)}"
   -- IO.println s!"Graph.toHashMap: {g1.toHashMap.toList}"

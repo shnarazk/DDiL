@@ -1,4 +1,5 @@
 import Common.Debug
+import Common.DecisionDiagram
 import Common.GraphShape
 import Common.TreeNode
 
@@ -24,11 +25,13 @@ def independent := TreeNode.fromString
 def run : IO Unit := do
   let (start, done) := LogKind.info.color
   IO.println start
+  IO.println "#Test_TreeNode"
   IO.println s!"TreeNode: {f}"
   IO.println s!"parse w/o comment→shape: {GraphShape.shapeOf s1_noComment}"
   IO.println s!"parse w comment1 →shape: {GraphShape.shapeOf s1_comment1}"
-  IO.println s!"parse w comment2 →shape: {GraphShape.shapeOf s1_comment2}"
-  IO.println s!"independent      →shape: {GraphShape.shapeOf independent}"
+  assert_eq "parse w comment2 →shape" (GraphShape.shapeOf s1_comment2) (1, 3)
+  assert_eq "independent      →shape" (GraphShape.shapeOf independent) (6, 127)
+  assert_eq "independent.paths" (DecisionDiagram.numberOfSatisfyingPaths independent) 18
   IO.println done
 
 end Test_TreeNode

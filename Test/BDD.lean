@@ -35,24 +35,6 @@ def g2 : Graph := {
   root := Fin.ofNat' 5 2,
   filled := by exact Nat.instNeZeroSucc
 }
-
-def g_independent : Graph := ↑(TreeNode.ofString
-  "{ 1
-    { 2
-      { 3
-        {4 {5 {6 T T} {6 T F}} {5 {6 T T} {6 F F}}}
-        {4 {5 {6 T T} {6 T F}} {5 {6 F F} {6 F F}}} }
-      { 3
-        {4 {5 {6 T T} {6 T F}} {5 {6 T T} {6 F F}}}
-        {4 {5 {6 F F} {6 F F}} {5 {6 F F} {6 F F}}} } }
-    { 2
-      { 3
-        {4 {5 {6 T F} {6 T F}} {5 {6 T F} {6 F F}}}
-        {4 {5 {6 T F} {6 T F}} {5 {6 F F} {6 F F}}} }
-      { 3
-        {4 {5 {6 F F} {6 F F}} {5 {6 F F} {6 F F}}}
-        {4 {5 {6 F F} {6 F F}} {5 {6 F F} {6 F F}}} } } }")
-
 def bdd1 : BDD := ↑g1
 def bdd2 : BDD := ↑g2
 def independent : BDD := ↑g_independent
@@ -60,7 +42,8 @@ def independent : BDD := ↑g_independent
 def run : IO Unit := do
   let (beg, fin) := LogKind.error.color
   IO.println beg
-  IO.println s!"BDD.independent.shape: {GraphShape.shapeOf independent_bdd}"
+  IO.println "#Test_BDD"
+  assert_eq "BDD.independent.shape" (GraphShape.shapeOf independent_bdd) (6, 17)
   -- IO.println s!"BDD: {(↑g1 : BDD)}"
   -- IO.println s!"bdd1.reduce: {bdd1.reduce.toHashMap.toList}"
   -- IO.println s!"bdd2: {bdd2.toHashMap.toList}"
@@ -71,7 +54,7 @@ def run : IO Unit := do
   --   then IO.println message
   try
     let file ← independent_bdd.dumpAsPng "lake-test_bdd1.png"
-    IO.println s!"Graph g₂ dumped as: {file}"
+    IO.println s!"📈 independent_bdd was dumped as: {file}"
   catch e => IO.println s!"Error: {e}"
   IO.println fin
   return ()

@@ -35,11 +35,6 @@ instance : GraphShape BDD where
   dumpAsDot bdd := GraphShape.dumpAsDot bdd.toGraph
   dumpAsPng bdd := GraphShape.dumpAsPng bdd.toGraph
 
-instance : DecisionDiagram BDD where
-  allNodes (self : BDD) :=
-    self.toGraph.nodes.zipIdx |>.map (fun (n, i) => (i, n)) |> HashSet.ofArray
-  numberOfPaths (_self : BDD) := 0
-
 -- example : (default : Node).toVarId = 0 := rfl
 
 namespace reducing
@@ -129,6 +124,7 @@ def BDD.apply (self : BDD) (f : Bool → Bool → Bool) (unit : Bool) : BDD :=
 def BDD.compose (self : BDD) (other : BDD) (varIndex : Nat) : BDD :=
   bdd_operations.compose self other varIndex
 
-instance : ReducibleDecisionDiagram BDD where
+instance : DecisionDiagram BDD where
+  numberOfSatisfyingPaths _ := dbg! "BDD.numberOfPaths is not implemented yet" 0
   apply := BDD.apply
   compose := BDD.compose
