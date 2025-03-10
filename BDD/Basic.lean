@@ -6,16 +6,6 @@ import Common.DecisionDiagram
 
 open Std
 
-/-
-theorem nodes_contains_false (nodes : HashMap Nat Node) : (nodes.insertMany [(0, .isFalse), (1, .isTrue)]).contains 0 := by
-  rw [HashMap.contains_insertMany_list]
-  exact Eq.symm ((fun {a b} ↦ Bool.iff_or_self.mpr) (congrFun rfl))
-
-theorem nodes_contains_true (nodes : HashMap Nat Node) : (nodes.insertMany [(0, .isFalse), (1, .isTrue)]).contains 1 := by
-  rw [HashMap.contains_insertMany_list]
-  exact Eq.symm ((fun {a b} ↦ Bool.iff_or_self.mpr) (congrFun rfl))
--/
-
 structure BDD extends Graph
 
 instance : Inhabited BDD := ⟨{toGraph := default}⟩
@@ -70,6 +60,18 @@ def trim_nodes (updatedRef: HashMap Ref Ref) (targets: Array Ref) : Array Ref ×
         else (acc.push ref, updatedRef) )
     (#[], updatedRef)
 
+def merge_nodes (updatedRef: HashMap Ref Ref) (nodes: Array Node) (prevRef : Ref) (nodeRef : Ref)
+    : HashMap Ref Ref × Array Node × Ref :=
+  let prev := nodes.getD (prevRef.link.getD 0) default
+  let node : Node := nodes[nodeRef.link.getD 0]!
+  let node' : Node := { node with
+                  li := updatedRef.getD node.li node.li
+                  hi := updatedRef.getD node.hi node.hi }
+  if prev == node' then
+    (updatedRef.insert nodeRef prevRef, nodes, prevRef)
+  else
+    (updatedRef, nodes.set! (nodeRef.link.getD 0) node', nodeRef)
+
 /-- Called from `reduce`. Rebuild and merge mergeable nodes. -/
 def reduce₁ (var_nodes: HashMap Nat (Array Ref)) : BDD :=
   -- mapping from old ref to new ref
@@ -79,17 +81,7 @@ def reduce₁ (var_nodes: HashMap Nat (Array Ref)) : BDD :=
       (fun (updatedRef, nodes) (_, refs) ↦
         let (targets, updatedRef) : Array Ref × HashMap Ref Ref := trim_nodes g updatedRef refs
         targets.foldl
-            (fun (updatedRef, nodes, prevRef) nodeRef /- (key, node) -/ ↦
-              let prev := nodes.getD (prevRef.link.getD 0) default
-              let node := nodes[nodeRef.link.getD 0]!
-              let node' := { node with
-                              li := updatedRef.getD node.li node.li
-                              hi := updatedRef.getD node.hi node.hi }
-              if prev == node' then
-                (updatedRef.insert nodeRef prevRef, nodes, prevRef)
-              else
-                (updatedRef, nodes.set! (nodeRef.link.getD 0) node', nodeRef)
-            )
+            (fun (updatedRef, nodes, prev) next ↦ merge_nodes updatedRef nodes prev next)
             (updatedRef, nodes, Ref.to nodes.size)
           |> (fun (updateRef, nodes, _) ↦ (updateRef, nodes)) )
       (updatedRef, g.nodes)
@@ -123,10 +115,10 @@ namespace bdd_operations
 
 variable (bdd : BDD)
 
-def apply (f : Bool → Bool → Bool) (unit : Bool) : BDD :=
+def apply (_f : Bool → Bool → Bool) (_unit : Bool) : BDD :=
   bdd
 
-def compose (other : BDD) (varIndex : Nat) : BDD :=
+def compose (_other : BDD) (_varIndex : Nat) : BDD :=
   bdd
 
 end bdd_operations
@@ -136,7 +128,6 @@ def BDD.apply (self : BDD) (f : Bool → Bool → Bool) (unit : Bool) : BDD :=
 
 def BDD.compose (self : BDD) (other : BDD) (varIndex : Nat) : BDD :=
   bdd_operations.compose self other varIndex
---
 
 instance : ReducibleDecisionDiagram BDD where
   apply := BDD.apply

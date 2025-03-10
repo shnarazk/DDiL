@@ -24,8 +24,7 @@ theorem le_induction (n : Nat) : ∀ i : Nat, i < n + 1 → i < n ∨ i == n := 
   simp
   exact Nat.lt_succ_iff_lt_or_eq.mp h
 
-/-
-theorem array_index_induction {α : Type} (a : Array α) (p : α → Option Nat) (b : α)
+theorem array_index_induction {α : Type} (a : Array α) (p : α → Prop) (b : α)
     (h : ∀ i < a.size, match a[i]? with | none => true | some e => p e) (pb : p b) :
     ∀ i < (a.push b).size, match (a.push b)[i]? with | none => true | some e => p e := by
   have {q : Nat → Prop} : (∀ i < (a.push b).size, q i) → (∀ i < (a.push b).size - 1, q i) ∨ (q (a.push b).size) := by
@@ -57,7 +56,6 @@ theorem array_index_induction {α : Type} (a : Array α) (p : α → Option Nat)
     have : i ≤ a.size := by exact Nat.le_of_lt_succ h'
     have : ¬a.size < i := by exact Nat.not_lt.mpr this
     contradiction }
--/
 
 end proofs
 
