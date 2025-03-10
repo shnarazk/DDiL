@@ -121,7 +121,7 @@ def reduce₁ (g: Graph) (var_nodes: HashMap Nat (Array Ref)) : BDD :=
             dbg! "reduce₁: ok" <| Graph.fromNodes g.numVars nodes
           else
             dbg! "reduce₁: something is wrong" default )
-    |> (fun (g : Graph) ↦ dbg! "??" {toGraph := g}) --  ((↑g) : BDD))
+    |> (fun (g : Graph) ↦ dbg! "??" {toGraph := g.compact}) --  ((↑g) : BDD))
     -- BBD.compact (nodes.toArray |>.insertionSort (·.fst < ·.fst) |>.map (·.snd)) next_id)
 
 end reducing

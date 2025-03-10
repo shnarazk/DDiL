@@ -1,3 +1,4 @@
+import Std.Data.HashMap
 import Common.Debug
 import Common.TreeNode
 import Common.GraphShape
@@ -320,6 +321,47 @@ def Graph.dumpAsPng (self : Graph) (path : String) : IO String := do
     return path
   catch e =>
     return s!"Error dumping graph to PNG: {e}"
+
+namespace compacting
+
+partial
+def usedNodes (nodes : Array Node) (root : Ref) (mapping : HashSet Ref := HashSet.empty) : HashSet Ref :=
+  if let some (i) := root.link then
+    if mapping.contains root then
+      mapping
+    else
+      let node : Node := nodes[i]!
+      usedNodes nodes node.li (mapping.insert root) |> usedNodes nodes node.hi
+  else
+    mapping
+
+def compact (nodes : Array Node) : Array Node :=
+  let used : Array Ref := usedNodes nodes (Ref.to (nodes.size - 1))
+    |>.toArray
+    |>.insertionSort (fun a b => a < b)
+  let mapping : HashMap Ref Ref := used
+    |>.zipIdx
+    |>.map (fun (n, i) ↦ (n, Ref.to i))
+    |>.toList
+    |>HashMap.ofList
+  used.map
+    (fun r ↦
+      if let some i := r.link
+      then
+        let node := nodes[i]!
+        { node with
+          li := mapping.getD node.li node.li,
+          hi := mapping.getD node.hi node.hi }
+      else
+        dbg! "error at compaction" (default : Node) )
+
+end compacting
+
+/-- make a graph compact, no unused nodes. -/
+def Graph.compact (self : Graph) : Graph :=
+  compacting.compact self.nodes
+    |>.foldl (fun g n ↦ g.addNode n.varId n.li n.hi |>.fst) (Graph.forVars self.numVars)
+  -- self
 
 instance : GraphShape Graph where
   numberOfVars := (·.numVars)
