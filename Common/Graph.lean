@@ -208,10 +208,9 @@ def Graph.forVars (n : Nat) : Graph :=
     numVars := n
     validVarIds := vi }
 
-def Graph.addNode (g : Graph) (vi : Nat) (li hi : Ref) : Graph × Nat :=
-  let node := { varId := vi, li := li, hi := hi }
+def Graph.addNode (g : Graph) (node : Node) : Graph × Nat :=
   let nodes := g.nodes.push node
-  if h : vi ≤ g.numVars ∧ node.validRef g.nodes.size then
+  if h : node.varId ≤ g.numVars ∧ node.validRef g.nodes.size then
     let g' : Graph := { g with
       nodes := nodes
       validSize := nodes.size
@@ -219,7 +218,7 @@ def Graph.addNode (g : Graph) (vi : Nat) (li hi : Ref) : Graph × Nat :=
         simp [nodes]
         rintro n (h₀ | h₁)
         {exact g.validVarIds n h₀}
-        {simp [h₁, node] ; exact h.left}
+        {simp [h₁] ; exact h.left}
       validRefs := by
         simp [nodes]
         simp [Array.zipIdx]
@@ -241,9 +240,13 @@ def Graph.addNode (g : Graph) (vi : Nat) (li hi : Ref) : Graph × Nat :=
     (g', nodes.size - 1)
   else
     dbg
-      s!"{g.nodes.size}:{node} violation: vi:{vi} < g.numVars:{g.numVars} or ref:{node.validRef g.nodes.size}"
+      s!"{g.nodes.size}:{node} violation: vi:{node.varId} < g.numVars:{g.numVars} or ref:{node.validRef g.nodes.size}"
       (g, g.nodes.size)
       LogKind.error
+--
+
+def Graph.addNode' (g : Graph) (vi : Nat) (li hi : Ref) : Graph × Nat :=
+  g.addNode {varId := vi, li := li, hi := hi}
 
 namespace convert
 
@@ -276,11 +279,11 @@ def Graph.fromTreeNode (tree : TreeNode) : Graph :=
   match collectFromTreeNode tree with
     | Collector.bool b => {(default : Graph) with constant := b}
     | Collector.link m => m.foldl
-        (fun g node => g.addNode node.varId node.li node.hi |>.fst)
+        (fun g node => g.addNode node |>.fst)
         (Graph.forVars (GraphShape.numberOfVars tree))
 
 def Graph.fromNodes (n : Nat) (nodes : Array Node) : Graph :=
-  nodes.foldl (fun g n ↦ g.addNode n.varId n.li n.hi |>.fst) (Graph.forVars n)
+  nodes.foldl (fun g n ↦ g.addNode n |>.fst) (Graph.forVars n)
 
 def Graph.dumpAsDot (self : Graph) (path : String) : IO String := do
   let buffer := "digraph regexp {
@@ -353,15 +356,14 @@ def compact (nodes : Array Node) : Array Node :=
           li := mapping.getD node.li node.li,
           hi := mapping.getD node.hi node.hi }
       else
-        dbg! "error at compaction" (default : Node) )
+        (default : Node) )
 
 end compacting
 
 /-- make a graph compact, no unused nodes. -/
 def Graph.compact (self : Graph) : Graph :=
   compacting.compact self.nodes
-    |>.foldl (fun g n ↦ g.addNode n.varId n.li n.hi |>.fst) (Graph.forVars self.numVars)
-  -- self
+    |>.foldl (fun g n ↦ g.addNode n |>.fst) (Graph.forVars self.numVars)
 
 instance : GraphShape Graph where
   numberOfVars := (·.numVars)

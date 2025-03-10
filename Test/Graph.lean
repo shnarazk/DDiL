@@ -25,7 +25,7 @@ def g₁ : Graph := { (default : Graph) with
     validVarIds := by decide
   }
 def g₁₁ := Graph.forVars 3
-def g₂ : Graph := g₁.addNode 1 (Ref.bool true) (Ref.bool false) |>.fst
+def g₂ : Graph := g₁.addNode' 1 (Ref.bool true) (Ref.bool false) |>.fst
 def g₃ : Graph := TreeNode.fromString "{{{T F} {F F}} {{T F} {F F}}}" |> Graph.fromTreeNode
 
 def independent_tree := TreeNode.fromString
