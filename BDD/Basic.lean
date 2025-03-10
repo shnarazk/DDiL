@@ -6,12 +6,6 @@ import Common.DecisionDiagram
 
 open Std
 
-open Option in
-def Option.unwrap {α : Type} [Inhabited α] (self : Option α) : α :=
-  match self with | some a => a | none => default
-
--- #eval (some (3 : Nat)).unwrap
-
 /-
 theorem nodes_contains_false (nodes : HashMap Nat Node) : (nodes.insertMany [(0, .isFalse), (1, .isTrue)]).contains 0 := by
   rw [HashMap.contains_insertMany_list]
@@ -68,7 +62,7 @@ def order_to_scan (ia ib : Nat) : Bool := g.nodes[ia]! < g.nodes[ib]!
 def trim_nodes (updatedRef: HashMap Ref Ref) (targets: Array Ref) : Array Ref × HashMap Ref Ref :=
   targets.foldl
     (fun (acc, updatedRef) (ref: Ref) ↦
-      let node := g.nodes[ref.link.unwrap]!
+      let node := g.nodes[ref.link.getD 0]!
       let li := updatedRef.getD node.li node.li
       let hi := updatedRef.getD node.hi node.hi
       if li == hi
@@ -86,15 +80,15 @@ def reduce₁ (var_nodes: HashMap Nat (Array Ref)) : BDD :=
         let (targets, updatedRef) : Array Ref × HashMap Ref Ref := trim_nodes g updatedRef refs
         targets.foldl
             (fun (updatedRef, nodes, prevRef) nodeRef /- (key, node) -/ ↦
-              let prev := nodes.getD prevRef.link.unwrap default
-              let node := nodes[nodeRef.link.unwrap]!
+              let prev := nodes.getD (prevRef.link.getD 0) default
+              let node := nodes[nodeRef.link.getD 0]!
               let node' := { node with
                               li := updatedRef.getD node.li node.li
                               hi := updatedRef.getD node.hi node.hi }
               if prev == node' then
                 (updatedRef.insert nodeRef prevRef, nodes, prevRef)
               else
-                (updatedRef, nodes.set! nodeRef.link.unwrap node', nodeRef)
+                (updatedRef, nodes.set! (nodeRef.link.getD 0) node', nodeRef)
             )
             (updatedRef, nodes, Ref.to nodes.size)
           |> (fun (updateRef, nodes, _) ↦ (updateRef, nodes)) )
