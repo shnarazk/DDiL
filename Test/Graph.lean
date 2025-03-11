@@ -52,7 +52,7 @@ def run : IO Unit := do
   assert_eq "GraphShape.ofShape g₃" (GraphShape.shapeOf g₃) (3, 7)
   assert_eq "GraphShape.OfShape g₂" (GraphShape.shapeOf g₂) (3, 1)
   assert_eq "GraphShape.ofShape independent" (GraphShape.shapeOf independent) (6, 63)
-  assert_eq "independent.pathes" (DecisionDiagram.numberOfSatisfyingPaths independent) 18
+  assert_eq "independent.paths" (DecisionDiagram.numberOfSatisfyingPaths independent) 18
   try
     let file ← independent.dumpAsPng "lake-test_independent.png"
     IO.println s!"📈 independent was dumped as: {file}"

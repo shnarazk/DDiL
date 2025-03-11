@@ -44,6 +44,7 @@ def run : IO Unit := do
   IO.println beg
   IO.println "#Test_BDD"
   assert_eq "BDD.independent.shape" (GraphShape.shapeOf independent_bdd) (6, 17)
+  assert_eq "BDD.independent.paths" (DecisionDiagram.numberOfSatisfyingPaths independent_bdd) 18
   -- IO.println s!"BDD: {(↑g1 : BDD)}"
   -- IO.println s!"bdd1.reduce: {bdd1.reduce.toHashMap.toList}"
   -- IO.println s!"bdd2: {bdd2.toHashMap.toList}"

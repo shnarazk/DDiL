@@ -34,6 +34,29 @@ namespace BDD_private
 
 variable (g : Graph)
 
+def path_distance (a b : Ref) : Nat :=
+  match a.link, b.link with
+  | none,   none   => 0
+  | none,   some _ => 0
+  | some i, none   => 2 ^ (g.numVars - g.nodes[i]!.varId)
+  | some i, some j => 2 ^ (g.nodes[j]!.varId - g.nodes[i]!.varId).pred
+
+/--
+Checks if the TreeNode satisfies all conditions.
+Tree traversing approach isn't efficient because it visits subtrees many times. -/
+partial def linearCount (g : Graph) (counter : Std.HashMap Ref Nat) (r : Ref) (depth : Nat) : Std.HashMap Ref Nat × Nat :=
+  match r.link with
+  | none => (counter, if r.grounded then 1 else 0)
+  | some i =>
+    if let some count := counter[r]? then (counter, count)
+    else
+      let node := g.nodes[i]!
+      let (counter, a') := linearCount g counter node.li depth.pred
+      let a := (path_distance g r node.li) * a'
+      let (counter, b') := linearCount g counter node.hi depth.pred
+      let b := (path_distance g r node.hi) * b'
+      (counter.insert r (a + b), (a + b))
+
 def order_to_scan (ia ib : Nat) : Bool := g.nodes[ia]! < g.nodes[ib]!
 
 /-- Trim nodes that have the same li and hi refs. -/
@@ -119,8 +142,21 @@ instance : GraphShape BDD where
   shapeOf bdd := GraphShape.shapeOf bdd.toGraph
   dumpAsDot bdd := GraphShape.dumpAsDot bdd.toGraph
   dumpAsPng bdd := GraphShape.dumpAsPng bdd.toGraph
+--
+
+def BDD.numSatisfies (self : BDD) : Nat :=
+  if self.nodes.isEmpty then
+    2 ^ self.numVars
+  else
+    let nodes := self.toGraph.nodes
+    BDD_private.linearCount
+        self.toGraph
+        Std.HashMap.empty
+        (Ref.to nodes.size.pred)
+        self.numVars
+      |>.snd
 
 instance : DecisionDiagram BDD where
-  numberOfSatisfyingPaths _ := dbg! "BDD.numberOfPaths is not implemented yet" 0
+  numberOfSatisfyingPaths b := b.numSatisfies
   apply := BDD.apply
   compose := BDD.compose
