@@ -108,6 +108,38 @@ def apply (_f : Bool → Bool → Bool) (_unit : Bool) : BDD :=
 def compose (_other : BDD) (_varIndex : Nat) : BDD :=
   bdd
 
+/-- FIXME -/
+def aux_for_apply
+    (operator : Bool → Bool → Bool)
+    (unit : Bool)
+    (v1 v2 : Ref)
+    (new_nodes : Array Node)
+    -- (_ : HashMap Node Nat)
+    (evaluation : HashMap Ref Bool)
+    (merged : HashMap (Ref × Ref) Ref)
+    : (Ref × (Array Node) × (HashMap Ref Bool) × (HashMap (Ref × Ref) Ref)) :=
+  let hash_key := (v1, v2)
+  if let some r := merged.get? hash_key then
+    (r, new_nodes, evaluation, merged)
+  else
+    let boolValue₁ := evaluation[v1]?
+    let boolValue₂ := evaluation[v2]?
+    let resultValue := match boolValue₁, boolValue₂ with
+      | none,    none   => none
+      | none,    some a => if a == unit then some unit else none
+      | some a,  none   => if a == unit then some unit else none
+      | some a , some b => some <| operator a b
+    if let some b := resultValue then
+      (Ref.bool b, new_nodes, evaluation, merged)
+    else
+      let key := ()
+      ( v1,
+        new_nodes,
+        evaluation,
+        merged )
+
+
+
 end BDD_private
 
 /-- Check the trivial cases. Otherwise pass to `reduce`. -/

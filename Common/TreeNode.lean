@@ -21,13 +21,6 @@ deriving BEq, Hashable, Repr
 instance : Inhabited TreeNode where
   default := .isFalse
 
-/-
-def TreeNode.toVarId (self : TreeNode) : Nat := match self with
-  | .isFalse => 0
-  | .isTrue  => 0
-  | .node varId _ _ _ => varId
--/
-
 def TreeNode.index (self : TreeNode) : Nat := match self with
   | .isFalse => 0
   | .isTrue  => 1
@@ -82,8 +75,8 @@ def TreeNode.toHashMap (self : TreeNode) (set : Std.HashMap Nat TreeNode := Std.
   | .node low high _ => set.insert (self.index) self |> low.toHashMap |> high.toHashMap
 
 def TreeNode.toHashSet (self : TreeNode) (set : Std.HashSet TreeNode := Std.HashSet.empty): Std.HashSet TreeNode := match self with
-    | .isFalse | .isTrue => set.insert self
-    | .node low high _   => set.insert self |> low.toHashSet |> high.toHashSet
+  | .isFalse | .isTrue => set.insert self
+  | .node low high _   => set.insert self |> low.toHashSet |> high.toHashSet
 
 def TreeNode.satisfiable (self : TreeNode) : Bool := match self with
   | .isFalse => false
@@ -109,14 +102,15 @@ def count (counter : Std.HashMap Nat Nat) (n : TreeNode) : Std.HashMap Nat Nat �
   if let some count := counter[n.index]? then (counter, count)
   else
     match n with
-      | .isFalse => (counter, 0)
-      | .isTrue  => (counter, 1)
-      | .node low high index =>
-          let (c₁, k₁) := count counter low
-          let (c₂, k₂) := count c₁ high
-          (c₂.insert index (k₁ + k₂), k₁ + k₂)
+    | .isFalse => (counter, 0)
+    | .isTrue  => (counter, 1)
+    | .node low high index =>
+        let (c₁, k₁) := count counter low
+        let (c₂, k₂) := count c₁ high
+        (c₂.insert index (k₁ + k₂), k₁ + k₂)
 
 end TreeNode_private
+
 /--
 Returns the number of satisfying assignments for the given TreeNode.
 This is the number of paths. -/
@@ -134,7 +128,6 @@ def parse_comment : Parser String := do
   let s ← many (satisfy (· != '"'))
   let _ ← pchar '"'
   return (s.toList.map toString |>String.join)
-
 
 def parse_false : Parser TreeNode := do
   let _ ← pchar 'F'
@@ -159,7 +152,7 @@ partial def parse_tf : Parser TreeNode :=
 
 end -- of mutual
 
--- #eval ParserLib.parse parse_tf "{0 F F}"
+-- #eval ParserLib.parse parse_tf "{"0" F F}"
 
 end TreeNode_parser
 
@@ -168,9 +161,9 @@ def TreeNode.fromString (input : String) : TreeNode :=
     |some tree => tree.assignIndex.fst
     |none => TreeNode.isFalse
 
--- #eval TreeNode.ofString "F"
--- #eval TreeNode.ofString "T"
--- #eval TreeNode.ofString "{1 T F}"
+-- #eval TreeNode.fromString "F"
+-- #eval TreeNode.fromfString "T"
+-- #eval TreeNode.fromfString "{1 T F}"
 
 instance : GraphShape TreeNode where
   numberOfVars := (·.depth)
