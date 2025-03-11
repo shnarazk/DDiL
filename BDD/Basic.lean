@@ -16,8 +16,8 @@ instance : ToString BDD where
 instance : BEq BDD where
   beq a b := a.toGraph == b.toGraph
 
-instance : Coe Graph BDD where
-  coe g := { toGraph := g }
+instance : Coe BDD Graph where
+  coe b := b.toGraph
 
 def BDD.unusedId (self : BDD) : Nat := self.nodes.size
 
@@ -27,8 +27,6 @@ def BDD.addNode (self: BDD) (node : Node) : BDD × Nat :=
 
 def BDD.addNode' (self: BDD) (varId : Nat) (li hi : Ref) : BDD × Nat :=
   self.addNode {varId, li, hi}
-
--- example : (default : Node).toVarId = 0 := rfl
 
 namespace BDD_private
 
@@ -44,16 +42,16 @@ def path_distance (a b : Ref) : Nat :=
 /--
 Checks if the TreeNode satisfies all conditions.
 Tree traversing approach isn't efficient because it visits subtrees many times. -/
-partial def linearCount (g : Graph) (counter : Std.HashMap Ref Nat) (r : Ref) (depth : Nat) : Std.HashMap Ref Nat × Nat :=
+partial def countPaths (g : Graph) (counter : Std.HashMap Ref Nat) (r : Ref) : Std.HashMap Ref Nat × Nat :=
   match r.link with
   | none => (counter, if r.grounded then 1 else 0)
   | some i =>
     if let some count := counter[r]? then (counter, count)
     else
       let node := g.nodes[i]!
-      let (counter, a') := linearCount g counter node.li depth.pred
+      let (counter, a') := countPaths g counter node.li
       let a := (path_distance g r node.li) * a'
-      let (counter, b') := linearCount g counter node.hi depth.pred
+      let (counter, b') := countPaths g counter node.hi
       let b := (path_distance g r node.hi) * b'
       (counter.insert r (a + b), (a + b))
 
@@ -112,7 +110,7 @@ def compose (_other : BDD) (_varIndex : Nat) : BDD :=
 
 end BDD_private
 
-/-- Check the trivial cases. Otherwise pass to `reduce₁`. -/
+/-- Check the trivial cases. Otherwise pass to `reduce`. -/
 def Graph.toBDD (g : Graph) : BDD :=
   -- build a mapping from `varId` to `List node`
   let (all_false, all_true, var_nodes) := g.nodes.zipIdx.foldl
@@ -142,19 +140,13 @@ instance : GraphShape BDD where
   shapeOf bdd := GraphShape.shapeOf bdd.toGraph
   dumpAsDot bdd := GraphShape.dumpAsDot bdd.toGraph
   dumpAsPng bdd := GraphShape.dumpAsPng bdd.toGraph
---
 
 def BDD.numSatisfies (self : BDD) : Nat :=
   if self.nodes.isEmpty then
     2 ^ self.numVars
   else
     let nodes := self.toGraph.nodes
-    BDD_private.linearCount
-        self.toGraph
-        Std.HashMap.empty
-        (Ref.to nodes.size.pred)
-        self.numVars
-      |>.snd
+    BDD_private.countPaths ↑self Std.HashMap.empty (Ref.to nodes.size.pred) |>.snd
 
 instance : DecisionDiagram BDD where
   numberOfSatisfyingPaths b := b.numSatisfies

@@ -1,11 +1,4 @@
 
-/-- Asserts that two values `a` and `b` are equal. -/
-def assert_eq {α : Type} [BEq α] [ToString α] (s : String) (a b : α) : IO Unit := do
-  if a == b then
-    IO.println s!"✅ Assertion: {s} == {b}"
-  else
-    IO.println s!"🆖 Assertion: {s} → {a} ≠ {b}"
-
 inductive LogKind : Type where
   | info  : LogKind
   | log   : LogKind
@@ -45,3 +38,12 @@ def dbg! {α : Type} (label : String) (a : α) (kind : LogKind := LogKind.log) :
 def dbg? {α : Type} [ToString α] (label : String) (a : α) (kind : LogKind := LogKind.log) : α :=
   let colors := LogKind.color kind
   dbgTrace s!"{colors.fst}{label}: {a}{colors.snd}" (fun _ ↦ a)
+
+  open Debug in
+  /-- Asserts that two values `a` and `b` are equal. -/
+  def assert_eq {α : Type} [BEq α] [ToString α] (s : String) (a b : α) : IO Unit := do
+    if a == b then
+      IO.println s!"✅ Assertion: {s} == {b}"
+    else
+      let (beg, fin) := LogKind.error.color
+      IO.println s!"{beg}🆖 Assertion: {s} → {a} ≠ {b}{fin}"
