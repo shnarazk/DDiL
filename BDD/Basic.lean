@@ -74,12 +74,14 @@ def merge_nodes (updatedRef: HashMap Ref Ref) (nodes: Array Node) (prevRef : Ref
   let prev := nodes.getD (prevRef.link.getD 0) default
   let node : Node := nodes[nodeRef.link.getD 0]!
   let node' : Node := { node with
-                  li := updatedRef.getD node.li node.li
-                  hi := updatedRef.getD node.hi node.hi }
+    li := updatedRef.getD node.li node.li
+    hi := updatedRef.getD node.hi node.hi }
   if prev == node' then
     (updatedRef.insert nodeRef prevRef, nodes, prevRef)
   else
     (updatedRef, nodes.set! (nodeRef.link.getD 0) node', nodeRef)
+
+def merge_graphs (self _other : Array Node) : Array Node := self
 
 /-- Called from `reduce`. Rebuild and merge mergeable nodes. -/
 def reduce (var_nodes: HashMap Nat (Array Ref)) : BDD :=
@@ -109,36 +111,46 @@ def compose (_other : BDD) (_varIndex : Nat) : BDD :=
   bdd
 
 /-- FIXME -/
-def aux_for_apply
+partial def apply_aux
     (operator : Bool → Bool → Bool)
     (unit : Bool)
     (v1 v2 : Ref)
-    (new_nodes : Array Node)
-    -- (_ : HashMap Node Nat)
+    (nodes : Array Node)
     (evaluation : HashMap Ref Bool)
     (merged : HashMap (Ref × Ref) Ref)
     : (Ref × (Array Node) × (HashMap Ref Bool) × (HashMap (Ref × Ref) Ref)) :=
   let hash_key := (v1, v2)
   if let some r := merged.get? hash_key then
-    (r, new_nodes, evaluation, merged)
+    (r, nodes, evaluation, merged)
   else
-    let boolValue₁ := evaluation[v1]?
-    let boolValue₂ := evaluation[v2]?
-    let resultValue := match boolValue₁, boolValue₂ with
+    let resultValue : Option Bool := match evaluation[v1]?, evaluation[v2]? with
       | none,    none   => none
       | none,    some a => if a == unit then some unit else none
       | some a,  none   => if a == unit then some unit else none
       | some a , some b => some <| operator a b
     if let some b := resultValue then
-      (Ref.bool b, new_nodes, evaluation, merged)
+      (Ref.bool b, nodes, evaluation, merged)
     else
-      let key := ()
-      ( v1,
-        new_nodes,
-        evaluation,
-        merged )
-
-
+      let node1 : Node := nodes[v1.link.get!]!
+      let node2 : Node := nodes[v2.link.get!]!
+      let r : Ref := match v1.link, v2.link with
+        | none,    none   => Ref.bool <| operator v1.grounded v2.grounded
+        | none,    some _ => v2
+        | some _,  none   => v1
+        | some a,  some b => if nodes[a]!.varId < nodes[b]!.varId then v1 else v2
+      if let some i :=  r.link then
+          let (l1, h1) := if r == v1 then (node1.li, node1.hi) else (v1, v1)
+          let (l2, h2) := if r == v2 then (node2.li, node2.hi) else (v2, v2)
+          let (l, nodes, evaluation, merged) := apply_aux operator unit l1 l2 nodes evaluation merged
+          let (h, nodes, evaluation, merged) := apply_aux operator unit h1 h2 nodes evaluation merged
+          let nodes := nodes.push {varId := nodes[i]!.varId, li := l, hi := h}
+          -- FIXME: this is very weird: the condition is used at l.129 to exit this function!
+          let evaluation := if let some b := resultValue then
+              evaluation.insert r b
+            else evaluation
+          (r, nodes, evaluation, merged.insert hash_key (Ref.to nodes.size.pred))
+        else
+          (r, nodes, evaluation, merged.insert hash_key r)
 
 end BDD_private
 
@@ -160,9 +172,6 @@ def Graph.toBDD (g : Graph) : BDD :=
     | _   , true => ↑{(default : Graph) with constant := true}
     | _   , _    => BDD_private.reduce g var_nodes
 
-def BDD.apply (self : BDD) (f : Bool → Bool → Bool) (unit : Bool) : BDD :=
-  BDD_private.apply self f unit
-
 def BDD.compose (self : BDD) (other : BDD) (varIndex : Nat) : BDD :=
   BDD_private.compose self other varIndex
 
@@ -179,6 +188,17 @@ def BDD.numSatisfies (self : BDD) : Nat :=
   else
     let nodes := self.toGraph.nodes
     BDD_private.countPaths ↑self Std.HashMap.empty (Ref.to nodes.size.pred) |>.snd
+
+def BDD.apply (operator : Bool → Bool → Bool) (unit : Bool) (self other : BDD) : BDD :=
+  let r1 := Ref.to self.toGraph.nodes.size.pred
+  let all_nodes : Array Node := BDD_private.merge_graphs self.toGraph.nodes other.toGraph.nodes
+  let r2 := Ref.to all_nodes.size.pred
+  BDD_private.apply_aux operator unit r1 r2 all_nodes HashMap.empty HashMap.empty
+    |> (fun (_top, (nodes : Array Node), _, _) ↦ if 0 < nodes.size then
+            Graph.fromNodes (Nat.max self.numVars other.numVars) nodes
+          else
+            default )
+    |> (fun (g : Graph) ↦ {toGraph := g.compact})
 
 instance : DecisionDiagram BDD where
   numberOfSatisfyingPaths b := b.numSatisfies

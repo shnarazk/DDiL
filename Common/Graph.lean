@@ -396,7 +396,7 @@ def Graph.numSatisfies (self : Graph) : Nat :=
 
 instance : DecisionDiagram Graph where
   numberOfSatisfyingPaths (g : Graph) := g.numSatisfies
-  apply (g : Graph) (_f : Bool → Bool → Bool) (_unit : Bool) : Graph := g
+  apply (_f : Bool → Bool → Bool) (_unit : Bool) (g _ : Graph) : Graph := g
   compose (self _other : Graph) (_varId : Nat) : Graph := self
 
 end defs
