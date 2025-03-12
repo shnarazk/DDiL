@@ -116,20 +116,20 @@ partial def apply_aux
     (unit : Bool)
     (v1 v2 : Ref)
     (nodes : Array Node)
-    (evaluation : HashMap Ref Bool)
+    -- (evaluation : HashMap Ref Bool)
     (merged : HashMap (Ref × Ref) Ref)
-    : (Ref × (Array Node) × (HashMap Ref Bool) × (HashMap (Ref × Ref) Ref)) :=
+    : (Ref × (Array Node) × /- (HashMap Ref Bool) × -/ (HashMap (Ref × Ref) Ref)) :=
   let hash_key := (v1, v2)
   if let some r := merged.get? hash_key then
-    (r, nodes, evaluation, merged)
+    (r, nodes, /- evaluation, -/ merged)
   else
-    let resultValue : Option Bool := match evaluation[v1]?, evaluation[v2]? with
-      | none,    none   => none
-      | none,    some a => if a == unit then some unit else none
-      | some a,  none   => if a == unit then some unit else none
-      | some a , some b => some <| operator a b
+    let resultValue : Option Bool := match /- evaluation[v1]?, evaluation[v2]? -/ v1.link, v2.link with
+      | none, none => some <| operator v1.grounded v2.grounded
+      | none,    _ => if v1.grounded == unit then some unit else none
+      |    _, none => if v2.grounded == unit then some unit else none
+      |    _,    _ => none
     if let some b := resultValue then
-      (Ref.bool b, nodes, evaluation, merged)
+      (Ref.bool b, nodes, /- evaluation, -/ merged)
     else
       let node1 : Node := nodes[v1.link.get!]!
       let node2 : Node := nodes[v2.link.get!]!
@@ -141,16 +141,16 @@ partial def apply_aux
       if let some i :=  r.link then
           let (l1, h1) := if r == v1 then (node1.li, node1.hi) else (v1, v1)
           let (l2, h2) := if r == v2 then (node2.li, node2.hi) else (v2, v2)
-          let (l, nodes, evaluation, merged) := apply_aux operator unit l1 l2 nodes evaluation merged
-          let (h, nodes, evaluation, merged) := apply_aux operator unit h1 h2 nodes evaluation merged
+          let (l, nodes, /- evaluation, -/ merged) := apply_aux operator unit l1 l2 nodes /- evaluation -/ merged
+          let (h, nodes, /- evaluation, -/ merged) := apply_aux operator unit h1 h2 nodes /- evaluation -/ merged
           let nodes := nodes.push {varId := nodes[i]!.varId, li := l, hi := h}
           -- FIXME: this is very weird: the condition is used at l.129 to exit this function!
-          let evaluation := if let some b := resultValue then
+          /- let evaluation := if let some b := resultValue then
               evaluation.insert r b
-            else evaluation
-          (r, nodes, evaluation, merged.insert hash_key (Ref.to nodes.size.pred))
+            else evaluation -/
+          (r, nodes, /- evaluation, -/ merged.insert hash_key (Ref.to nodes.size.pred))
         else
-          (r, nodes, evaluation, merged.insert hash_key r)
+          (r, nodes, /- evaluation, -/merged.insert hash_key r)
 
 end BDD_private
 
@@ -193,8 +193,8 @@ def BDD.apply (operator : Bool → Bool → Bool) (unit : Bool) (self other : BD
   let r1 := Ref.to self.toGraph.nodes.size.pred
   let all_nodes : Array Node := BDD_private.merge_graphs self.toGraph.nodes other.toGraph.nodes
   let r2 := Ref.to all_nodes.size.pred
-  BDD_private.apply_aux operator unit r1 r2 all_nodes HashMap.empty HashMap.empty
-    |> (fun (_top, (nodes : Array Node), _, _) ↦ if 0 < nodes.size then
+  BDD_private.apply_aux operator unit r1 r2 all_nodes /- HashMap.empty -/ HashMap.empty
+    |> (fun (_top, (nodes : Array Node), /- _, -/ _) ↦ if 0 < nodes.size then
             Graph.fromNodes (Nat.max self.numVars other.numVars) nodes
           else
             default )
