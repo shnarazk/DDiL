@@ -2,18 +2,22 @@ import Common.GraphShape
 
 structure MergeFunction where
   fn : Bool → Bool → Bool
-  unit : Option Bool
+  unit : Option (Bool × Bool)
 
-def MergeFunction.of (fn : Bool → Bool → Bool) (unit : Option Bool := none) : MergeFunction :=
+def MergeFunction.of (fn : Bool → Bool → Bool) (unit : Option (Bool × Bool) := none) : MergeFunction :=
   ⟨fn, unit⟩
 
-def MergeFunction.apply : MergeFunction → Option Bool → Option Bool → Option Bool
-  | _, none,   none   => none
-  | _, none,   a      => if a == true then some true else some false
-  | _, a,      none   => if a == true then some true else some false
-  | f, some a, some b => f.fn a b |> some
+def Bool.map {α : Type} (b : Bool) (val : α) : Option α := match b with
+  | false => none
+  | true  => some val
 
-instance : Coe MergeFunction (Bool → Bool → Bool) where
+def MergeFunction.apply (f : MergeFunction) (a b : Option Bool) : Option Bool := match a, b with
+  | none,   none   => none
+  | none,   some a => if let some (i, o) := f.unit then (a == i).map o else none
+  | some a, none   => if let some (i, o) := f.unit then (a == i).map o else none
+  | some a, some b => f.fn a b |> some
+
+  instance : Coe MergeFunction (Bool → Bool → Bool) where
   coe f := f.fn
 
 /--

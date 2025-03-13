@@ -80,9 +80,10 @@ def merge_nodes (updatedRef: HashMap Ref Ref) (nodes: Array Node) (prevRef : Ref
   else
     (updatedRef, nodes.set! (nodeRef.link.getD 0) node', nodeRef)
 
-def append_nodes (self other : Array Node) : Array Node :=
-  let offset := self.size
-  self.append <| other.map (fun node ↦ { node with li := node.li + offset, hi := node.hi + offset })
+def append_nodes (self other : Array Node) (offset : Nat := self.size) : Array Node :=
+  self.append <| other.map (fun n ↦ {n with li := n.li + offset, hi := n.hi + offset})
+
+-- #eval append_nodes #[(default : Node), default] #[{(default : Node) with li := Ref.to 0}]
 
 /-- Called from `reduce`. Rebuild and merge mergeable nodes. -/
 def reduce (var_nodes: HashMap Nat (Array Ref)) : BDD :=
@@ -105,13 +106,9 @@ def reduce (var_nodes: HashMap Nat (Array Ref)) : BDD :=
 
 variable (bdd : BDD)
 
-def apply (_f : Bool → Bool → Bool) (_unit : Bool) : BDD :=
-  bdd
-
 def compose (_other : BDD) (_varIndex : Nat) : BDD :=
   bdd
 
-/-- FIXME -/
 partial def apply_aux
     (operator : MergeFunction)
     (v1 v2 : Ref)
