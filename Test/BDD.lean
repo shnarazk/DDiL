@@ -1,7 +1,9 @@
-import Graph.Graph
-import BDD.BDD
+import Graph.Def
+import BDD.Def
 
 namespace Test_BDD
+
+/-- one of the examples in The Art of Computer Programming -/
 def independent_bdd : BDD :=
   TreeNode.fromString
       "{  { { {{{T T} {T F}} {{T T} {F F}}}
@@ -15,23 +17,26 @@ def independent_bdd : BDD :=
     |> Graph.fromTreeNode
     |>.toBDD
 
+/-- 1st term of the apply example used in the paper -/
 def x1x3 : BDD := Graph.fromNodes 3 #[
       {varId := 3, li := Ref.bool true, hi := Ref.bool false},
-      {varId := 1, li := Ref.bool true, hi := Ref.to 0},
-    ]
+      {varId := 1, li := Ref.bool true, hi := Ref.to 0} ]
   |>.toBDD
-
+/-- 2nd term of the apply example used in the paper -/
 def x1x2 : BDD := Graph.fromNodes 3 #[
       {varId := 3, li := Ref.bool false, hi := Ref.bool true},
-      {varId := 2, li := Ref.bool false, hi := Ref.to 0},
-    ]
+      {varId := 2, li := Ref.bool false, hi := Ref.to 0} ]
   |>.toBDD
+/-- an extended boolean function that can take wildecards
+- `true || *` => `true`
+- `* || true` => `true` -/
+def or : MergeFunction := MergeFunction.of (· || ·) (some (true, true))
+-- the output before compaction
 def fig7 : Graph := Graph.fromNodes 3 #[
     {varId := 3, li := Ref.bool true, hi := Ref.bool true},
     {varId := 3, li := Ref.bool true, hi := Ref.bool false},
     {varId := 2, li := Ref.to 1, hi := Ref.to 0},
-    {varId := 1, li := Ref.bool true, hi := Ref.to 2},
-  ]
+    {varId := 1, li := Ref.bool true, hi := Ref.to 2} ]
 
 def run : IO Unit := do
   let (beg, fin) := LogKind.error.color
@@ -41,7 +46,6 @@ def run : IO Unit := do
   assert_eq "BDD.independent.paths" (DecisionDiagram.numberOfSatisfyingPaths independent_bdd) 18
   IO.println s!"x1x3: {GraphShape.shapeOf x1x3}"
   IO.println s!"x1x2: {GraphShape.shapeOf x1x2}"
-  let or : MergeFunction := MergeFunction.of (· || ·) (some (true, true))
   assert_eq "true or true" (or.apply (some true) (some true)) (some true)
   assert_eq "none or true" (or.apply none (some true)) (some true)
   assert_eq "none or none" (or.apply none none) none
