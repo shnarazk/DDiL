@@ -173,5 +173,5 @@ instance : GraphShape TreeNode where
 
 instance : DecisionDiagram TreeNode where
   numberOfSatisfyingPaths (t : TreeNode) := t.numSatisfies
-  apply (_f : Bool → Bool → Bool) (_unit : Bool) (t _ : TreeNode) : TreeNode := t
+  apply (_f : MergeFunction) (t _ : TreeNode) : TreeNode := t
   compose (self _other : TreeNode) (_varId : Nat) : TreeNode := self

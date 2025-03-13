@@ -3,6 +3,8 @@ import Common.Debug
 import Common.DecisionDiagram
 import Common.TreeNode
 import Common.GraphShape
+import Graph.Ref
+import Graph.Node
 import Mathlib.Tactic
 
 open Std
@@ -63,105 +65,6 @@ end proofs
 section defs
 
 variable {γ : Type} [GraphShape γ] (g : γ)
-
-/--
-Reference to other node or a constant, having `grounded` and `link`.
-There are two constructors: `Ref.bool` and `Ref.to`. -/
-structure Ref where
-  grounded : Bool
-  link : Option Nat
-deriving BEq, Hashable
-
-instance : Inhabited Ref where
-  default := {grounded := false, link := none}
-
-instance : ToString Ref where
-  toString self := match self with
-    | {grounded := false, link := none}   => "⊥"
-    | {grounded := true , link := none}   => "⊤"
-    | {grounded := true , link := some i} => s!"to:{i}"
-    | {grounded := false, link := some i} => s!"to:{i}"
-
-def Ref.lt (self other : Ref) : Prop := match self.link, other.link with
-  | none  , none   => False
-  | none  , some _ => True
-  | some _, none   => False
-  | some i, some j => i < j
-
-instance : LT Ref where
-  lt := Ref.lt
-
-instance DecidableLTRef : DecidableLT Ref
-  | {grounded := _, link := none}  , {grounded := _, link := none}    => isFalse not_false
-  | {grounded := _, link := none}  , {grounded := _, link := some _}  => isTrue trivial
-  | {grounded := _, link := some _}, {grounded := _, link := none}    => isFalse not_false
-  | {grounded := _, link := some i}, {grounded := _, link := some j}  =>
-      if h : i < j then isTrue h else isFalse h
-
-/-- Ref constructor for boolean values -/
-def Ref.bool (b : Bool) : Ref := {grounded := b, link := none}
-
-/-- Ref constructor for node references -/
-def Ref.to (n : Nat) : Ref := {grounded := false, link := some n}
-
--- #eval (Ref.to 3) < (Ref.to 4)
-
-/-- Return `some bool_value` if the reference is constant, `none` otherwise -/
-def Ref.asBool (self : Ref) : Option Bool := match self.link with
-  | none => some self.grounded
-  | some _ => none
-
-/-- Return `true` if it refers to a prior node -/
-def Ref.isSmaller (self : Ref) (n : Nat) : Bool := match self.link with
-  | none => true
-  | some i => i < n
-
-/--
-Node representation for graph, having `varId`, `li`, and `hi`.
-This has an order that matches the occurence order of the nodes in the `Graph.nodes`. -/
-structure Node where
-  varId : Nat
-  li : Ref
-  hi : Ref
-deriving BEq, Hashable
-
-instance : Inhabited Node where
-  default := { varId := 0, li := default, hi := default }
-
-instance : ToString Node where
-  toString self :=
-    let li := toString self.li
-    let hi := toString self.hi
-    if li == hi then
-      s!"Node(var:{self.varId} ↦ {li})"
-    else
-      s!"Node(var:{self.varId}, li:{self.li}, hi:{self.hi})"
-
-/- FIXME: implement `decidable eq` -/
-def Node.lt (a b : Node) : Prop :=
-  a.varId > b.varId ∨ (a.varId == b.varId ∧ (a.li < b.li ∨ (a.li == b.li ∧ a.hi < b.hi)))
-
-/- This order matches the occurence order of the nodes in the `Graph.nodes`. -/
-instance : LT Node where
-  lt := Node.lt
-
-instance DecidableLTNode : DecidableLT Node
-  | a, b =>
-    if h : a.varId > b.varId ∨ (a.varId == b.varId ∧ (a.li < b.li ∨ (a.li == b.li ∧ a.hi < b.hi)))
-      then isTrue h
-      else isFalse h
-
-def Node.validRef (self : Node) (pos : Nat) : Bool :=
-  match self.li.link, self.hi.link with
-    | some l, some h => l < pos ∧ h < pos
-    | some l, none   => l < pos
-    | none  , some h => h < pos
-    | none  , none   => true
-
-/-- Return `some bool_value` if both references is a same constant, `none` otherwise -/
-def Node.asBool (self : Node) : Option Bool := match self.li.asBool, self.hi.asBool with
-  | some l, some h => if l == h then some l else none
-  | _, _ => none
 
 structure Graph where
   nodes : Array Node
@@ -242,7 +145,6 @@ def Graph.addNode (g : Graph) (node : Node) : Graph × Nat :=
       s!"{g.nodes.size}:{node} violation: vi:{node.varId} < g.numVars:{g.numVars} or ref:{node.validRef g.nodes.size}"
       (g, g.nodes.size)
       LogKind.error
---
 
 def Graph.addNode' (g : Graph) (vi : Nat) (li hi : Ref) : Graph × Nat :=
   g.addNode {varId := vi, li := li, hi := hi}
@@ -396,7 +298,7 @@ def Graph.numSatisfies (self : Graph) : Nat :=
 
 instance : DecisionDiagram Graph where
   numberOfSatisfyingPaths (g : Graph) := g.numSatisfies
-  apply (_f : Bool → Bool → Bool) (_unit : Bool) (g _ : Graph) : Graph := g
+  apply (_f : MergeFunction) (g _ : Graph) : Graph := g
   compose (self _other : Graph) (_varId : Nat) : Graph := self
 
 end defs

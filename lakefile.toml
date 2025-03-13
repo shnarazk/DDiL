@@ -23,6 +23,9 @@ name = "ZDD"
 name = "Common"
 
 [[lean_lib]]
+name = "Graph"
+
+[[lean_lib]]
 name = "Test"
 
 [[lean_lib]]

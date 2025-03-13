@@ -1,8 +1,7 @@
-import Std
 import Std.Data.HashMap
-import Common.Graph
 import Common.GraphShape
 import Common.DecisionDiagram
+import Graph.Graph
 
 open Std
 
@@ -81,7 +80,9 @@ def merge_nodes (updatedRef: HashMap Ref Ref) (nodes: Array Node) (prevRef : Ref
   else
     (updatedRef, nodes.set! (nodeRef.link.getD 0) node', nodeRef)
 
-def merge_graphs (self _other : Array Node) : Array Node := self
+def append_nodes (self other : Array Node) : Array Node :=
+  let offset := self.size
+  self.append <| other.map (fun node ↦ { node with li := node.li + offset, hi := node.hi + offset })
 
 /-- Called from `reduce`. Rebuild and merge mergeable nodes. -/
 def reduce (var_nodes: HashMap Nat (Array Ref)) : BDD :=
@@ -112,8 +113,7 @@ def compose (_other : BDD) (_varIndex : Nat) : BDD :=
 
 /-- FIXME -/
 partial def apply_aux
-    (operator : Bool → Bool → Bool)
-    (unit : Bool)
+    (operator : MergeFunction)
     (v1 v2 : Ref)
     (nodes : Array Node)
     -- (evaluation : HashMap Ref Bool)
@@ -123,26 +123,24 @@ partial def apply_aux
   if let some r := merged.get? hash_key then
     (r, nodes, /- evaluation, -/ merged)
   else
-    let resultValue : Option Bool := match /- evaluation[v1]?, evaluation[v2]? -/ v1.link, v2.link with
-      | none, none => some <| operator v1.grounded v2.grounded
-      | none,    _ => if v1.grounded == unit then some unit else none
-      |    _, none => if v2.grounded == unit then some unit else none
-      |    _,    _ => none
+    let resultValue : Option Bool := operator.apply
+      (if v1.link.isNone then some v1.grounded else none)
+      (if v2.link.isNone then some v2.grounded else none)
     if let some b := resultValue then
       (Ref.bool b, nodes, /- evaluation, -/ merged)
     else
       let node1 : Node := nodes[v1.link.get!]!
       let node2 : Node := nodes[v2.link.get!]!
       let r : Ref := match v1.link, v2.link with
-        | none,    none   => Ref.bool <| operator v1.grounded v2.grounded
+        | none,    none   => Ref.bool <| operator.fn v1.grounded v2.grounded
         | none,    some _ => v2
         | some _,  none   => v1
         | some a,  some b => if nodes[a]!.varId < nodes[b]!.varId then v1 else v2
       if let some i :=  r.link then
           let (l1, h1) := if r == v1 then (node1.li, node1.hi) else (v1, v1)
           let (l2, h2) := if r == v2 then (node2.li, node2.hi) else (v2, v2)
-          let (l, nodes, /- evaluation, -/ merged) := apply_aux operator unit l1 l2 nodes /- evaluation -/ merged
-          let (h, nodes, /- evaluation, -/ merged) := apply_aux operator unit h1 h2 nodes /- evaluation -/ merged
+          let (l, nodes, /- evaluation, -/ merged) := apply_aux operator l1 l2 nodes /- evaluation -/ merged
+          let (h, nodes, /- evaluation, -/ merged) := apply_aux operator h1 h2 nodes /- evaluation -/ merged
           let nodes := nodes.push {varId := nodes[i]!.varId, li := l, hi := h}
           -- FIXME: this is very weird: the condition is used at l.129 to exit this function!
           /- let evaluation := if let some b := resultValue then
@@ -189,11 +187,11 @@ def BDD.numSatisfies (self : BDD) : Nat :=
     let nodes := self.toGraph.nodes
     BDD_private.countPaths ↑self Std.HashMap.empty (Ref.to nodes.size.pred) |>.snd
 
-def BDD.apply (operator : Bool → Bool → Bool) (unit : Bool) (self other : BDD) : BDD :=
+def BDD.apply (operator : MergeFunction) (self other : BDD) : BDD :=
   let r1 := Ref.to self.toGraph.nodes.size.pred
-  let all_nodes : Array Node := BDD_private.merge_graphs self.toGraph.nodes other.toGraph.nodes
+  let all_nodes : Array Node := BDD_private.append_nodes self.toGraph.nodes other.toGraph.nodes
   let r2 := Ref.to all_nodes.size.pred
-  BDD_private.apply_aux operator unit r1 r2 all_nodes /- HashMap.empty -/ HashMap.empty
+  BDD_private.apply_aux operator r1 r2 all_nodes /- HashMap.empty -/ HashMap.empty
     |> (fun (_top, (nodes : Array Node), /- _, -/ _) ↦ if 0 < nodes.size then
             Graph.fromNodes (Nat.max self.numVars other.numVars) nodes
           else

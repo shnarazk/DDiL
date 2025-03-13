@@ -1,5 +1,5 @@
-import Common.Graph
-import BDD.Basic
+import Graph.Graph
+import BDD.BDD
 
 namespace Test_BDD
 def independent_bdd : BDD :=
