@@ -115,7 +115,7 @@ partial def apply_aux (f : MergeFunction) (v1 v2 : Ref) (nodes : Array Node)
     : (Ref × (Array Node) × (HashMap (Ref × Ref) Ref)) :=
   if let some r := merged.get? (v1, v2) then
     (r, nodes, merged)
-  else if let some b := f.apply (v1.link.isNone.map v1.grounded) (v1.link.isNone.map v1.grounded) then
+  else if let some b := f.apply (v1.link.isNone.map v1.grounded) (v2.link.isNone.map v2.grounded) then
     let r := Ref.bool b
     (r, nodes, merged.insert (v1, v2) r)
   else match v1.link, v2.link with
@@ -123,20 +123,47 @@ partial def apply_aux (f : MergeFunction) (v1 v2 : Ref) (nodes : Array Node)
         let r := dbg! "impossible path" <| Ref.bool <| (↑f : Bool → Bool → Bool) v1.grounded v2.grounded
         (r, nodes, merged.insert (v1, v2) r)
     | none,   some _ => (v2, nodes, merged.insert (v1, v2) v2)
+      -- let node2 : Node := nodes[b]!
+      -- let vi := node2.varId
+      -- let (l1, h1) :=(v1, v1)
+      -- let (l2, h2) := (node2.li, node2.hi)
+      -- let (l, nodes, merged) := apply_aux f l1 l2 nodes merged
+      -- let (h, nodes, merged) := apply_aux f h1 h2 nodes merged
+      -- let nodes := dbg! s!"pushed1: {vi}" <| nodes.push {varId := vi, li := l, hi := h}
+      -- let r := Ref.to nodes.size.pred
+      -- dbg! "done" <|(r, nodes, merged.insert (v1, v2) r)
     | some _, none   => (v1, nodes, merged.insert (v1, v2) v1)
+      -- let node1 : Node := nodes[a]!
+      -- let vi := node1.varId
+      -- let (l1, h1) :=(node1.li, node1.hi)
+      -- let (l2, h2) := (v2, v2)
+      -- let (l, nodes, merged) := apply_aux f l1 l2 nodes merged
+      -- let (h, nodes, merged) := apply_aux f h1 h2 nodes merged
+      -- let nodes := dbg! s!"pushed2: {vi}=>{l1} {l2} {h1} {h2}" <| nodes.push {varId := vi, li := l, hi := h}
+      -- let r := Ref.to nodes.size.pred
+      -- dbg! "done" <|(r, nodes, merged.insert (v1, v2) r)
     | some a, some b =>
       let node1 : Node := nodes[a]!
       let node2 : Node := nodes[b]!
       let (vi, i) : Nat × Nat := if node1.varId < node2.varId
         then (node1.varId, a)
         else (node2.varId, b)
-      let (l1, h1) := if i == a then (node1.li, node1.hi) else (v1, v1)
-      let (l2, h2) := if i == b then (node2.li, node2.hi) else (v2, v2)
+      let (l1, h1) := if vi == node1.varId then (node1.li, node1.hi) else (v1, v1)
+      let (l2, h2) := if vi == node2.varId then (node2.li, node2.hi) else (v2, v2)
+      -- we need to store this new node not to evaluate this node twice
+      -- let index := nodes.size
+      -- let nodes := nodes.push {varId := vi, li := Ref.to 0, hi := Ref.to 0}
+      -- let r := Ref.to index -- nodes.size.pred
+      -- let merged := merged.insert (v1, v2) r
       let (l, nodes, merged) := apply_aux f l1 l2 nodes merged
       let (h, nodes, merged) := apply_aux f h1 h2 nodes merged
-      let nodes := dbg! s!"pushed: {vi}" <| nodes.push {varId := vi, li := l, hi := h}
-      let r := Ref.to nodes.size.pred
-      dbg! "done" <|(r, nodes, merged.insert (v1, v2) r)
+      -- let nodes := nodes.modify index  (fun n ↦ { n with li := l, hi := h})
+
+      let index := nodes.size
+      let nodes := nodes.push {varId := vi, li := l, hi := h}
+      let r := Ref.to index -- nodes.size.pred
+      let merged := merged.insert (v1, v2) r
+      dbg! s!"done{vi}({vi==node1.varId}:{node1}{vi==node2.varId}:{node2}):>{l1} {l2} {h1} {h2}" <|(r, nodes, merged /- .insert (v1, v2) r  -/)
 
 end BDD_private
 
@@ -186,7 +213,7 @@ def BDD.apply (operator : MergeFunction) (self other : BDD) : BDD :=
             Graph.fromNodes (Nat.max self.numVars other.numVars) (dbg? s!"nodes" nodes)
           else
             default )
-    |> (fun (g : Graph) ↦ {toGraph := g.compact})
+    |> (fun (g : Graph) ↦ {toGraph := g /- .compact -/})
 
 instance : DecisionDiagram BDD where
   numberOfSatisfyingPaths b := b.numSatisfies
