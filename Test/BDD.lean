@@ -15,37 +15,35 @@ def independent_bdd : BDD :=
     |> Graph.fromTreeNode
     |>.toBDD
 
-/- def g1 : Graph := {
-  nodes := #[
-     .isFalse,
-     .isTrue,
-     .node 1 0 3,
-     .node 2 1 0],
-  root := Fin.ofNat' 4 2,
-  filled := by exact Nat.instNeZeroSucc
-}
+def x1x3 : BDD := Graph.fromNodes 3 #[
+      {varId := 3, li := Ref.bool true, hi := Ref.bool false},
+      {varId := 1, li := Ref.bool true, hi := Ref.to 0},
+    ]
+  |>.toBDD
 
-def g2 : Graph := {
-  nodes := #[
-     .isFalse,
-     .isTrue,
-     .node 1 3 4,
-     .node 2 0 0,
-     .node 2 1 0],
-  root := Fin.ofNat' 5 2,
-  filled := by exact Nat.instNeZeroSucc
-}
-def bdd1 : BDD := ↑g1
-def bdd2 : BDD := ↑g2
-def independent : BDD := ↑g_independent
--/
+def x1x2 : BDD := Graph.fromNodes 3 #[
+      {varId := 3, li := Ref.bool false, hi := Ref.bool true},
+      {varId := 2, li := Ref.bool false, hi := Ref.to 0},
+    ]
+  |>.toBDD
+def fig7 : Graph := Graph.fromNodes 3 #[
+    {varId := 3, li := Ref.bool true, hi := Ref.bool true},
+    {varId := 3, li := Ref.bool true, hi := Ref.bool false},
+    {varId := 2, li := Ref.to 1, hi := Ref.to 0},
+    {varId := 1, li := Ref.bool true, hi := Ref.to 2},
+  ]
+
 def run : IO Unit := do
   let (beg, fin) := LogKind.error.color
   IO.println beg
   IO.println "#Test_BDD"
   assert_eq "BDD.independent.shape" (GraphShape.shapeOf independent_bdd) (6, 17)
   assert_eq "BDD.independent.paths" (DecisionDiagram.numberOfSatisfyingPaths independent_bdd) 18
-  -- IO.println s!"BDD: {(↑g1 : BDD)}"
+  IO.println s!"x1x3: {GraphShape.shapeOf x1x3}"
+  IO.println s!"x1x2: {GraphShape.shapeOf x1x2}"
+  let applied := BDD.apply (MergeFunction.of (· || ·) (some (true, true))) x1x3 x1x2
+  IO.println s!"x1x3.apply or x1x2 |> shape: {GraphShape.shapeOf applied}"
+  let fig7_bdd := fig7.toBDD
   -- IO.println s!"bdd1.reduce: {bdd1.reduce.toHashMap.toList}"
   -- IO.println s!"bdd2: {bdd2.toHashMap.toList}"
   -- IO.println s!"bdd2.reduce: {bdd2.reduce.toHashMap.toList}"
@@ -56,6 +54,16 @@ def run : IO Unit := do
   try
     let file ← independent_bdd.dumpAsPng "lake-test_bdd1.png"
     IO.println s!"📈 independent_bdd was dumped as: {file}"
+    let file2 ← x1x3.dumpAsPng "lake-test_x1x3.png"
+    IO.println s!"📈 x1x3 was dumped as: {file2}"
+    let file3 ← x1x2.dumpAsPng "lake-test_x1x2.png"
+    IO.println s!"📈 x1x2 was dumped as: {file3}"
+    let file4 ← applied.dumpAsPng "lake-test_apply.png"
+    IO.println s!"📈 x1x3.apply.x1x2 was dumped as: {file4}"
+    let file7 ← fig7.dumpAsPng "lake-test_fig7.png"
+    IO.println s!"📈 fig7 was dumped as: {file7}"
+    let file8 ← fig7_bdd.dumpAsPng "lake-test_fig7_bdd.png"
+    IO.println s!"📈 fig7_bdd was dumped as: {file8}"
   catch e => IO.println s!"Error: {e}"
   IO.println fin
   return ()

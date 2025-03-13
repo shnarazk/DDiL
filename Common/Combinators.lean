@@ -11,3 +11,7 @@ def toSome {α : Type} (t : α) (p : Prop) [Decidable p] : Option α :=
   if p then some t else none
 
 example : ((1 = 1) |> toSome 42) = some 42 := rfl
+
+def Bool.map {α : Type} (b : Bool) (val : α) : Option α := match b with
+  | false => none
+  | true  => some val

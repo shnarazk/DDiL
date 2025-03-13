@@ -1,4 +1,5 @@
 import Std.Data.HashMap
+import Common.Combinators
 import Common.GraphShape
 import Common.DecisionDiagram
 import Graph.Graph
@@ -109,43 +110,33 @@ variable (bdd : BDD)
 def compose (_other : BDD) (_varIndex : Nat) : BDD :=
   bdd
 
-partial def apply_aux
-    (operator : MergeFunction)
-    (v1 v2 : Ref)
-    (nodes : Array Node)
-    -- (evaluation : HashMap Ref Bool)
+partial def apply_aux (f : MergeFunction) (v1 v2 : Ref) (nodes : Array Node)
     (merged : HashMap (Ref × Ref) Ref)
-    : (Ref × (Array Node) × /- (HashMap Ref Bool) × -/ (HashMap (Ref × Ref) Ref)) :=
-  let hash_key := (v1, v2)
-  if let some r := merged.get? hash_key then
-    (r, nodes, /- evaluation, -/ merged)
-  else
-    let resultValue : Option Bool := operator.apply
-      (if v1.link.isNone then some v1.grounded else none)
-      (if v2.link.isNone then some v2.grounded else none)
-    if let some b := resultValue then
-      (Ref.bool b, nodes, /- evaluation, -/ merged)
-    else
-      let node1 : Node := nodes[v1.link.get!]!
-      let node2 : Node := nodes[v2.link.get!]!
-      let r : Ref := match v1.link, v2.link with
-        | none,    none   => Ref.bool <| operator.fn v1.grounded v2.grounded
-        | none,    some _ => v2
-        | some _,  none   => v1
-        | some a,  some b => if nodes[a]!.varId < nodes[b]!.varId then v1 else v2
-      if let some i :=  r.link then
-          let (l1, h1) := if r == v1 then (node1.li, node1.hi) else (v1, v1)
-          let (l2, h2) := if r == v2 then (node2.li, node2.hi) else (v2, v2)
-          let (l, nodes, /- evaluation, -/ merged) := apply_aux operator l1 l2 nodes /- evaluation -/ merged
-          let (h, nodes, /- evaluation, -/ merged) := apply_aux operator h1 h2 nodes /- evaluation -/ merged
-          let nodes := nodes.push {varId := nodes[i]!.varId, li := l, hi := h}
-          -- FIXME: this is very weird: the condition is used at l.129 to exit this function!
-          /- let evaluation := if let some b := resultValue then
-              evaluation.insert r b
-            else evaluation -/
-          (r, nodes, /- evaluation, -/ merged.insert hash_key (Ref.to nodes.size.pred))
-        else
-          (r, nodes, /- evaluation, -/merged.insert hash_key r)
+    : (Ref × (Array Node) × (HashMap (Ref × Ref) Ref)) :=
+  if let some r := merged.get? (v1, v2) then
+    (r, nodes, merged)
+  else if let some b := f.apply (v1.link.isNone.map v1.grounded) (v1.link.isNone.map v1.grounded) then
+    let r := Ref.bool b
+    (r, nodes, merged.insert (v1, v2) r)
+  else match v1.link, v2.link with
+    | none,    none  =>
+        let r := dbg! "impossible path" <| Ref.bool <| (↑f : Bool → Bool → Bool) v1.grounded v2.grounded
+        (r, nodes, merged.insert (v1, v2) r)
+    | none,   some _ => (v2, nodes, merged.insert (v1, v2) v2)
+    | some _, none   => (v1, nodes, merged.insert (v1, v2) v1)
+    | some a, some b =>
+      let node1 : Node := nodes[a]!
+      let node2 : Node := nodes[b]!
+      let (vi, i) : Nat × Nat := if node1.varId < node2.varId
+        then (node1.varId, a)
+        else (node2.varId, b)
+      let (l1, h1) := if i == a then (node1.li, node1.hi) else (v1, v1)
+      let (l2, h2) := if i == b then (node2.li, node2.hi) else (v2, v2)
+      let (l, nodes, merged) := apply_aux f l1 l2 nodes merged
+      let (h, nodes, merged) := apply_aux f h1 h2 nodes merged
+      let nodes := dbg! s!"pushed: {vi}" <| nodes.push {varId := vi, li := l, hi := h}
+      let r := Ref.to nodes.size.pred
+      dbg! "done" <|(r, nodes, merged.insert (v1, v2) r)
 
 end BDD_private
 
@@ -185,12 +176,14 @@ def BDD.numSatisfies (self : BDD) : Nat :=
     BDD_private.countPaths ↑self Std.HashMap.empty (Ref.to nodes.size.pred) |>.snd
 
 def BDD.apply (operator : MergeFunction) (self other : BDD) : BDD :=
-  let r1 := Ref.to self.toGraph.nodes.size.pred
+  let r1 := dbg! "BDD.apply" <| Ref.to self.toGraph.nodes.size.pred
   let all_nodes : Array Node := BDD_private.append_nodes self.toGraph.nodes other.toGraph.nodes
+  -- Graph.fromNodes (Nat.max self.numVars other.numVars) all_nodes
+  --   |> (fun (g : Graph) ↦ {toGraph := g.compact})
   let r2 := Ref.to all_nodes.size.pred
-  BDD_private.apply_aux operator r1 r2 all_nodes /- HashMap.empty -/ HashMap.empty
-    |> (fun (_top, (nodes : Array Node), /- _, -/ _) ↦ if 0 < nodes.size then
-            Graph.fromNodes (Nat.max self.numVars other.numVars) nodes
+  BDD_private.apply_aux operator r1 r2 all_nodes HashMap.empty
+    |> (fun (_top, (nodes : Array Node), /- _, -/ _) ↦ if 0 < dbg? "size" nodes.size then
+            Graph.fromNodes (Nat.max self.numVars other.numVars) (dbg? s!"nodes" nodes)
           else
             default )
     |> (fun (g : Graph) ↦ {toGraph := g.compact})

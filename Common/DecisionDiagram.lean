@@ -1,15 +1,12 @@
+import Common.Combinators
 import Common.GraphShape
 
 structure MergeFunction where
-  fn : Bool → Bool → Bool
-  unit : Option (Bool × Bool)
+  private fn : Bool → Bool → Bool
+  private unit : Option (Bool × Bool)
 
 def MergeFunction.of (fn : Bool → Bool → Bool) (unit : Option (Bool × Bool) := none) : MergeFunction :=
   ⟨fn, unit⟩
-
-def Bool.map {α : Type} (b : Bool) (val : α) : Option α := match b with
-  | false => none
-  | true  => some val
 
 def MergeFunction.apply (f : MergeFunction) (a b : Option Bool) : Option Bool := match a, b with
   | none,   none   => none
