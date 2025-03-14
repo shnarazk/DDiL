@@ -19,6 +19,9 @@ instance : BEq BDD where
 instance : Coe BDD Graph where
   coe b := b.toGraph
 
+instance : Coe BDD (Array Node) where
+  coe b := b.toGraph.nodes
+
 def BDD.unusedId (self : BDD) : Nat := self.nodes.size
 
 def BDD.addNode (self: BDD) (node : Node) : BDD × Nat :=
@@ -42,7 +45,7 @@ private def path_distance (a b : Ref) : Nat :=
 /--
 Checks if the TreeNode satisfies all conditions.
 Tree traversing approach isn't efficient because it visits subtrees many times. -/
-partial def countPaths (g : Graph)(counter : Std.HashMap Ref Nat) (r : Ref) : Std.HashMap Ref Nat × Nat :=
+partial def countPaths (g : Graph) (counter : Std.HashMap Ref Nat) (r : Ref) : Std.HashMap Ref Nat × Nat :=
   match r.link with
   | none => (counter, if r.grounded then 1 else 0)
   | some i =>
@@ -64,9 +67,7 @@ def trim_nodes (updatedRef: HashMap Ref Ref) (targets: Array Ref) : Array Ref ×
       let node := g.nodes[ref.link.getD 0]!
       let li := updatedRef.getD node.li node.li
       let hi := updatedRef.getD node.hi node.hi
-      if li == hi
-        then (acc, updatedRef.insert ref li)
-        else (acc.push ref, updatedRef) )
+      if li == hi then (acc, updatedRef.insert ref li) else (acc.push ref, updatedRef) )
     (#[], updatedRef)
 
 def merge_nodes (updatedRef: HashMap Ref Ref) (nodes: Array Node) (prevRef : Ref) (nodeRef : Ref)
@@ -108,30 +109,30 @@ def reduce (var_nodes: HashMap Nat (Array Ref)) : BDD :=
 def compose (a _b : BDD) (_varIndex : Nat) : BDD :=
   a
 
-partial def apply_aux (f : MergeFunction) (v1 v2 : Ref) (nodes : Array Node)
+partial def apply_aux (f : MergeFunction) (r₁ r₂ : Ref) (nodes : Array Node)
     (merged : HashMap (Ref × Ref) Ref)
     : (Ref × (Array Node) × (HashMap (Ref × Ref) Ref)) :=
-  if let some r := merged.get? (v1, v2) then
+  if let some r := merged.get? (r₁, r₂) then
     (r, nodes, merged)
-  else if let some b := f.apply v1.asBool v2.asBool then
+  else if let some b := f.apply r₁.asBool r₂.asBool then
     let r := Ref.bool b
-    (r, nodes, merged.insert (v1, v2) r)
-  else match v1.link, v2.link with
+    (r, nodes, merged.insert (r₁, r₂) r)
+  else match r₁.link, r₂.link with
     | none,   none   =>
-        let r := Ref.bool <| (↑f : Bool → Bool → Bool) v1.grounded v2.grounded
-        (r, nodes, merged.insert (v1, v2) r)
-    | none,   some _ => (v2, nodes, merged.insert (v1, v2) v2)
-    | some _, none   => (v1, nodes, merged.insert (v1, v2) v1)
+        let r := Ref.bool <| (↑f : Bool → Bool → Bool) r₁.grounded r₂.grounded
+        (r, nodes, merged.insert (r₁, r₂) r)
+    | none,   some _ => (r₂, nodes, merged.insert (r₁, r₂) r₂)
+    | some _, none   => (r₁, nodes, merged.insert (r₁, r₂) r₁)
     | some a, some b =>
       let node1 : Node := nodes[a]!
       let node2 : Node := nodes[b]!
       let vi : Nat := Nat.min node1.varId node2.varId
-      let (l1, h1) := if vi == node1.varId then (node1.li, node1.hi) else (v1, v1)
-      let (l2, h2) := if vi == node2.varId then (node2.li, node2.hi) else (v2, v2)
+      let (l1, h1) := if vi == node1.varId then (node1.li, node1.hi) else (r₁, r₁)
+      let (l2, h2) := if vi == node2.varId then (node2.li, node2.hi) else (r₂, r₂)
       let (l, nodes, merged) := apply_aux f l1 l2 nodes merged
       let (h, nodes, merged) := apply_aux f h1 h2 nodes merged
       let r := Ref.to nodes.size
-      (r, nodes.push {varId := vi, li := l, hi := h}, merged.insert (v1, v2) r)
+      (r, nodes.push {varId := vi, li := l, hi := h}, merged.insert (r₁, r₂) r)
 
 end BDD
 
@@ -154,28 +155,27 @@ def Graph.toBDD (g : Graph) : BDD :=
     | _   , _    => BDD.reduce g var_nodes
 
 instance : GraphShape BDD where
-  numberOfVars bdd := GraphShape.numberOfVars bdd.toGraph
-  numberOfNodes _bdd := 0
-  shapeOf bdd := GraphShape.shapeOf bdd.toGraph
-  dumpAsDot bdd := GraphShape.dumpAsDot bdd.toGraph
-  dumpAsPng bdd := GraphShape.dumpAsPng bdd.toGraph
+  numberOfVars self := GraphShape.numberOfVars (↑self : Graph)
+  numberOfNodes self := GraphShape.numberOfNodes (↑self : Graph)
+  shapeOf self := GraphShape.shapeOf (↑self : Graph)
+  dumpAsDot self := GraphShape.dumpAsDot (↑self : Graph)
+  dumpAsPng self := GraphShape.dumpAsPng (↑self : Graph)
 
 def BDD.numSatisfies (self : BDD) : Nat :=
   if self.nodes.isEmpty then
     2 ^ self.numVars
   else
-    let nodes := self.toGraph.nodes
-    BDD.countPaths ↑self Std.HashMap.empty (Ref.to nodes.size.pred) |>.snd
+    BDD.countPaths ↑self Std.HashMap.empty (Ref.to self.toGraph.nodes.size.pred) |>.snd
 
 def BDD.apply (operator : MergeFunction) (self other : BDD) : BDD :=
   let r1 := Ref.to self.toGraph.nodes.size.pred
-  let all_nodes : Array Node := BDD.append_nodes self.toGraph.nodes other.toGraph.nodes
+  let all_nodes : Array Node := BDD.append_nodes ↑self ↑other
   let r2 := Ref.to all_nodes.size.pred
   BDD.apply_aux operator r1 r2 all_nodes HashMap.empty
-    |> (fun (_, (nodes : Array Node), _) ↦ if 0 < nodes.size then
-            Graph.fromNodes (Nat.max self.numVars other.numVars) nodes
-          else
-            default )
+    |> (fun (_, (nodes : Array Node), _) ↦ if nodes.isEmpty then
+              default
+            else
+              Graph.fromNodes (Nat.max self.numVars other.numVars) nodes )
     |> (·.compact.toBDD)
 
 instance : DecisionDiagram BDD where
