@@ -25,6 +25,11 @@ def varId (nodes : Array Node) (ref : Ref) : Option Nat :=
   | none => none
   | some i => some nodes[i]!.varId
 
+def goDown (nodes : Array Node) (ref : Ref) : Ref × Ref :=
+    match ref.link with
+    | none => (ref, ref)
+    | some i => (nodes[i]!.li, nodes[i]!.hi)
+
 partial def step (v1l v1h v2 : Ref) (vi : Nat)
     (nodes : Nodes) (key : Key) (evaluation : Evaluation)
     : Ref × Nodes × Key × Evaluation :=
@@ -45,18 +50,9 @@ partial def step (v1l v1h v2 : Ref) (vi : Nat)
   -- create nonterminal and evalate further down
   else if let some vi := [v1l, v1h, v2].map (varId nodes ·) |>.filterMap id |>.min?
   then
-    let (v1ll, v1lh) := if vi == varId nodes v1l then
-        let n := nodes[v1l.link.get!]!
-        (n.li, n.hi)
-      else (v1l, v1l)
-    let (v1hl, v1hh) := if vi == varId nodes v1h then
-        let n := nodes[v1h.link.get!]!
-        (n.li, n.hi)
-      else (v1h, v1h)
-    let (v2l, v2h) := if vi == varId nodes v2 then
-        let n := nodes[v2.link.get!]!
-        (n.li, n.hi)
-      else (v2, v2)
+    let (v1ll, v1lh) := if vi == varId nodes v1l then goDown nodes v1l else (v1l, v1l)
+    let (v1hl, v1hh) := if vi == varId nodes v1h then goDown nodes v1h else (v1h, v1h)
+    let (v2l, v2h)   := if vi == varId nodes v2  then goDown nodes v2  else (v2, v2)
     let (l, nodes, key, evaluation) := step v1ll v1hl v2l vi nodes key evaluation
     let (h, nodes, key, evaluation) := step v1lh v1hh v2h vi nodes key evaluation
     let index := nodes.size
