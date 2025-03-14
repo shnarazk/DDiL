@@ -46,3 +46,8 @@ def Node.validRef (self : Node) (pos : Nat) : Bool :=
 def Node.asBool (self : Node) : Option Bool := match self.li.asBool, self.hi.asBool with
   | some l, some h => if l == h then some l else none
   | _, _ => none
+
+def Node.append_nodes (self other : Array Node) (offset : Nat := self.size) : Array Node :=
+  self.append <| other.map (fun n ↦ {n with li := n.li + offset, hi := n.hi + offset})
+
+-- #eval append_nodes #[(default : Node), default] #[{(default : Node) with li := Ref.to 0}]
