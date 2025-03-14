@@ -1,6 +1,7 @@
 import Common.Debug
 import Common.DecisionDiagram
 import Graph.Def
+import Graph.Serialize
 
 namespace Test_Node
 

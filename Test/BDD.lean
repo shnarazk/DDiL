@@ -1,4 +1,5 @@
 import Graph.Def
+import Graph.Serialize
 import BDD.Def
 
 namespace Test_BDD
@@ -62,15 +63,15 @@ def run : IO Unit := do
   try
     let file ← independent_bdd.dumpAsPng "lake-test_bdd1.png"
     IO.println s!"📈 independent_bdd was dumped as: {file}"
-    let file2 ← x1x3.dumpAsPng "lake-test_x1x3.png"
+    let file2 ← (↑x1x3 : Graph).dumpAsPng "lake-test_x1x3.png"
     IO.println s!"📈 x1x3 was dumped as: {file2}"
-    let file3 ← x1x2.dumpAsPng "lake-test_x1x2.png"
+    let file3 ← (↑x1x2 : Graph).dumpAsPng "lake-test_x1x2.png"
     IO.println s!"📈 x1x2 was dumped as: {file3}"
-    let file4 ← applied.dumpAsPng "lake-test_apply.png"
+    let file4 ← (↑ applied : Graph).dumpAsPng "lake-test_apply.png"
     IO.println s!"📈 x1x3.apply.x1x2 was dumped as: {file4}"
-    let file7 ← fig7.dumpAsPng "lake-test_fig7.png"
+    let file7 ← (↑fig7 : Graph).dumpAsPng "lake-test_fig7.png"
     IO.println s!"📈 fig7 was dumped as: {file7}"
-    let file8 ← fig7_bdd.dumpAsPng "lake-test_fig7_bdd.png"
+    let file8 ← (↑fig7_bdd : Graph).dumpAsPng "lake-test_fig7_bdd.png"
     IO.println s!"📈 fig7_bdd was dumped as: {file8}"
   catch e => IO.println s!"Error: {e}"
   IO.println fin

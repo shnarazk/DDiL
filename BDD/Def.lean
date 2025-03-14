@@ -158,8 +158,6 @@ instance : GraphShape BDD where
   numberOfVars self := GraphShape.numberOfVars (↑self : Graph)
   numberOfNodes self := GraphShape.numberOfNodes (↑self : Graph)
   shapeOf self := GraphShape.shapeOf (↑self : Graph)
-  dumpAsDot self := GraphShape.dumpAsDot (↑self : Graph)
-  dumpAsPng self := GraphShape.dumpAsPng (↑self : Graph)
 
 def BDD.numSatisfies (self : BDD) : Nat :=
   if self.nodes.isEmpty then

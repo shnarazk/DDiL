@@ -3,6 +3,7 @@ import Std.Data.HashSet
 import Std.Internal.Parsec
 import Std.Internal.Parsec.String
 import Common.DecisionDiagram
+import Common.GraphSerialize
 import Common.GraphShape
 import Common.Parser
 
@@ -168,6 +169,8 @@ def TreeNode.fromString (input : String) : TreeNode :=
 instance : GraphShape TreeNode where
   numberOfVars := (·.depth)
   numberOfNodes := (·.size)
+
+instance : GraphSerialize TreeNode where
   dumpAsDot _ filename := do return filename
   dumpAsPng := fun _ filename => do return filename
 
