@@ -58,9 +58,6 @@ partial def countPaths (g : Graph) (counter : Std.HashMap Ref Nat) (r : Ref) : S
 
 private def order_to_scan (ia ib : Nat) : Bool := g.nodes[ia]! < g.nodes[ib]!
 
-def compose (a _b : BDD) (_varIndex : Nat) : BDD :=
-  a
-
 end BDD
 
 def BDD.numSatisfies (self : BDD) : Nat :=

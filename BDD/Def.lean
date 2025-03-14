@@ -2,6 +2,7 @@ import Common.DecisionDiagram
 import BDD.Base
 import BDD.Reduce
 import BDD.Apply
+import BDD.Compose
 
 instance : GraphShape BDD where
   numberOfVars self := GraphShape.numberOfVars (↑self : Graph)
