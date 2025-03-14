@@ -10,9 +10,10 @@ namespace BDD_apply
 
 variable (g : Graph)
 
-partial def apply_aux (f : MergeFunction) (r₁ r₂ : Ref) (nodes : Array Node)
-    (merged : HashMap (Ref × Ref) Ref)
-    : (Ref × (Array Node) × (HashMap (Ref × Ref) Ref)) :=
+abbrev Key := HashMap (Ref × Ref) Ref
+
+partial def apply_aux (f : MergeFunction) (r₁ r₂ : Ref) (nodes : Array Node) (merged : Key)
+    : (Ref × (Array Node) × Key) :=
   if let some r := merged.get? (r₁, r₂) then
     (r, nodes, merged)
   else if let some b := f.apply r₁.asBool r₂.asBool then

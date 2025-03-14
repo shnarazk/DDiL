@@ -8,14 +8,73 @@ open Std
 
 namespace BDD_compose
 
+abbrev Nodes := Array Node
+abbrev Key := HashMap (Ref × Ref × Ref) Ref
+abbrev Evaluation := HashMap Ref Bool
+
 variable (g : Graph)
 
-def step (g : Graph) (_v1l _v1h v2 : Ref) : Ref :=
+def or  := MergeFunction.of (· || ·) (some (true, true))
+def and := MergeFunction.of (· && ·) (some (false, false))
+def not : Option Bool → Option Bool
+| none => none
+| some b => some (!b)
+
+def varId (nodes : Array Node) (ref : Ref) : Option Nat :=
+  match ref.link with
+  | none => none
+  | some i => some nodes[i]!.varId
+
+partial def step (v1l v1h v2 : Ref) (vi : Nat)
+    (nodes : Nodes) (key : Key) (evaluation : Evaluation)
+    : Ref × Nodes × Key × Evaluation :=
   -- Perform restrictions
+  let node1l := nodes[v1l.link.getD 0]!
+  let node1h := nodes[v1h.link.getD 0]!
+  let v1l := if node1l.varId == vi then node1l.li else v1l
+  let v1h := if node1h.varId == vi then node1h.hi else v1h
   -- Apply operation ITE
-  v2
+  if let some u := key[(v1l, v1h, v2)]? then
+    (u, nodes, key, evaluation) -- have already evaluated
+  else if let some value := or.apply
+      (and.apply (not v2.asBool) v1l.asBool)
+      (and.apply v2.asBool v1h.asBool)
+  then
+    let r := Ref.bool value
+    (v2, nodes, key.insert (v1l, v1h, v2) r, evaluation.insert r value)
+  -- create nonterminal and evalate further down
+  else if let some vi := [v1l, v1h, v2].map (varId nodes ·) |>.filterMap id |>.min?
+  then
+    let (v1ll, v1lh) := if vi == varId nodes v1l then
+        let n := nodes[v1l.link.get!]!
+        (n.li, n.hi)
+      else (v1l, v1l)
+    let (v1hl, v1hh) := if vi == varId nodes v1h then
+        let n := nodes[v1h.link.get!]!
+        (n.li, n.hi)
+      else (v1h, v1h)
+    let (v2l, v2h) := if vi == varId nodes v2 then
+        let n := nodes[v2.link.get!]!
+        (n.li, n.hi)
+      else (v2, v2)
+    let (l, nodes, key, evaluation) := step v1ll v1hl v2l vi nodes key evaluation
+    let (h, nodes, key, evaluation) := step v1lh v1hh v2h vi nodes key evaluation
+    let index := nodes.size
+    let nodes := nodes.push {varId := 0, li := l, hi := h}
+    let r := Ref.to index
+    (v2, nodes, key.insert (v1l, v1h, v2) r, evaluation)
+  else
+    dbg "error" (v2, nodes, key, evaluation)
 
 end BDD_compose
 
-def BDD.compose (a _b : BDD) (_varIndex : Nat) : BDD :=
-  a
+def BDD.compose (self other : BDD) (varIndex : Nat) : BDD :=
+  let r1 := Ref.to self.toGraph.nodes.size.pred
+  let all_nodes : Array Node := Node.append_nodes ↑self ↑other
+  let r2 := Ref.to all_nodes.size.pred
+  BDD_compose.step r1 r1 r2 varIndex all_nodes HashMap.empty HashMap.empty
+    |> (fun (_, (nodes : Array Node), _, _) ↦ if nodes.isEmpty then
+              default
+            else
+              Graph.fromNodes (Nat.max self.numVars other.numVars) nodes )
+    |> (·.compact.toBDD)
