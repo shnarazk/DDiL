@@ -45,13 +45,13 @@ def run : IO Unit := do
   IO.println "#Test_BDD"
   assert_eq "BDD.independent.shape" (GraphShape.shapeOf independent_bdd) (6, 17)
   assert_eq "BDD.independent.paths" (DecisionDiagram.numberOfSatisfyingPaths independent_bdd) 18
-  IO.println s!"x1x3: {GraphShape.shapeOf x1x3}"
-  IO.println s!"x1x2: {GraphShape.shapeOf x1x2}"
+  -- IO.println s!"x1x3: {GraphShape.shapeOf x1x3}"
+  -- IO.println s!"x1x2: {GraphShape.shapeOf x1x2}"
   assert_eq "true or true" (or.apply (some true) (some true)) (some true)
   assert_eq "none or true" (or.apply none (some true)) (some true)
   assert_eq "none or none" (or.apply none none) none
   let applied := BDD.apply or x1x3 x1x2
-  IO.println s!"x1x3.apply or x1x2 |> shape: {GraphShape.shapeOf applied}"
+  assert_eq "x1x3.apply or x1x2 |> shape" (GraphShape.shapeOf applied) (3, 3)
   let fig7_bdd := fig7.toBDD
   -- IO.println s!"bdd1.reduce: {bdd1.reduce.toHashMap.toList}"
   -- IO.println s!"bdd2: {bdd2.toHashMap.toList}"

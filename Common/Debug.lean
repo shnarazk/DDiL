@@ -43,7 +43,7 @@ def dbg? {α : Type} [ToString α] (label : String) (a : α) (kind : LogKind := 
   /-- Asserts that two values `a` and `b` are equal. -/
   def assert_eq {α : Type} [BEq α] [ToString α] (s : String) (a b : α) : IO Unit := do
     if a == b then
-      IO.println s!"✅ Assertion: {s} == {b}"
+      IO.println s!"✅ : {s} == {b}"
     else
       let (beg, fin) := LogKind.error.color
-      IO.println s!"{beg}🆖 Assertion: {s} → {a} ≠ {b}{fin}"
+      IO.println s!"{beg}🆖 : {s} → {a} ≠ {b}{fin}"
