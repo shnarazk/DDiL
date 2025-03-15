@@ -146,13 +146,11 @@ def usedNodes (nodes : Array Node) (root : Ref) (mapping : HashSet Ref := HashSe
   else
     mapping
 
-def compact (nodes : Array Node) : Array Node :=
-  let used : Array Ref := usedNodes nodes (Ref.to (nodes.size - 1))
+def compact (nodes : Array Node) (root : Ref := Ref.to nodes.size.pred) : Array Node :=
+  let used : Array Ref := usedNodes nodes root
     |>.toArray
     |>.insertionSort (fun a b => a < b)
-  let mapping : HashMap Ref Ref := used
-    |>.zipIdx
-    |>.map (fun (n, i) ↦ (n, Ref.to i))
+  let mapping : HashMap Ref Ref := used.zipIdx.map (fun (n, i) ↦ (n, Ref.to i))
     |>.toList
     |>HashMap.ofList
   used.map
@@ -169,9 +167,16 @@ def compact (nodes : Array Node) : Array Node :=
 end compacting
 
 /-- make a graph compact, no unused nodes. -/
-def Graph.compact (self : Graph) : Graph :=
-  compacting.compact self.nodes
-    |>.foldl (fun g n ↦ g.addNode n |>.fst) (Graph.forVars self.numVars)
+def Graph.compact (self : Graph) (root : Option Ref := none) : Graph :=
+  match root, self.nodes.isEmpty with
+  | none, true => self
+  | none, false =>
+    compacting.compact self.nodes
+      |>.foldl (fun g n ↦ g.addNode n |>.fst) (Graph.forVars self.numVars)
+  | some _, true => self
+  | some r, false => match r.link with
+    | none   => {Graph.fromNodes self.numVars #[] with constant := r.grounded}
+    | some _ => Graph.fromNodes self.numVars (compacting.compact self.nodes r)
 
 instance : GraphShape Graph where
   numberOfVars := (·.numVars)

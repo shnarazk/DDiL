@@ -24,5 +24,7 @@ So we need some caching mechanism in data structures representing diagrams. -/
 class DecisionDiagram (α : Type) [BEq α] [GraphShape α] where
   numberOfSatisfyingPaths : α → Nat
   apply : MergeFunction→ α → α → α
-  /-- Combine two diagrams into one -/
+  /-- Combine two diagrams into one as follows
+  f1 \ xi=f2
+  So this a sort of substitution. -/
   compose : α → α → Nat → α

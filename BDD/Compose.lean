@@ -47,18 +47,15 @@ partial def step (v1l v1h v2 : Ref) (vi : Nat)
   then
     let r := Ref.bool value
     (v2, nodes, key.insert (v1l, v1h, v2) r, evaluation.insert r value)
-  -- create nonterminal and evalate further down
-  else if let some vi := [v1l, v1h, v2].map (varId nodes ·) |>.filterMap id |>.min?
-  then
+  else if let some vi := [v1l, v1h, v2].map (varId nodes ·) |>.filterMap id |>.min? then
+    -- create nonterminal and evalate further down
     let (v1ll, v1lh) := if vi == varId nodes v1l then goDown nodes v1l else (v1l, v1l)
     let (v1hl, v1hh) := if vi == varId nodes v1h then goDown nodes v1h else (v1h, v1h)
     let (v2l, v2h)   := if vi == varId nodes v2  then goDown nodes v2  else (v2, v2)
     let (l, nodes, key, evaluation) := step v1ll v1hl v2l vi nodes key evaluation
     let (h, nodes, key, evaluation) := step v1lh v1hh v2h vi nodes key evaluation
-    let index := nodes.size
-    let nodes := nodes.push {varId := 0, li := l, hi := h}
-    let r := Ref.to index
-    (v2, nodes, key.insert (v1l, v1h, v2) r, evaluation)
+    let r := Ref.to nodes.size
+    (v2, nodes.push {varId := 0, li := l, hi := h}, key.insert (v1l, v1h, v2) r, evaluation)
   else
     dbg "error" (v2, nodes, key, evaluation)
 
