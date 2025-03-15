@@ -30,14 +30,19 @@ def goDown (nodes : Array Node) (ref : Ref) : Ref × Ref :=
     | none => (ref, ref)
     | some i => (nodes[i]!.li, nodes[i]!.hi)
 
-partial def step (v1l v1h v2 : Ref) (vi : Nat)
-    (nodes : Nodes) (key : Key) (evaluation : Evaluation)
+partial def step (v1l v1h v2 : Ref) (vi : Nat) (nodes : Nodes) (key : Key) (evaluation : Evaluation)
     : Ref × Nodes × Key × Evaluation :=
+
   -- Perform restrictions
-  let node1l := nodes[v1l.link.getD 0]!
-  let node1h := nodes[v1h.link.getD 0]!
-  let v1l := if node1l.varId == vi then node1l.li else v1l
-  let v1h := if node1h.varId == vi then node1h.hi else v1h
+  let v1l := if let some i := v1l.link then
+      let node := nodes[i]!
+      if node.varId == vi then node.li else v1l
+    else v1l
+  let v1h := if let some i := v1h.link then
+      let node := nodes[i]!
+      if node.varId == vi then node.hi else v1h
+    else v1h
+
   -- Apply operation ITE
   if let some u := key[(v1l, v1h, v2)]? then
     (u, nodes, key, evaluation) -- have already evaluated
@@ -46,7 +51,7 @@ partial def step (v1l v1h v2 : Ref) (vi : Nat)
       (and.apply v2.asBool v1h.asBool)
   then
     let r := Ref.bool value
-    (v2, nodes, key.insert (v1l, v1h, v2) r, evaluation.insert r value)
+    (r, nodes, key.insert (v1l, v1h, v2) r, evaluation.insert r value)
   else if let some vi := [v1l, v1h, v2].map (varId nodes ·) |>.filterMap id |>.min? then
     -- create nonterminal and evalate further down
     let (v1ll, v1lh) := if vi == varId nodes v1l then goDown nodes v1l else (v1l, v1l)
@@ -55,7 +60,7 @@ partial def step (v1l v1h v2 : Ref) (vi : Nat)
     let (l, nodes, key, evaluation) := step v1ll v1hl v2l vi nodes key evaluation
     let (h, nodes, key, evaluation) := step v1lh v1hh v2h vi nodes key evaluation
     let r := Ref.to nodes.size
-    (v2, nodes.push {varId := 0, li := l, hi := h}, key.insert (v1l, v1h, v2) r, evaluation)
+    (r, nodes.push {varId := vi, li := l, hi := h}, key.insert (v1l, v1h, v2) r, evaluation)
   else
     dbg "error" (v2, nodes, key, evaluation)
 
@@ -66,7 +71,7 @@ def BDD.compose (self other : BDD) (varIndex : Nat) : BDD :=
   let all_nodes : Array Node := Node.append_nodes ↑self ↑other
   let r2 := Ref.to all_nodes.size.pred
   BDD_compose.step r1 r1 r2 varIndex all_nodes HashMap.empty HashMap.empty
-    |> (fun (_, (nodes : Array Node), _, _) ↦ if nodes.isEmpty then
+    |> (fun (_root, (nodes : Array Node), _, _) ↦ if nodes.isEmpty then
               default
             else
               Graph.fromNodes (Nat.max self.numVars other.numVars) nodes )

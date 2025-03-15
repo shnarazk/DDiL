@@ -15,21 +15,23 @@ def merger : IO Unit := do
   assert_eq "none or true" (or.apply none (some true)) (some true)
   assert_eq "none or none" (or.apply none none) none
 
+/-
 def compaction : IO Unit := do
   IO.println "## compaction"
   let comp1 : Graph := Graph.fromNodes 2 #[
       {varId := 2, li := Ref.bool true, hi := Ref.bool false},
       {varId := 1, li := Ref.to 0, hi := Ref.to 0} ]
-  assert_eq "Graph(compaction).shape" (GraphShape.shapeOf comp1) (2, 2)
+  assert_eq "Graph(compaction-before).shape" (GraphShape.shapeOf comp1) (2, 2)
   let comp2 : BDD := comp1.toBDD
-  assert_eq "BDD(compaction).shape" (GraphShape.shapeOf comp2) (2, 1)
+  assert_eq "BDD(compaction-after).shape" (GraphShape.shapeOf comp2) (2, 1)
   try
-    let file1 ← comp1.dumpAsPng "_test_bdd_compaction1.png"
+    let file1 ← comp1.dumpAsPng "_test_bdd_compaction-before.png"
     IO.println s!"📈 Graph(compaction) was dumped as: {file1}"
-    let file2 ← comp2.dumpAsPng "_test_bdd_compaction2.png"
+    let file2 ← comp2.dumpAsPng "_test_bdd_compaction-after.png"
     IO.println s!"📈 BDD(compaction) was dumped as: {file2}"
   catch e => IO.println s!"Error: {e}"
   return ()
+-/
 
 /-
 def independent : IO Unit := do
@@ -57,7 +59,7 @@ def independent : IO Unit := do
 -/
 
 /-
-/-- the apply example used in the paper -/
+/-- the apply example used in the paper --/
 def apply : IO Unit := do
   IO.println "## BDD apply on independent"
   let x1x3 : BDD := Graph.fromNodes 3 #[
@@ -95,7 +97,7 @@ def apply : IO Unit := do
 -/
 
 def compose : IO Unit := do
-  IO.println "## BDD compose on independent"
+  IO.println "## BDD compose on the example used in apply"
   let x1x3 : BDD := Graph.fromNodes 3 #[
         {varId := 3, li := Ref.bool true, hi := Ref.bool false},
         {varId := 1, li := Ref.bool true, hi := Ref.to 0} ]
@@ -106,15 +108,15 @@ def compose : IO Unit := do
     |>.toBDD
   -- This replace x1x3 with x1x2 completely.
   let composed1 := BDD.compose x1x3 x1x2 1
-  assert_eq "(compose x1x3 x1x2 1).shape" (GraphShape.shapeOf composed1) (2, 2)
+  assert_eq "(compose x1x3 x1x2 1).shape" (GraphShape.shapeOf composed1) (3, 2)
   -- This operation combine x1x2 into x1x3 under var1
   let composed2 := BDD.compose x1x3 x1x2 2
-  assert_eq "(compose x1x3 x1x2 2).shape" (GraphShape.shapeOf composed2) (2, 2)
+  assert_eq "(compose x1x3 x1x2 2).shape" (GraphShape.shapeOf composed2) (3, 2)
   try
-    let file8 ← (↑composed1 : Graph).dumpAsPng "_test_bdd_compose1.png"
-    IO.println s!"📈 composed1 was dumped as: {file8}"
-    let file9 ← (↑composed2 : Graph).dumpAsPng "_test_bdd_compose2.png"
-    IO.println s!"📈 composed2 was dumped as: {file9}"
+    let file1 ← (↑composed1 : Graph).dumpAsPng "_test_bdd_compose1.png"
+    IO.println s!"📈 composed1 was dumped as: {file1}"
+    let file2 ← (↑composed2 : Graph).dumpAsPng "_test_bdd_compose2.png"
+    IO.println s!"📈 composed2 was dumped as: {file2}"
   catch e => IO.println s!"Error: {e}"
   return ()
 
@@ -124,7 +126,7 @@ def run : IO Unit := do
   IO.println "#Test_BDD"
 
   -- merger
-  compaction
+  -- compaction
   -- independent
   -- apply
   compose

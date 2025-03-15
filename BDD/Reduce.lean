@@ -36,7 +36,6 @@ end BDD_reduce
 
 /-- Called from `reduce`. Rebuild and merge mergeable nodes. -/
 def BDD.reduce (g : Graph) (var_nodes: HashMap Nat (Array Ref)) : BDD :=
-  let root : Ref := Ref.to g.nodes.size.pred
   var_nodes.toList.mergeSort (fun a b ↦ a.fst > b.fst) -- from bottom var to top var
     |>.foldl
       (fun (updatedRef, nodes) (_, refs) ↦
@@ -48,8 +47,9 @@ def BDD.reduce (g : Graph) (var_nodes: HashMap Nat (Array Ref)) : BDD :=
       (HashMap.empty, g.nodes)
     |> (fun (updatedRef, nodes) ↦ if 0 < nodes.size then
           let g := Graph.fromNodes g.numVars nodes
-          {toGraph := g.compact updatedRef[root]?}
-            |> dbg s!"BDD.reduce {root} => {updatedRef[root]?}"
+          let root := Ref.to g.nodes.size.pred
+          {toGraph := g.compact (updatedRef.getD root root)}
+            -- |> dbg s!"BDD.reduce {root}({rn}) => {updatedRef[root]?}"
         else
           default )
 
