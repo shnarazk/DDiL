@@ -15,7 +15,6 @@ def merger : IO Unit := do
   assert_eq "none or true" (or.apply none (some true)) (some true)
   assert_eq "none or none" (or.apply none none) none
 
-/-
 def compaction : IO Unit := do
   IO.println "## compaction"
   let comp1 : Graph := Graph.fromNodes 2 #[
@@ -31,9 +30,7 @@ def compaction : IO Unit := do
     IO.println s!"📈 BDD(compaction) was dumped as: {file2}"
   catch e => IO.println s!"Error: {e}"
   return ()
--/
 
-/-
 def independent : IO Unit := do
   IO.println "## independent"
   -- one of the examples in The Art of Computer Programming
@@ -56,10 +53,8 @@ def independent : IO Unit := do
     IO.println s!"📈 independent_bdd was dumped as: {file}"
   catch e => IO.println s!"Error: {e}"
   return ()
--/
 
-/-
-/-- the apply example used in the paper --/
+/-- the apply example used in the paper -/
 def apply : IO Unit := do
   IO.println "## BDD apply on independent"
   let x1x3 : BDD := Graph.fromNodes 3 #[
@@ -94,7 +89,6 @@ def apply : IO Unit := do
     IO.println s!"📈 fig7 was dumped as: {file7}"
   catch e => IO.println s!"Error: {e}"
   return ()
--/
 
 def compose : IO Unit := do
   IO.println "## BDD compose on the example used in apply"
@@ -125,10 +119,10 @@ def run : IO Unit := do
   IO.println beg
   IO.println "#Test_BDD"
 
-  -- merger
-  -- compaction
-  -- independent
-  -- apply
+  merger
+  compaction
+  independent
+  apply
   compose
 
   IO.println fin
