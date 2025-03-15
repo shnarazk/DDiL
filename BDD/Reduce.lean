@@ -49,7 +49,7 @@ def BDD.reduce (g : Graph) (var_nodes: HashMap Nat (Array Ref)) : BDD :=
     |> (fun (updatedRef, nodes) ↦ if 0 < nodes.size then
           let g := Graph.fromNodes g.numVars nodes
           {toGraph := g.compact updatedRef[root]?}
-            |> dbg s!"{root} => {updatedRef[root]?}"
+            |> dbg s!"BDD.reduce {root} => {updatedRef[root]?}"
         else
           default )
 

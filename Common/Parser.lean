@@ -21,7 +21,7 @@ def endBy (p : Parser α) (e : Parser β) : Parser (Array α) := do
 def whitespaces : Parser Unit :=
   many1 (pchar ' ' <|> pchar '\t') *> return ()
 
-/-- an optional sequence of space or TAB -/
+/- /-- an optional sequence of space or TAB -/ -/
 def whitespaces? : Parser Unit :=
   many (pchar ' ' <|> pchar '\t') *> return ()
 
