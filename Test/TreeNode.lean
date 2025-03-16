@@ -30,6 +30,8 @@ def run : IO Unit := do
   IO.println s!"parse w/o comment→shape: {GraphShape.shapeOf s1_noComment}"
   IO.println s!"parse w comment1 →shape: {GraphShape.shapeOf s1_comment1}"
   assert_eq "parse w comment2 →shape" (GraphShape.shapeOf s1_comment2) (1, 3)
+  assert_eq "s1_nc.isCongruent s1c1" (DecisionDiagram.isCongruent s1_noComment s1_comment1) true
+  assert_eq "s1_nc.isCongruent s1c2" (DecisionDiagram.isCongruent s1_noComment s1_comment2) true
   assert_eq "independent      →shape" (GraphShape.shapeOf independent) (6, 127)
   assert_eq "independent.paths" (DecisionDiagram.numberOfSatisfyingPaths independent) 18
   IO.println done

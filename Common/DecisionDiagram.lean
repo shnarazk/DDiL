@@ -28,3 +28,7 @@ class DecisionDiagram (α : Type) [BEq α] [GraphShape α] where
   f1 \ xi=f2
   So this a sort of substitution. -/
   compose : α → α → Nat → α
+  /--
+  Check if two diagrams are congruent.
+  Two diagrams are congruent if they have the same satisfying paths. -/
+  isCongruent : α → α → Bool

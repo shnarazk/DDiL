@@ -34,7 +34,7 @@ def compaction : IO Unit := do
 def independent : IO Unit := do
   IO.println "## independent"
   -- one of the examples in The Art of Computer Programming
-  let independent_bdd : BDD :=
+  let independent : Graph :=
     TreeNode.fromString
         "{  { { {{{T T} {T F}} {{T T} {F F}}}
                 {{{T T} {T F}} {{F F} {F F}}} }
@@ -46,8 +46,10 @@ def independent : IO Unit := do
                 {{{F F} {F F}} {{F F} {F F}}} } } }"
       |> Graph.fromTreeNode
       |>.toBDD
+  let independent_bdd := independent.toBDD
   assert_eq "BDD.independent.shape" (GraphShape.shapeOf independent_bdd) (6, 17)
   assert_eq "BDD.independent.paths" (DecisionDiagram.numberOfSatisfyingPaths independent_bdd) 18
+  assert_eq "congruence" (DecisionDiagram.isCongruent (↑ independent_bdd : Graph) independent) true
   try
     let file ← independent_bdd.dumpAsPng "_test_bdd1.png"
     IO.println s!"📈 independent_bdd was dumped as: {file}"
@@ -76,6 +78,7 @@ def apply : IO Unit := do
       {varId := 1, li := Ref.bool true, hi := Ref.to 2} ]
   let fig7_bdd := fig7.toBDD
   assert_eq "x1x3.apply or x1x2 |> shape" (GraphShape.shapeOf applied) (3, 3)
+  assert_eq "congruent (x1x3.apply or x1x2) fig7" (DecisionDiagram.isCongruent applied fig7_bdd) true
   try
     let file2 ← (↑x1x3 : Graph).dumpAsPng "_test_x1x3.png"
     IO.println s!"📈 x1x3 was dumped as: {file2}"

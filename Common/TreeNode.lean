@@ -178,3 +178,4 @@ instance : DecisionDiagram TreeNode where
   numberOfSatisfyingPaths (t : TreeNode) := t.numSatisfies
   apply (_f : MergeFunction) (t _ : TreeNode) : TreeNode := t
   compose (self _other : TreeNode) (_varId : Nat) : TreeNode := self
+  isCongruent (self other : TreeNode) : Bool := self.is_congruent other

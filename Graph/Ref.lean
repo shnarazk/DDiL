@@ -38,6 +38,10 @@ def Ref.bool (b : Bool) : Ref := {grounded := b, link := none}
 /-- Ref constructor for node references -/
 def Ref.to (n : Nat) : Ref := {grounded := false, link := some n}
 
+def Ref.last {α : Type} (a : Array α) : Ref :=
+  if a.isEmpty then {grounded := false, link := none}
+  else {grounded := false, link := some a.size.pred}
+
 -- #eval (Ref.to 3) < (Ref.to 4)
 
 /-- Return `some bool_value` if the reference is constant, `none` otherwise -/
