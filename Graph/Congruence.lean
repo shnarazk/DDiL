@@ -10,6 +10,7 @@ partial def Graph.isCongruent_aux (g₁ g₂ : Graph) (r₁ r₂ : Ref): Bool :=
       let n := g₁.nodes[i]!
       isCongruent_aux g₁ g₂ n.li r₂ && isCongruent_aux g₁ g₂ n.hi r₂
     | some i₁, some i₂ =>
+      -- FIXME: we have to check varId equallity here.
       let n₁ := g₁.nodes[i₁]!
       let n₂ := g₂.nodes[i₂]!
       isCongruent_aux g₁ g₂ n₁.li n₂.li && isCongruent_aux g₁ g₂ n₁.hi n₂.hi
