@@ -67,8 +67,8 @@ def apply : IO Unit := do
       {varId := 3, li := Ref.bool false, hi := Ref.bool true},
       {varId := 2, li := Ref.bool false, hi := Ref.to 0} ]
     |>.toBDD
-  IO.println s!"x1x3: {GraphShape.shapeOf x1x3}"
-  IO.println s!"x1x2: {GraphShape.shapeOf x1x2}"
+  assert_eq "x1x3.shape" (GraphShape.shapeOf x1x3) (3, 2)
+  assert_eq "x1x2.shape" (GraphShape.shapeOf x1x2) (3, 2)
   let applied := BDD.apply or x1x3 x1x2
   -- the output before compaction
   let fig7 : Graph := Graph.fromNodes 3 #[

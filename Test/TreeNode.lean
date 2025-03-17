@@ -26,9 +26,11 @@ def run : IO Unit := do
   let (start, done) := LogKind.info.color
   IO.println start
   IO.println "#Test_TreeNode"
-  IO.println s!"TreeNode: {f}"
-  IO.println s!"parse w/o comment→shape: {GraphShape.shapeOf s1_noComment}"
-  IO.println s!"parse w comment1 →shape: {GraphShape.shapeOf s1_comment1}"
+  assert_eq "f.shape" (GraphShape.shapeOf f) (0, 1)
+  assert_eq "s1nc.shape" (GraphShape.shapeOf s1_noComment) (1, 3)
+  assert_eq "congruent s1nc s1c1" (DecisionDiagram.isCongruent s1_noComment s1_comment1) true
+  assert_eq "s1c1.shape" (GraphShape.shapeOf s1_comment1) (1, 3)
+  assert_eq "congruent s1nc s1c2" (DecisionDiagram.isCongruent s1_noComment s1_comment2) true
   assert_eq "parse w comment2 →shape" (GraphShape.shapeOf s1_comment2) (1, 3)
   assert_eq "s1_nc.isCongruent s1c1" (DecisionDiagram.isCongruent s1_noComment s1_comment1) true
   assert_eq "s1_nc.isCongruent s1c2" (DecisionDiagram.isCongruent s1_noComment s1_comment2) true
