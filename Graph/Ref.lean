@@ -30,7 +30,7 @@ instance DecidableLTRef : DecidableLT Ref
   | {grounded := _, link := none}  , {grounded := _, link := some _}  => isTrue trivial
   | {grounded := _, link := some _}, {grounded := _, link := none}    => isFalse not_false
   | {grounded := _, link := some i}, {grounded := _, link := some j}  =>
-      if h : i < j then isTrue h else isFalse h
+    if h : i < j then isTrue h else isFalse h
 
 /-- Ref constructor for boolean values -/
 def Ref.bool (b : Bool) : Ref := {grounded := b, link := none}
@@ -39,22 +39,23 @@ def Ref.bool (b : Bool) : Ref := {grounded := b, link := none}
 def Ref.to (n : Nat) : Ref := {grounded := false, link := some n}
 
 def Ref.last {α : Type} (a : Array α) : Ref :=
-  if a.isEmpty then {grounded := false, link := none}
+  if a.isEmpty
+  then {grounded := false, link := none}
   else {grounded := false, link := some a.size.pred}
 
 -- #eval (Ref.to 3) < (Ref.to 4)
 
 /-- Return `some bool_value` if the reference is constant, `none` otherwise -/
 def Ref.asBool (self : Ref) : Option Bool := match self.link with
-  | none => some self.grounded
+  | none   => some self.grounded
   | some _ => none
 
 /-- Return `true` if it refers to a prior node -/
 def Ref.isSmaller (self : Ref) (n : Nat) : Bool := match self.link with
-  | none => true
+  | none   => true
   | some i => i < n
 
 instance : HAdd Ref Nat Ref where
   hAdd r n := match r.link with
-    | none => r
+    | none   => r
     | some i => { r with link := some (i + n) }

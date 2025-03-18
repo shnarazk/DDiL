@@ -10,16 +10,15 @@ structure Node where
 deriving BEq, Hashable
 
 instance : Inhabited Node where
-  default := { varId := 0, li := default, hi := default }
+  default := {varId := 0, li := default, hi := default}
 
 instance : ToString Node where
   toString self :=
     let li := toString self.li
     let hi := toString self.hi
-    if li == hi then
-      s!"Node(var:{self.varId} ↦ {li})"
-    else
-      s!"Node(var:{self.varId}, li:{self.li}, hi:{self.hi})"
+    if li == hi
+    then s!"Node(var:{self.varId} ↦ {li})"
+    else s!"Node(var:{self.varId}, li:{self.li}, hi:{self.hi})"
 
 /- FIXME: implement `decidable eq` -/
 def Node.lt (a b : Node) : Prop :=
@@ -32,8 +31,8 @@ instance : LT Node where
 instance DecidableLTNode : DecidableLT Node
   | a, b =>
     if h : a.varId > b.varId ∨ (a.varId == b.varId ∧ (a.li < b.li ∨ (a.li == b.li ∧ a.hi < b.hi)))
-      then isTrue h
-      else isFalse h
+    then isTrue h
+    else isFalse h
 
 def Node.validRef (self : Node) (pos : Nat) : Bool :=
   match self.li.link, self.hi.link with

@@ -71,9 +71,9 @@ def TreeNode.isConstant (self : TreeNode) : Option Bool := match self with
 
 def TreeNode.toHashMap (self : TreeNode) (set : Std.HashMap Nat TreeNode := Std.HashMap.empty)
     : Std.HashMap Nat TreeNode := match self with
-  | .isFalse => set.insert 0 self
-  | .isTrue  => set.insert 1 self
-  | .node low high _ => set.insert (self.index) self |> low.toHashMap |> high.toHashMap
+  | .isFalse    => set.insert 0 self
+  | .isTrue     => set.insert 1 self
+  | .node l h _ => set.insert (self.index) self |> l.toHashMap |> h.toHashMap
 
 def TreeNode.toHashSet (self : TreeNode) (set : Std.HashSet TreeNode := Std.HashSet.empty): Std.HashSet TreeNode := match self with
   | .isFalse | .isTrue => set.insert self

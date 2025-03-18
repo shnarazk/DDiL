@@ -40,8 +40,7 @@ instance : Inhabited Graph where
       validVarIds := vi,
       constant := some false,
       validSize := 0,
-      validRefs := ordered,
-    }
+      validRefs := ordered, }
 
 instance : ToString Graph where
   toString g := s!"Graph: {g.nodes}"
@@ -49,13 +48,11 @@ instance : ToString Graph where
 def Graph.forVars (n : Nat) : Graph :=
  let g : Graph := default
   have vi : ∀ node ∈ g.nodes, node.varId ≤ n := by
-      rintro node₀ h₀
-      have : g.nodes = #[] := by exact rfl
-      rw [this] at h₀
-      simp at h₀
-  { g with
-    numVars := n
-    validVarIds := vi }
+    rintro node₀ h₀
+    have : g.nodes = #[] := by exact rfl
+    rw [this] at h₀
+    simp at h₀
+  {g with numVars := n, validVarIds := vi}
 
 def Graph.asBool (g : Graph) : Option Bool :=
   if g.nodes.isEmpty then g.constant else none
@@ -79,16 +76,13 @@ def Graph.addNode (g : Graph) (node : Node) : Graph × Nat :=
         simp [Array.zipIdx] at base
         intro n i j
         rcases j with j | j
-        {
-          rcases base n i with base₀
+        { rcases base n i with base₀
           rcases j with ⟨jg, k⟩
           rcases base₀ i jg k with base₁
           simp at base₁
           exact base₁ }
-        {
-          simp [j.left, j.right]
-          exact h.right }
-    }
+        { simp [j.left, j.right]
+          exact h.right } }
     (g', nodes.size - 1)
   else
     dbg
@@ -106,7 +100,7 @@ inductive Collector where
   | link (mapping : Array Node)
 
 instance : Inhabited Collector where
-  default := Collector.link (#[])
+  default := Collector.link #[]
 
 def collectFromTreeNode (tree : TreeNode) (mapping : Array Node := #[]) (varId : Nat := 1)
     : Collector :=
@@ -130,8 +124,8 @@ def Graph.fromTreeNode (tree : TreeNode) : Graph :=
   match collectFromTreeNode tree with
     | Collector.bool b => {(default : Graph) with constant := b}
     | Collector.link m => m.foldl
-        (fun g node => g.addNode node |>.fst)
-        (Graph.forVars (GraphShape.numberOfVars tree))
+      (fun g node => g.addNode node |>.fst)
+      (Graph.forVars (GraphShape.numberOfVars tree))
 
 def Graph.fromNodes (n : Nat) (nodes : Array Node) : Graph :=
   nodes.foldl (fun g n ↦ g.addNode n |>.fst) (Graph.forVars n)
@@ -158,12 +152,9 @@ def compact (nodes : Array Node) (root : Ref := Ref.to nodes.size.pred) : Array 
     |>HashMap.ofList
   used.map
     (fun r ↦
-      if let some i := r.link
-      then
+      if let some i := r.link then
         let node := nodes[i]!
-        { node with
-          li := mapping.getD node.li node.li,
-          hi := mapping.getD node.hi node.hi }
+        {node with li := mapping.getD node.li node.li, hi := mapping.getD node.hi node.hi}
       else
         (default : Node) )
 
@@ -194,7 +185,8 @@ partial def linearCount (g : Graph) (counter : Std.HashMap Ref Nat) (r : Ref) : 
   match r.link with
   | none => (counter, if r.grounded then 1 else 0)
   | some i =>
-    if let some count := counter[r]? then (counter, count)
+    if let some count := counter[r]? then
+     (counter, count)
     else
       let node := g.nodes[i]!
       let (counter, a) := linearCount g counter node.li

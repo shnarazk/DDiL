@@ -18,8 +18,8 @@ def merger : IO Unit := do
 def compaction : IO Unit := do
   IO.println "## compaction"
   let comp1 : Graph := Graph.fromNodes 2 #[
-      {varId := 2, li := Ref.bool true, hi := Ref.bool false},
-      {varId := 1, li := Ref.to 0, hi := Ref.to 0} ]
+    {varId := 2, li := Ref.bool true, hi := Ref.bool false},
+    {varId := 1, li := Ref.to 0, hi := Ref.to 0} ]
   assert_eq "Graph(compaction-before).shape" (GraphShape.shapeOf comp1) (2, 2)
   let comp2 : BDD := comp1.toBDD
   assert_eq "BDD(compaction-after).shape" (GraphShape.shapeOf comp2) (2, 1)
@@ -49,7 +49,7 @@ def independent : IO Unit := do
   let independent_bdd := independent.toBDD
   assert_eq "BDD.independent.shape" (GraphShape.shapeOf independent_bdd) (6, 17)
   assert_eq "BDD.independent.paths" (DecisionDiagram.numberOfSatisfyingPaths independent_bdd) 18
-  assert_eq "congruence" (DecisionDiagram.isCongruent (↑ independent_bdd : Graph) independent) true
+  assert_eq "congruence" (DecisionDiagram.isCongruent (↑independent_bdd : Graph) independent) true
   try
     let file ← independent_bdd.dumpAsPng "_test_bdd1.png"
     IO.println s!"📈 independent_bdd was dumped as: {file}"
@@ -60,22 +60,22 @@ def independent : IO Unit := do
 def apply : IO Unit := do
   IO.println "## BDD apply on independent"
   let x1x3 : BDD := Graph.fromNodes 3 #[
-        {varId := 3, li := Ref.bool true, hi := Ref.bool false},
-        {varId := 1, li := Ref.bool true, hi := Ref.to 0} ]
+      {varId := 3, li := Ref.bool true, hi := Ref.bool false},
+      {varId := 1, li := Ref.bool true, hi := Ref.to 0} ]
     |>.toBDD
   let x1x2 : BDD := Graph.fromNodes 3 #[
-        {varId := 3, li := Ref.bool false, hi := Ref.bool true},
-        {varId := 2, li := Ref.bool false, hi := Ref.to 0} ]
+      {varId := 3, li := Ref.bool false, hi := Ref.bool true},
+      {varId := 2, li := Ref.bool false, hi := Ref.to 0} ]
     |>.toBDD
   IO.println s!"x1x3: {GraphShape.shapeOf x1x3}"
   IO.println s!"x1x2: {GraphShape.shapeOf x1x2}"
   let applied := BDD.apply or x1x3 x1x2
   -- the output before compaction
   let fig7 : Graph := Graph.fromNodes 3 #[
-      {varId := 3, li := Ref.bool true, hi := Ref.bool true},
-      {varId := 3, li := Ref.bool true, hi := Ref.bool false},
-      {varId := 2, li := Ref.to 1, hi := Ref.to 0},
-      {varId := 1, li := Ref.bool true, hi := Ref.to 2} ]
+    {varId := 3, li := Ref.bool true, hi := Ref.bool true},
+    {varId := 3, li := Ref.bool true, hi := Ref.bool false},
+    {varId := 2, li := Ref.to 1, hi := Ref.to 0},
+    {varId := 1, li := Ref.bool true, hi := Ref.to 2} ]
   let fig7_bdd := fig7.toBDD
   assert_eq "x1x3.apply or x1x2 |> shape" (GraphShape.shapeOf applied) (3, 3)
   assert_eq "congruent (x1x3.apply or x1x2) fig7" (DecisionDiagram.isCongruent applied fig7_bdd) true
@@ -96,12 +96,12 @@ def apply : IO Unit := do
 def compose : IO Unit := do
   IO.println "## BDD compose on the example used in apply"
   let x1x3 : BDD := Graph.fromNodes 3 #[
-        {varId := 3, li := Ref.bool true, hi := Ref.bool false},
-        {varId := 1, li := Ref.bool true, hi := Ref.to 0} ]
+      {varId := 3, li := Ref.bool true, hi := Ref.bool false},
+      {varId := 1, li := Ref.bool true, hi := Ref.to 0} ]
     |>.toBDD
   let x1x2 : BDD := Graph.fromNodes 3 #[
-        {varId := 3, li := Ref.bool false, hi := Ref.bool true},
-        {varId := 2, li := Ref.bool false, hi := Ref.to 0} ]
+      {varId := 3, li := Ref.bool false, hi := Ref.bool true},
+      {varId := 2, li := Ref.bool false, hi := Ref.to 0} ]
     |>.toBDD
   -- This replace x1x3 with x1x2 completely.
   let composed1 := BDD.compose x1x3 x1x2 1
