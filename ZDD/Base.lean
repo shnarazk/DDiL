@@ -9,7 +9,7 @@ structure ZDD extends Graph
 instance : Inhabited ZDD := ⟨{toGraph := default}⟩
 
 instance : ToString ZDD where
-  toString bdd := s!"[bdd {bdd.toGraph}]"
+  toString zdd := s!"[zdd {zdd.toGraph}]"
 
 instance : BEq ZDD where
   beq a b := a.toGraph == b.toGraph
@@ -21,24 +21,23 @@ instance : Coe ZDD (Array Node) where
   coe b := b.toGraph.nodes
 
 def ZDD.addNode (self: ZDD) (node : Node) : ZDD × Nat :=
-  self.toGraph.addNode node
-    |> fun (g, n) => ({self with toGraph := g}, n)
+  self.toGraph.addNode node |> fun (g, n) => ({self with toGraph := g}, n)
 
 def ZDD.addNode' (self: ZDD) (varId : Nat) (li hi : Ref) : ZDD × Nat :=
   self.addNode {varId, li, hi}
 
 namespace ZDD
 
+abbrev Counter := Std.HashMap Ref Nat
+
 variable (g : Graph)
 
-/--
-Checks if the TreeNode satisfies all conditions.
-Tree traversing approach isn't efficient because it visits subtrees many times. -/
-partial def countPaths (g : Graph) (counter : Std.HashMap Ref Nat) (r : Ref) : Std.HashMap Ref Nat × Nat :=
+partial def countPaths (g : Graph) (counter : Counter) (r : Ref) : Counter × Nat :=
   match r.link with
   | none => (counter, if r.grounded then 1 else 0)
   | some i =>
-    if let some count := counter[r]? then (counter, count)
+    if let some count := counter[r]? then
+      (counter, count)
     else
       let node := g.nodes[i]!
       let (counter, a) := countPaths g counter node.li
