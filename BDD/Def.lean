@@ -14,5 +14,5 @@ instance : DecisionDiagram BDD where
   numberOfSatisfyingPaths b := b.numSatisfies
   apply := BDD.apply
   compose := BDD.compose
-  isCongruent (self other : BDD) := DecisionDiagram.isCongruent (↑self : Graph) (↑other : Graph)
+  isCongruent (self other : BDD) := self.isCongruent (↑other : Graph)
   contains self path := self.isSatisfiedBy path

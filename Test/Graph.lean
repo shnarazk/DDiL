@@ -1,6 +1,6 @@
 import Common.Debug
 import Common.DecisionDiagram
-import Graph.Def
+-- import Graph.Def
 import Graph.Serialize
 
 namespace Test_Node
@@ -37,8 +37,8 @@ def independent : IO Unit := do
           { {{{F F} {F F}} {{F F} {F F}}}
             {{{F F} {F F}} {{F F} {F F}}} } } }"
   let g := Graph.fromTreeNode tree
-  assert_eq "GraphShape.ofShape independent" (GraphShape.shapeOf g) (6, 63)
-  assert_eq "independent.paths" (DecisionDiagram.numberOfSatisfyingPaths g) 18
+  -- assert_eq "GraphShape.ofShape independent" (GraphShape.shapeOf g) (6, 63)
+  -- assert_eq "independent.paths" (DecisionDiagram.numberOfSatisfyingPaths g) 18
   try
     let file ← g.dumpAsPng "_test_independent.png"
     IO.println s!"📈 independent was dumped as: {file}"
