@@ -32,3 +32,6 @@ class DecisionDiagram (α : Type) [BEq α] [GraphShape α] where
   Check if two diagrams are congruent.
   Two diagrams are congruent if they have the same satisfying paths. -/
   isCongruent : α → α → Bool
+  /--
+  Return true if the bool expression satisfies the graph. -/
+  contains: α → List Int → Bool

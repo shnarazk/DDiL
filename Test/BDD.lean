@@ -1,7 +1,6 @@
 import Graph.Def
 import Graph.Serialize
 import BDD.Def
-import BDD.Satisfy
 
 namespace Test_BDD
 
@@ -132,11 +131,11 @@ def satisfy : IO Unit := do
                 {{{F F} {F F}} {{F F} {F F}}} } } }"
       |> Graph.fromTreeNode
       |>.toBDD
-  assert_eq "independent isSatisfiedBy [1]   " (independent.isSatisfiedBy [1]) true
-  assert_eq "independent isSatisfiedBy [1, 2]" (independent.isSatisfiedBy [1,  2]) false
-  assert_eq "independent isSatisfiedBy [1,-2]" (independent.isSatisfiedBy [1, -2]) true
-  assert_eq "independent isSatisfiedBy [4,-5]" (independent.isSatisfiedBy [4, -5]) true
-  assert_eq "independent isSatisfiedBy [4, 5]" (independent.isSatisfiedBy [4,  5]) false
+  assert_eq "independent contains [1]   " (independent.contains [1]) true
+  assert_eq "independent contains [1, 2]" (independent.contains [1,  2]) false
+  assert_eq "independent contains [1,-2]" (independent.contains [1, -2]) true
+  assert_eq "independent contains [4,-5]" (independent.contains [4, -5]) true
+  assert_eq "independent contains [4, 5]" (independent.contains [4,  5]) false
   return ()
 
 def run : IO Unit := do

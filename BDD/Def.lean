@@ -15,3 +15,4 @@ instance : DecisionDiagram BDD where
   apply := BDD.apply
   compose := BDD.compose
   isCongruent (self other : BDD) := DecisionDiagram.isCongruent (↑self : Graph) (↑other : Graph)
+  contains self path := self.isSatisfiedBy path

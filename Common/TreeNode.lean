@@ -179,3 +179,4 @@ instance : DecisionDiagram TreeNode where
   apply (_f : MergeFunction) (t _ : TreeNode) : TreeNode := t
   compose (self _other : TreeNode) (_varId : Nat) : TreeNode := self
   isCongruent (self other : TreeNode) : Bool := self.is_congruent other
+  contains (_self : TreeNode) (_exp : List Int) : Bool := true
