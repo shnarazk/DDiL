@@ -1,6 +1,7 @@
 import Graph.Def
 import Graph.Serialize
 import BDD.Def
+import BDD.Satisfy
 
 namespace Test_BDD
 
@@ -45,7 +46,6 @@ def independent : IO Unit := do
               { {{{F F} {F F}} {{F F} {F F}}}
                 {{{F F} {F F}} {{F F} {F F}}} } } }"
       |> Graph.fromTreeNode
-      |>.toBDD
   let independent_bdd := independent.toBDD
   assert_eq "BDD.independent.shape" (GraphShape.shapeOf independent_bdd) (6, 17)
   assert_eq "BDD.independent.paths" (DecisionDiagram.numberOfSatisfyingPaths independent_bdd) 18
@@ -117,6 +117,28 @@ def compose : IO Unit := do
   catch e => IO.println s!"Error: {e}"
   return ()
 
+def satisfy : IO Unit := do
+  IO.println "## satisfy"
+  -- one of the examples in The Art of Computer Programming
+  let independent : BDD :=
+    TreeNode.fromString
+        "{  { { {{{T T} {T F}} {{T T} {F F}}}
+                {{{T T} {T F}} {{F F} {F F}}} }
+              { {{{T T} {T F}} {{T T} {F F}}}
+                {{{F F} {F F}} {{F F} {F F}}} } }
+            { { {{{T F} {T F}} {{T F} {F F}}}
+                {{{T F} {T F}} {{F F} {F F}}} }
+              { {{{F F} {F F}} {{F F} {F F}}}
+                {{{F F} {F F}} {{F F} {F F}}} } } }"
+      |> Graph.fromTreeNode
+      |>.toBDD
+  assert_eq "independent isSatisfiedBy [1]   " (independent.isSatisfiedBy [1]) true
+  assert_eq "independent isSatisfiedBy [1, 2]" (independent.isSatisfiedBy [1,  2]) false
+  assert_eq "independent isSatisfiedBy [1,-2]" (independent.isSatisfiedBy [1, -2]) true
+  assert_eq "independent isSatisfiedBy [4,-5]" (independent.isSatisfiedBy [4, -5]) true
+  assert_eq "independent isSatisfiedBy [4, 5]" (independent.isSatisfiedBy [4,  5]) false
+  return ()
+
 def run : IO Unit := do
   let (beg, fin) := LogKind.error.color
   IO.println beg
@@ -127,6 +149,7 @@ def run : IO Unit := do
   independent
   apply
   compose
+  satisfy
 
   IO.println fin
   return ()
