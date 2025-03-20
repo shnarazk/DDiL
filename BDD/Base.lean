@@ -2,7 +2,7 @@ import Std.Data.HashMap
 import Common.Combinators
 import Common.GraphShape
 import Common.DecisionDiagram
-import Graph.Def
+import Graph.Base
 
 open Std
 

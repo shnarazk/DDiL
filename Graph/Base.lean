@@ -4,6 +4,7 @@ import Common.DecisionDiagram
 import Common.TreeNode
 import Common.GraphSerialize
 import Common.GraphShape
+-- import Common.Base
 import Graph.Ref
 import Graph.Node
 

@@ -1,6 +1,9 @@
 import Graph.Base
+import BDD.Base
 
-partial def Graph.isCongruent_aux (g₁ g₂ : Graph) (r₁ r₂ : Ref): Bool :=
+namespace BDD_Congruence_private
+
+partial def isCongruent_aux (g₁ g₂ : Graph) (r₁ r₂ : Ref): Bool :=
   match r₁.link, r₂.link with
     | none, none => r₁.grounded == r₂.grounded
     | none, some i =>
@@ -17,5 +20,7 @@ partial def Graph.isCongruent_aux (g₁ g₂ : Graph) (r₁ r₂ : Ref): Bool :=
         | Ordering.eq => isCongruent_aux g₁ g₂ n₁.li n₂.li && isCongruent_aux g₁ g₂ n₁.hi n₂.hi
         | Ordering.gt => isCongruent_aux g₁ g₂ r₁ n₂.li && isCongruent_aux g₁ g₂ r₁ n₂.hi
 
-def Graph.isCongruent (g₁ g₂ : Graph): Bool :=
-  Graph.isCongruent_aux g₁ g₂ (Ref.for g₁) (Ref.for g₂)
+end BDD_Congruence_private
+
+def BDD.isCongruent (g₁ g₂ : BDD): Bool :=
+  BDD_Congruence_private.isCongruent_aux ↑g₁ ↑g₂ (Ref.for g₁) (Ref.for g₂)

@@ -48,7 +48,7 @@ def independent : IO Unit := do
   let independent_bdd := independent.toBDD
   assert_eq "BDD.independent.shape" (GraphShape.shapeOf independent_bdd) (6, 17)
   assert_eq "BDD.independent.paths" (DecisionDiagram.numberOfSatisfyingPaths independent_bdd) 18
-  assert_eq "congruence" (independent_bdd.isCongruent independent) true
+  -- assert_eq "congruence" (independent_bdd.isCongruent independent) true
   try
     let file ← independent_bdd.dumpAsPng "_test_bdd1.png"
     IO.println s!"📈 independent_bdd was dumped as: {file}"

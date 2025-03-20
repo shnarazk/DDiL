@@ -18,7 +18,7 @@ partial def satisfy_graph (g : Graph) (root : Ref) (exp : List Int) : Bool := ma
 
 end BDD_satisfy_private
 
-def BDD.isSatisfiedBy (bdd : BDD) (exp : List Int) : Bool :=
+def BDD.contains (bdd : BDD) (exp : List Int) : Bool :=
   if let some b := bdd.asBool
   then b
   else BDD_satisfy_private.satisfy_graph ↑bdd (Ref.last bdd.nodes) exp

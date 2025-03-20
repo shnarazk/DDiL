@@ -3,6 +3,7 @@ import BDD.Base
 import BDD.Reduce
 import BDD.Apply
 import BDD.Compose
+import BDD.Congruence
 import BDD.Satisfy
 
 instance : GraphShape BDD where
@@ -14,5 +15,5 @@ instance : DecisionDiagram BDD where
   numberOfSatisfyingPaths b := b.numSatisfies
   apply := BDD.apply
   compose := BDD.compose
-  isCongruent (self other : BDD) := self.isCongruent (↑other : Graph)
-  contains self path := self.isSatisfiedBy path
+  isCongruent (self other : BDD) := self.isCongruent other
+  contains self path := self.contains path

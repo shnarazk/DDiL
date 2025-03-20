@@ -1,4 +1,4 @@
-import Graph.Def
+import Graph.Base
 
 def Graph.dumpAsDot (self : Graph) (path : String) : IO String := do
   let buffer := "digraph regexp {
