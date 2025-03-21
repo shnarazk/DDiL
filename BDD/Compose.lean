@@ -17,16 +17,16 @@ variable (g : Graph)
 def or  := MergeFunction.of (· || ·) (some (true, true))
 def and := MergeFunction.of (· && ·) (some (false, false))
 def not : Option Bool → Option Bool
-| none => none
-| some b => some (!b)
+  | none => none
+  | some b => some (!b)
 
 def varId (nodes : Array Node) (ref : Ref) : Option Nat :=
   match ref.link with
-  | none => none
-  | some i => some nodes[i]!.varId
+    | none => none
+    | some i => some nodes[i]!.varId
 
 def goDown (nodes : Array Node) (ref : Ref) : Ref × Ref :=
-    match ref.link with
+  match ref.link with
     | none => (ref, ref)
     | some i => (nodes[i]!.li, nodes[i]!.hi)
 
@@ -72,6 +72,6 @@ def BDD.compose (self other : BDD) (varIndex : Nat) : BDD :=
   let r2 := Ref.to all_nodes.size.pred
   BDD_compose.step r1 r1 r2 varIndex all_nodes HashMap.empty HashMap.empty
     |> (fun (_root, (nodes : Array Node), _, _) ↦ if nodes.isEmpty
-          then default
-          else Graph.fromNodes (Nat.max self.numVars other.numVars) nodes )
+        then default
+        else Graph.fromNodes (Nat.max self.numVars other.numVars) nodes )
     |> (·.compact.toBDD)

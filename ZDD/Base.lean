@@ -1,5 +1,6 @@
 import Common.GraphShape
 import Common.DecisionDiagram
+import Graph.Base
 import Graph.Def
 
 open Std
@@ -49,7 +50,6 @@ partial def countPaths (g : Graph) (counter : Counter) (r : Ref) : Counter × Na
 end ZDD
 
 def ZDD.numSatisfies (self : ZDD) : Nat :=
-  if self.nodes.isEmpty then
-    1
-  else
-    ZDD.countPaths self.toGraph Std.HashMap.empty (Ref.to self.toGraph.nodes.size.pred) |>.snd
+  if self.nodes.isEmpty
+    then 1
+    else ZDD.countPaths self.toGraph Std.HashMap.empty (Ref.last self.toGraph.nodes) |>.snd
