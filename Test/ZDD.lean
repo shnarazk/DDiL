@@ -1,8 +1,8 @@
 import Common.Debug
-import Graph.Def
+import Graph.Basic
 import Graph.Serialize
 import BDD.Def
-import ZDD.Base
+import ZDD.Basic
 
 namespace Test_ZDD
 

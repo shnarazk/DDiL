@@ -1,7 +1,6 @@
 import Common.GraphShape
 import Common.DecisionDiagram
-import Graph.Base
-import Graph.Def
+import Graph.Basic
 
 open Std
 

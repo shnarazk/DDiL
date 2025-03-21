@@ -1,7 +1,7 @@
 import Common.Combinators
 import Common.GraphShape
 import Common.DecisionDiagram
-import Graph.Def
+import Graph.Basic
 import BDD.Reduce
 
 open Std

@@ -1,4 +1,4 @@
-import Graph.Def
+import Graph.Basic
 import Graph.Serialize
 import BDD.Def
 import Common.Debug
@@ -127,6 +127,7 @@ def satisfy : IO Unit := do
   assert_eq "independent contains [1,-2]" (independent.contains [1, -2]) true
   assert_eq "independent contains [4,-5]" (independent.contains [4, -5]) true
   assert_eq "independent contains [4, 5]" (independent.contains [4,  5]) false
+  -- if ([4, 5] : List Int) ∈ independent then IO.println "ok" else IO.println "ng"
   return ()
 
 def run : IO Unit := do

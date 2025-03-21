@@ -1,7 +1,6 @@
 import Std.Data.HashMap
 import Graph.Ref
-import Graph.Def
-import BDD.Base
+import BDD.Basic
 
 open Std
 

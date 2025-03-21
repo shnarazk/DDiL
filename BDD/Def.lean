@@ -1,5 +1,5 @@
 import Common.DecisionDiagram
-import BDD.Base
+import BDD.Basic
 import BDD.Reduce
 import BDD.Apply
 import BDD.Compose
@@ -17,3 +17,6 @@ instance : DecisionDiagram BDD where
   compose := BDD.compose
   isCongruent := BDD.isCongruent
   contains := BDD.contains
+
+instance : Membership (List Int) BDD where
+  mem b l := (b.contains l : Prop)

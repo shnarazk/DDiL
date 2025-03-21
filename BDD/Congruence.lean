@@ -1,5 +1,5 @@
-import Graph.Base
-import BDD.Base
+import Graph.Basic
+import BDD.Basic
 
 namespace BDD_Congruence_private
 
