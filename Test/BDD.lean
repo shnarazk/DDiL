@@ -1,6 +1,7 @@
 import Graph.Def
 import Graph.Serialize
 import BDD.Def
+import Common.Debug
 
 namespace Test_BDD
 
@@ -24,8 +25,8 @@ def compaction : IO Unit := do
   let comp2 : BDD := comp1.toBDD
   assert_eq "BDD(compaction-after).shape" (GraphShape.shapeOf comp2) (2, 1)
   try
-    IO.println s!"📈 : Graph(compaction) → {← comp1.dumpAsPng "_test_bdd_compact-1.png"}"
-    IO.println s!"📈 : BDD(compaction)   → {← comp2.dumpAsPng "_test_bdd_compact-2.png"}"
+    IO.println s!"📈 Graph(compaction) → {← comp1.dumpAsPng "_test_bdd_compact-1.png"}"
+    IO.println s!"📈 BDD(compaction)   → {← comp2.dumpAsPng "_test_bdd_compact-2.png"}"
   catch e => IO.println s!"Error: {e}"
   return ()
 
@@ -48,7 +49,7 @@ def independent : IO Unit := do
   assert_eq "BDD.independent.paths" (DecisionDiagram.numberOfSatisfyingPaths independent) 18
   -- assert_eq "congruence" (independent_bdd.isCongruent independent) true
   try
-    IO.println s!"📈 : independent → {← independent.dumpAsPng "_test_bdd_indep.png"}"
+    IO.println s!"📈 independent → {← independent.dumpAsPng "_test_bdd_indep.png"}"
   catch e => IO.println s!"Error: {e}"
   return ()
 
@@ -76,11 +77,11 @@ def apply : IO Unit := do
   assert_eq "x1x3.apply or x1x2 |> shape" (GraphShape.shapeOf applied) (3, 3)
   assert_eq "congruent (x1x3.apply or x1x2) fig7" (DecisionDiagram.isCongruent applied fig7_bdd) true
   try
-    IO.println s!"📈 : x1x3            → {← x1x3.dumpAsPng     "_test_bdd_apply-1.png"}"
-    IO.println s!"📈 : x1x2            → {← x1x2.dumpAsPng     "_test_bdd_apply-2.png"}"
-    IO.println s!"📈 : x1x3.apply.x1x2 → {← applied.dumpAsPng  "_test_bdd_apply-3.png"}"
-    IO.println s!"📈 : fig7_bdd        → {← fig7_bdd.dumpAsPng "_test_bdd_apply-4.png"}"
-    IO.println s!"📈 : fig7            → {← fig7.dumpAsPng     "_test_bdd_apply-5.png"}"
+    IO.println s!"📈 x1x3            → {← x1x3.dumpAsPng     "_test_bdd_apply-1.png"}"
+    IO.println s!"📈 x1x2            → {← x1x2.dumpAsPng     "_test_bdd_apply-2.png"}"
+    IO.println s!"📈 x1x3.apply.x1x2 → {← applied.dumpAsPng  "_test_bdd_apply-3.png"}"
+    IO.println s!"📈 fig7_bdd        → {← fig7_bdd.dumpAsPng "_test_bdd_apply-4.png"}"
+    IO.println s!"📈 fig7            → {← fig7.dumpAsPng     "_test_bdd_apply-5.png"}"
   catch e => IO.println s!"Error: {e}"
   return ()
 
@@ -101,8 +102,8 @@ def compose : IO Unit := do
   let composed2 := BDD.compose x1x3 x1x2 2
   assert_eq "(compose x1x3 x1x2 2).shape" (GraphShape.shapeOf composed2) (3, 2)
   try
-    IO.println s!"📈 : composed1 → {← composed1.dumpAsPng "_test_bdd_compose-1.png"}"
-    IO.println s!"📈 : composed2 → {← composed2.dumpAsPng "_test_bdd_compose-2.png"}"
+    IO.println s!"📈 composed1 → {← composed1.dumpAsPng "_test_bdd_compose-1.png"}"
+    IO.println s!"📈 composed2 → {← composed2.dumpAsPng "_test_bdd_compose-2.png"}"
   catch e => IO.println s!"Error: {e}"
   return ()
 
@@ -129,8 +130,8 @@ def satisfy : IO Unit := do
   return ()
 
 def run : IO Unit := do
-  let (beg, fin) := LogKind.error.color
-  IO.println s!"{beg}#Test_BDD"
+  let (beg, fin) := LogKind.info.color
+  IO.println s!"{beg}{ANSI.bold}#Test_BDD{fin}{beg}"
 
   merger
   compaction

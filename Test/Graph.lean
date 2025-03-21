@@ -40,15 +40,14 @@ def independent : IO Unit := do
   -- assert_eq "GraphShape.ofShape independent" (GraphShape.shapeOf g) (6, 63)
   -- assert_eq "independent.paths" (DecisionDiagram.numberOfSatisfyingPaths g) 18
   try
-    let file ← g.dumpAsPng "_test_independent.png"
-    IO.println s!"📈 independent was dumped as: {file}"
+    IO.println s!"📈 independent → {← g.dumpAsPng "_test_independent.png"}"
   catch e => IO.println s!"Error: {e}"
   return ()
 
 def run : IO Unit := do
   let (start, done) := LogKind.warn.color
   IO.println start
-  IO.println "#Test_Graph"
+  IO.println s!"{start}{ANSI.bold}#Test_Graph{done}{start}"
 
   IO.println s!"Graph g₀: {g₀}"
   IO.println s!"Graph g₁: {g₁}"

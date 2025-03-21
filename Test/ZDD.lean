@@ -1,3 +1,4 @@
+import Common.Debug
 import Graph.Def
 import Graph.Serialize
 import BDD.Def
@@ -30,8 +31,7 @@ def satisfy : IO Unit := do
 
 def run : IO Unit := do
   let (beg, fin) := LogKind.error.color
-  IO.println beg
-  IO.println "#Test_ZDD"
+  IO.println s!"{beg}{ANSI.bold}#Test_ZDD{fin}{beg}"
 
   compaction
   independent
