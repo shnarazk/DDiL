@@ -43,8 +43,7 @@ def BDD.apply (operator : MergeFunction) (self other : BDD) : BDD :=
   let all_nodes : Array Node := Node.append_nodes ↑self ↑other
   let r2 := Ref.to all_nodes.size.pred
   BDD_apply.apply_aux operator r1 r2 all_nodes HashMap.empty
-    |> (fun (_, (nodes : Array Node), _) ↦ if nodes.isEmpty then
-              default
-            else
-              Graph.fromNodes (Nat.max self.numVars other.numVars) nodes )
+    |> (fun (_, (nodes : Array Node), _) ↦ if nodes.isEmpty
+        then default
+        else Graph.fromNodes (Nat.max self.numVars other.numVars) nodes )
     |> (·.compact.toBDD)

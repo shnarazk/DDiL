@@ -27,10 +27,9 @@ def merge (updatedRef: RefMap) (nodes: Array Node) (prev next : Ref) : RefMap ×
   let node' : Node := { nextNode with
     li := updatedRef.getD nextNode.li nextNode.li
     hi := updatedRef.getD nextNode.hi nextNode.hi }
-  if prevNode == node' then
-    (updatedRef.insert next prev, nodes, prev)
-  else
-    (updatedRef, nodes.set! (next.link.getD 0) node', next)
+  if prevNode == node'
+    then (updatedRef.insert next prev, nodes, prev)
+    else (updatedRef, nodes.set! (next.link.getD 0) node', next)
 
 end BDD_reduce
 

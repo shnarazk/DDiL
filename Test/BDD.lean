@@ -24,10 +24,8 @@ def compaction : IO Unit := do
   let comp2 : BDD := comp1.toBDD
   assert_eq "BDD(compaction-after).shape" (GraphShape.shapeOf comp2) (2, 1)
   try
-    let file1 ← comp1.dumpAsPng "_test_bdd_compaction-before.png"
-    IO.println s!"📈 Graph(compaction) was dumped as: {file1}"
-    let file2 ← comp2.dumpAsPng "_test_bdd_compaction-after.png"
-    IO.println s!"📈 BDD(compaction) was dumped as: {file2}"
+    IO.println s!"📈 : Graph(compaction) → {← comp1.dumpAsPng "_test_bdd_compaction-before.png"}"
+    IO.println s!"📈 : BDD(compaction)   → {← comp2.dumpAsPng "_test_bdd_compaction-after.png"}"
   catch e => IO.println s!"Error: {e}"
   return ()
 
@@ -50,8 +48,7 @@ def independent : IO Unit := do
   assert_eq "BDD.independent.paths" (DecisionDiagram.numberOfSatisfyingPaths independent_bdd) 18
   -- assert_eq "congruence" (independent_bdd.isCongruent independent) true
   try
-    let file ← independent_bdd.dumpAsPng "_test_bdd1.png"
-    IO.println s!"📈 independent_bdd was dumped as: {file}"
+    IO.println s!"📈 : independent_bdd → {← independent_bdd.dumpAsPng "_test_bdd1.png"}"
   catch e => IO.println s!"Error: {e}"
   return ()
 
@@ -79,16 +76,11 @@ def apply : IO Unit := do
   assert_eq "x1x3.apply or x1x2 |> shape" (GraphShape.shapeOf applied) (3, 3)
   assert_eq "congruent (x1x3.apply or x1x2) fig7" (DecisionDiagram.isCongruent applied fig7_bdd) true
   try
-    let file2 ← (↑x1x3 : Graph).dumpAsPng "_test_x1x3.png"
-    IO.println s!"📈 x1x3 was dumped as: {file2}"
-    let file3 ← (↑x1x2 : Graph).dumpAsPng "_test_x1x2.png"
-    IO.println s!"📈 x1x2 was dumped as: {file3}"
-    let file4 ← (↑ applied : Graph).dumpAsPng "_test_apply.png"
-    IO.println s!"📈 x1x3.apply.x1x2 was dumped as: {file4}"
-    let file5 ← (↑fig7_bdd : Graph).dumpAsPng "_test_fig7_bdd.png"
-    IO.println s!"📈 fig7_bdd was dumped as: {file5}"
-    let file7 ← (↑fig7 : Graph).dumpAsPng "_test_fig7.png"
-    IO.println s!"📈 fig7 was dumped as: {file7}"
+    IO.println s!"📈 : x1x3            → {← x1x3.dumpAsPng "_test_x1x3.png"}"
+    IO.println s!"📈 : x1x2            → {← x1x2.dumpAsPng "_test_x1x2.png"}"
+    IO.println s!"📈 : x1x3.apply.x1x2 → {← applied.dumpAsPng "_test_apply.png"}"
+    IO.println s!"📈 : fig7_bdd        → {← fig7_bdd.dumpAsPng "_test_fig7_bdd.png"}"
+    IO.println s!"📈 : fig7            → {← fig7.dumpAsPng "_test_fig7.png"}"
   catch e => IO.println s!"Error: {e}"
   return ()
 
@@ -109,10 +101,8 @@ def compose : IO Unit := do
   let composed2 := BDD.compose x1x3 x1x2 2
   assert_eq "(compose x1x3 x1x2 2).shape" (GraphShape.shapeOf composed2) (3, 2)
   try
-    let file1 ← (↑composed1 : Graph).dumpAsPng "_test_bdd_compose1.png"
-    IO.println s!"📈 composed1 was dumped as: {file1}"
-    let file2 ← (↑composed2 : Graph).dumpAsPng "_test_bdd_compose2.png"
-    IO.println s!"📈 composed2 was dumped as: {file2}"
+    IO.println s!"📈 : composed1 → {← composed1.dumpAsPng "_test_bdd_compose1.png"}"
+    IO.println s!"📈 : composed2 → {← composed2.dumpAsPng "_test_bdd_compose2.png"}"
   catch e => IO.println s!"Error: {e}"
   return ()
 

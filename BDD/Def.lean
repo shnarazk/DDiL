@@ -12,8 +12,8 @@ instance : GraphShape BDD where
   shapeOf self := GraphShape.shapeOf (↑self : Graph)
 
 instance : DecisionDiagram BDD where
-  numberOfSatisfyingPaths b := b.numSatisfies
+  numberOfSatisfyingPaths := BDD.numSatisfies
   apply := BDD.apply
   compose := BDD.compose
-  isCongruent (self other : BDD) := self.isCongruent other
-  contains self path := self.contains path
+  isCongruent := BDD.isCongruent
+  contains := BDD.contains
