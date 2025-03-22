@@ -20,6 +20,7 @@ def trim (updatedRef: RefMap) (targets: Array Ref) : Array Ref × RefMap :=
       if li == hi then (acc, updatedRef.insert ref li) else (acc.push ref, updatedRef) )
     (#[], updatedRef)
 
+/-- Merage nodes which have the same varId, li, hi -/
 def merge (updatedRef: RefMap) (nodes: Array Node) (prev next : Ref) : RefMap × Array Node × Ref :=
   let prevNode := nodes.getD (prev.link.getD 0) default
   let nextNode : Node := nodes[next.link.getD 0]!
@@ -32,22 +33,20 @@ def merge (updatedRef: RefMap) (nodes: Array Node) (prev next : Ref) : RefMap ×
 
 end BDD_reduce
 
-/-- Called from `reduce`. Rebuild and merge mergeable nodes. -/
+/-- Rebuild the given `Graph g` as BDD. -/
 def BDD.reduce (g : Graph) (var_nodes: HashMap Nat (Array Ref)) : BDD :=
   var_nodes.toList.mergeSort (fun a b ↦ a.fst > b.fst) -- from bottom var to top var
     |>.foldl
-      (fun (updatedRef, nodes) (_, refs) ↦
+      (fun (updatedRef, nodes, _) (_, refs) ↦
         let (targets, updatedRef) := BDD_reduce.trim g updatedRef refs
         targets.foldl
             (fun (updatedRef, nodes, prev) next ↦ BDD_reduce.merge updatedRef nodes prev next)
-            (updatedRef, nodes, Ref.to nodes.size)
-          |> (fun (updateRef, nodes, _) ↦ (updateRef, nodes)) )
-      (HashMap.empty, g.nodes)
-    |> (fun (updatedRef, nodes) ↦ if 0 < nodes.size then
+            (updatedRef, nodes, Ref.to nodes.size) )
+      (HashMap.empty, g.nodes, Ref.bool false)
+    |> (fun (updatedRef, nodes, _) ↦ if 0 < nodes.size then
           let g := Graph.fromNodes g.numVars nodes
           let root := Ref.to g.nodes.size.pred
           {toGraph := g.compact (updatedRef.getD root root)}
-            -- |> dbg s!"BDD.reduce {root}({rn}) => {updatedRef[root]?}"
         else
           default )
 
