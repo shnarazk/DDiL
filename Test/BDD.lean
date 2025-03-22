@@ -127,7 +127,7 @@ def satisfy : IO Unit := do
 
 def run : IO Unit := do
   let (beg, fin) := LogKind.info.color
-  IO.println s!"{beg}{ANSI.bold}#Test_BDD{ANSI.unbold}"
+  IO.println s!"{beg}{ANSI.bolded "#Test_BDD"}"
 
   merger
   compaction

@@ -18,6 +18,9 @@ def reverse : String := "\x1B[007m"
 def bold    : String := "\x1B[001m"
 def unbold  : String := "\x1B[022m"
 
+def bolded {α : Type} [ToString α] (s : α) : String :=
+  s!"{bold}{s}{unbold}"
+
 end ANSI
 
 open ANSI in

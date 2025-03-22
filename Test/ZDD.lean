@@ -7,29 +7,29 @@ import ZDD.Basic
 namespace Test_ZDD
 
 def compaction : IO Unit := do
-  IO.println "## compaction"
+  IO.println s!"{ANSI.bolded "## compaction"}"
   return ()
 
 def independent : IO Unit := do
-  IO.println "## independent"
+  IO.println s!"{ANSI.bolded "## independent"}"
   return ()
 
 /-- the apply example used in the paper -/
 def apply : IO Unit := do
-  IO.println "## apply"
+  IO.println s!"{ANSI.bolded "## apply"}"
   return ()
 
 def compose : IO Unit := do
-  IO.println "## compose"
+  IO.println s!"{ANSI.bolded "## compose"}"
   return ()
 
 def satisfy : IO Unit := do
-  IO.println "## satisfy"
+  IO.println s!"{ANSI.bolded "## satisfy"}"
   return ()
 
 def run : IO Unit := do
   let (beg, fin) := LogKind.error.color
-  IO.println s!"{beg}{ANSI.bold}#Test_ZDD{fin}{beg}"
+  IO.println s!"{beg}{ANSI.bolded "#Test_ZDD"}"
 
   compaction
   independent
