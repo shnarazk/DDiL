@@ -5,19 +5,14 @@ import Common.Debug
 
 namespace Test_BDD
 
-/-- an extended boolean function that can take wildecards
-- `true || *` => `true`
-- `* || true` => `true` -/
-def or : MergeFunction := MergeFunction.of (· || ·) (some (true, true))
-
 def merger : IO Unit := do
-  IO.println "## merge function: or"
-  assert_eq "true or true" (or.apply (some true) (some true)) (some true)
-  assert_eq "none or true" (or.apply none (some true)) (some true)
-  assert_eq "none or none" (or.apply none none) none
+  IO.println s!"{ANSI.bold}## merge function: or{ANSI.unbold}"
+  assert_eq "true or true" (LiftedBool.or.apply (some true) (some true)) (some true)
+  assert_eq "none or true" (LiftedBool.or.apply none (some true)) (some true)
+  assert_eq "none or none" (LiftedBool.or.apply none none) none
 
 def compaction : IO Unit := do
-  IO.println "## compaction"
+  IO.println s!"{ANSI.bold}## compaction{ANSI.unbold}"
   let comp1 : Graph := Graph.fromNodes 2 #[
     {varId := 2, li := Ref.bool true, hi := Ref.bool false},
     {varId := 1, li := Ref.to 0, hi := Ref.to 0} ]
@@ -31,7 +26,7 @@ def compaction : IO Unit := do
   return ()
 
 def independent : IO Unit := do
-  IO.println "## independent"
+  IO.println s!"{ANSI.bold}## independent{ANSI.unbold}"
   -- one of the examples in The Art of Computer Programming
   let ind : Graph :=
     TreeNode.fromString
@@ -55,7 +50,7 @@ def independent : IO Unit := do
 
 /-- the apply example used in the paper -/
 def apply : IO Unit := do
-  IO.println "## BDD apply on independent"
+  IO.println s!"{ANSI.bold}## BDD apply on independent{ANSI.unbold}"
   let x1x3 : BDD := Graph.fromNodes 3 #[
       {varId := 3, li := Ref.bool true, hi := Ref.bool false},
       {varId := 1, li := Ref.bool true, hi := Ref.to 0} ]
@@ -66,7 +61,7 @@ def apply : IO Unit := do
     |>.toBDD
   assert_eq "x1x3.shape" (GraphShape.shapeOf x1x3) (3, 2)
   assert_eq "x1x2.shape" (GraphShape.shapeOf x1x2) (3, 2)
-  let applied := BDD.apply or x1x3 x1x2
+  let applied := BDD.apply LiftedBool.or x1x3 x1x2
   -- the output before compaction
   let fig7 : Graph := Graph.fromNodes 3 #[
     {varId := 3, li := Ref.bool true, hi := Ref.bool true},
@@ -86,7 +81,7 @@ def apply : IO Unit := do
   return ()
 
 def compose : IO Unit := do
-  IO.println "## BDD compose on the example used in apply"
+  IO.println s!"{ANSI.bold}## BDD compose on the example used in apply{ANSI.unbold}"
   let x1x3 : BDD := Graph.fromNodes 3 #[
       {varId := 3, li := Ref.bool true, hi := Ref.bool false},
       {varId := 1, li := Ref.bool true, hi := Ref.to 0} ]
@@ -108,7 +103,7 @@ def compose : IO Unit := do
   return ()
 
 def satisfy : IO Unit := do
-  IO.println "## satisfy"
+  IO.println s!"{ANSI.bold}## satisfy{ANSI.unbold}"
   -- one of the examples in The Art of Computer Programming
   let independent : BDD :=
     TreeNode.fromString
@@ -132,7 +127,7 @@ def satisfy : IO Unit := do
 
 def run : IO Unit := do
   let (beg, fin) := LogKind.info.color
-  IO.println s!"{beg}{ANSI.bold}#Test_BDD{fin}{beg}"
+  IO.println s!"{beg}{ANSI.bold}#Test_BDD{ANSI.unbold}"
 
   merger
   compaction

@@ -5,6 +5,7 @@ import Std.Internal.Parsec.String
 import Common.DecisionDiagram
 import Common.GraphSerialize
 import Common.GraphShape
+import Common.LiftedBool
 import Common.Parser
 
 open Std
@@ -176,7 +177,7 @@ instance : GraphSerialize TreeNode where
 
 instance : DecisionDiagram TreeNode where
   numberOfSatisfyingPaths (t : TreeNode) := t.numSatisfies
-  apply (_f : MergeFunction) (t _ : TreeNode) : TreeNode := t
+  apply (_f : LiftedBool.BinaryFunction) (t _ : TreeNode) : TreeNode := t
   compose (self _other : TreeNode) (_varId : Nat) : TreeNode := self
   isCongruent (self other : TreeNode) : Bool := self.is_congruent other
   contains (_self : TreeNode) (_exp : List Int) : Bool := true

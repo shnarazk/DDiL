@@ -6,8 +6,6 @@ import ZDD.Basic
 
 namespace Test_ZDD
 
-def or : MergeFunction := MergeFunction.of (· || ·) (some (true, true))
-
 def compaction : IO Unit := do
   IO.println "## compaction"
   return ()

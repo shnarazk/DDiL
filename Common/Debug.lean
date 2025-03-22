@@ -16,6 +16,7 @@ def reset   : String := "\x1B[000m"
 def revert  : String := "\x1B[1A\x1B[1G\x1B[1K"
 def reverse : String := "\x1B[007m"
 def bold    : String := "\x1B[001m"
+def unbold  : String := "\x1B[022m"
 
 end ANSI
 

@@ -1,6 +1,7 @@
 import Common.Combinators
 import Common.GraphShape
 import Common.DecisionDiagram
+import Common.LiftedBool
 import Graph.Basic
 import BDD.Reduce
 
@@ -14,11 +15,6 @@ abbrev Evaluation := HashMap Ref Bool
 
 variable (g : Graph)
 
-def or  := MergeFunction.of (· || ·) (some (true, true))
-def and := MergeFunction.of (· && ·) (some (false, false))
-def not : Option Bool → Option Bool
-  | none => none
-  | some b => some (!b)
 
 def varId (nodes : Array Node) (ref : Ref) : Option Nat :=
   match ref.link with
@@ -46,9 +42,9 @@ partial def step (v1l v1h v2 : Ref) (vi : Nat) (nodes : Nodes) (key : Key) (eval
   -- Apply operation ITE
   if let some u := key[(v1l, v1h, v2)]? then
     (u, nodes, key, evaluation) -- have already evaluated
-  else if let some value := or.apply
-      (and.apply (not v2.asBool) v1l.asBool)
-      (and.apply v2.asBool v1h.asBool)
+  else if let some value := LiftedBool.or.apply
+    (LiftedBool.and.apply (LiftedBool.not.apply v2.asBool) v1l.asBool)
+    (LiftedBool.and.apply v2.asBool v1h.asBool)
   then
     let r := Ref.bool value
     (r, nodes, key.insert (v1l, v1h, v2) r, evaluation.insert r value)
