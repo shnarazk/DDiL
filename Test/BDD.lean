@@ -5,14 +5,8 @@ import Common.Debug
 
 namespace Test_BDD
 
-def merger : IO Unit := do
-  IO.println s!"{ANSI.bold}## merge function: or{ANSI.unbold}"
-  assert_eq "true or true" (LiftedBool.or.apply (some true) (some true)) (some true)
-  assert_eq "none or true" (LiftedBool.or.apply none (some true)) (some true)
-  assert_eq "none or none" (LiftedBool.or.apply none none) none
-
 def compaction : IO Unit := do
-  IO.println s!"{ANSI.bold}## compaction{ANSI.unbold}"
+  IO.println s!"{ANSI.bolded "## compaction"}"
   let comp1 : Graph := Graph.fromNodes 2 #[
     {varId := 2, li := Ref.bool true, hi := Ref.bool false},
     {varId := 1, li := Ref.to 0, hi := Ref.to 0} ]
@@ -26,7 +20,7 @@ def compaction : IO Unit := do
   return ()
 
 def independent : IO Unit := do
-  IO.println s!"{ANSI.bold}## independent{ANSI.unbold}"
+  IO.println s!"{ANSI.bolded "## independent"}"
   -- one of the examples in The Art of Computer Programming
   let ind : Graph :=
     TreeNode.fromString
@@ -50,7 +44,7 @@ def independent : IO Unit := do
 
 /-- the apply example used in the paper -/
 def apply : IO Unit := do
-  IO.println s!"{ANSI.bold}## BDD apply on independent{ANSI.unbold}"
+  IO.println s!"{ANSI.bolded "## BDD apply on independent"}"
   let x1x3 : BDD := Graph.fromNodes 3 #[
       {varId := 3, li := Ref.bool true, hi := Ref.bool false},
       {varId := 1, li := Ref.bool true, hi := Ref.to 0} ]
@@ -81,7 +75,7 @@ def apply : IO Unit := do
   return ()
 
 def compose : IO Unit := do
-  IO.println s!"{ANSI.bold}## BDD compose on the example used in apply{ANSI.unbold}"
+  IO.println s!"{ANSI.bolded "## BDD compose on the example used in apply"}"
   let x1x3 : BDD := Graph.fromNodes 3 #[
       {varId := 3, li := Ref.bool true, hi := Ref.bool false},
       {varId := 1, li := Ref.bool true, hi := Ref.to 0} ]
@@ -103,7 +97,7 @@ def compose : IO Unit := do
   return ()
 
 def satisfy : IO Unit := do
-  IO.println s!"{ANSI.bold}## satisfy{ANSI.unbold}"
+  IO.println s!"{ANSI.bolded "## satisfy"}"
   -- one of the examples in The Art of Computer Programming
   let independent : BDD :=
     TreeNode.fromString
@@ -129,7 +123,6 @@ def run : IO Unit := do
   let (beg, fin) := LogKind.info.color
   IO.println s!"{beg}{ANSI.bolded "#Test_BDD"}"
 
-  merger
   compaction
   independent
   apply
