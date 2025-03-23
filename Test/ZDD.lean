@@ -1,7 +1,7 @@
 import Common.Debug
 import Graph.Basic
 import Graph.Serialize
--- import BDD.Def
+import BDD.Def
 import ZDD.Def
 
 namespace Test_ZDD
@@ -38,10 +38,12 @@ def apply : IO Unit := do
   let x1x3 : ZDD := Graph.fromNodes 3 #[
       {varId := 3, li := Ref.bool true, hi := Ref.bool false},
       {varId := 1, li := Ref.bool true, hi := Ref.to 0} ]
+    |>.toBDD
     |>.toZDD
   let x1x2 : ZDD := Graph.fromNodes 3 #[
       {varId := 3, li := Ref.bool false, hi := Ref.bool true},
       {varId := 2, li := Ref.bool false, hi := Ref.to 0} ]
+    |>.toBDD
     |>.toZDD
   assert_eq "x1x3.shape" (GraphShape.shapeOf x1x3) (3, 2)
   assert_eq "x1x2.shape" (GraphShape.shapeOf x1x2) (3, 2)
