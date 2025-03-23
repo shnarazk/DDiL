@@ -1,5 +1,6 @@
 import Common.GraphShape
 import ZDD.Reduce
+import ZDD.Apply
 
 instance : GraphShape ZDD where
   numberOfVars self := GraphShape.numberOfVars (↑self : Graph)
