@@ -11,17 +11,18 @@ abbrev RefMap := HashMap Ref Ref
 variable (g : Graph)
 
 /-- Trim nodes that have the same li and hi refs. -/
-def trim (updatedRef: RefMap) (targets: Array Ref) : Array Ref × RefMap :=
+def trim (updatedRef : RefMap) (targets : Array Ref) : RefMap × Array Ref :=
   targets.foldl
-    (fun (acc, updatedRef) (ref: Ref) ↦
+    (fun (updatedRef, acc) (ref: Ref) ↦
       let node := g.nodes[ref.link.getD 0]!
       let li := updatedRef.getD node.li node.li
       let hi := updatedRef.getD node.hi node.hi
-      if li == hi then (acc, updatedRef.insert ref li) else (acc.push ref, updatedRef) )
-    (#[], updatedRef)
+      if li == hi then (updatedRef.insert ref li, acc) else (updatedRef, acc.push ref) )
+    (updatedRef, #[])
 
 /-- Merage nodes which have the same varId, li, hi -/
-def merge (updatedRef: RefMap) (nodes: Array Node) (prev next : Ref) : RefMap × Array Node × Ref :=
+def merge (updatedRef : RefMap) (nodes : Array Node) (prev next : Ref)
+    : RefMap × Array Node × Ref :=
   let prevNode := nodes.getD (prev.link.getD 0) default
   let nextNode : Node := nodes[next.link.getD 0]!
   let node' : Node := { nextNode with
@@ -34,14 +35,14 @@ def merge (updatedRef: RefMap) (nodes: Array Node) (prev next : Ref) : RefMap ×
 end BDD_reduce
 
 /-- Rebuild the given `Graph g` as BDD. -/
-def BDD.reduce (g : Graph) (var_nodes: HashMap Nat (Array Ref)) : BDD :=
+def BDD.reduce (g : Graph) (var_nodes : HashMap Nat (Array Ref)) : BDD :=
   var_nodes.toList.mergeSort (fun a b ↦ a.fst > b.fst) -- from bottom var to top var
     |>.foldl
       (fun (updatedRef, nodes, _) (_, refs) ↦
-        let (targets, updatedRef) := BDD_reduce.trim g updatedRef refs
+        let (updatedRef, targets) := BDD_reduce.trim g updatedRef refs
         targets.foldl
-            (fun (updatedRef, nodes, prev) next ↦ BDD_reduce.merge updatedRef nodes prev next)
-            (updatedRef, nodes, Ref.to nodes.size) )
+          (fun (updatedRef, nodes, prev) next ↦ BDD_reduce.merge updatedRef nodes prev next)
+          (updatedRef, nodes, Ref.to nodes.size) )
       (HashMap.empty, g.nodes, Ref.bool false)
     |> (fun (updatedRef, nodes, _) ↦ if 0 < nodes.size then
           let g := Graph.fromNodes g.numVars nodes

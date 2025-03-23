@@ -12,32 +12,32 @@ abbrev RefMap := HashMap Ref Ref
 
 variable (g : Graph)
 
-/-- instert intermediate nodes -/
+/-- insert intermediate nodes -/
 private def insert (updatedRef : RefMap) (targets : Array Ref) : RefMap × Array Ref :=
   -- FIXME: do it
   (updatedRef, targets)
 
 /-- TRIM nodes which hi points to `false` -/
-private def transform (updatedRef: RefMap) (targets: Array Ref) : Array Ref × RefMap :=
+private def trim (updatedRef : RefMap) (targets : Array Ref) : RefMap × Array Ref :=
   targets.foldl
-    (fun (acc, updatedRef) (ref: Ref) ↦
+    (fun (updatedRef, acc) (ref: Ref) ↦
       let node := g.nodes[ref.link.getD 0]!
       let li := updatedRef.getD node.li node.li
       let hi := updatedRef.getD node.hi node.hi
       if hi == Ref.bool false
       then
-        (acc, updatedRef.insert ref li)
+        (updatedRef.insert ref li, acc)
       else
         let seq := match li.link with
           | none   => List.range' node.varId.succ (g.numVars - node.varId)
           | some k => List.range' node.varId.succ (g.nodes[k]!.varId - node.varId)
         seq.foldl -- insert intermediate nodes.
           (fun acc _ ↦ acc)
-          (acc, updatedRef) )
-    (#[], updatedRef)
+          (updatedRef, acc) )
+    (updatedRef, #[])
 
 /-- Merage nodes which have the same varId, li, hi -/
-private def merge (updatedRef: RefMap) (nodes: Array Node) (prev next : Ref) : RefMap × Array Node × Ref :=
+private def merge (updatedRef : RefMap) (nodes : Array Node) (prev next : Ref) : RefMap × Array Node × Ref :=
   let prevNode := nodes.getD (prev.link.getD 0) default
   let nextNode : Node := nodes[next.link.getD 0]!
   let node' : Node := { nextNode with
@@ -50,14 +50,14 @@ private def merge (updatedRef: RefMap) (nodes: Array Node) (prev next : Ref) : R
 end ZDD_reduce
 
 /-- Rebuild the given non-normalized `Graph g` as ZDD. -/
-def ZDD.reduce (g : Graph) (var_nodes: HashMap Nat (Array Ref)) : ZDD :=
+def ZDD.reduce (g : Graph) (var_nodes : HashMap Nat (Array Ref)) : ZDD :=
   var_nodes.toList.mergeSort (fun a b ↦ a.fst > b.fst) -- from bottom var to top var
     |>.foldl
       (fun (updatedRef, nodes, _) (_, refs) ↦
-        let (targets, updatedRef) := ZDD_reduce.transform g updatedRef refs
+        let (updatedRef, targets) := ZDD_reduce.trim g updatedRef refs
         targets.foldl
-            (fun (updatedRef, nodes, prev) next ↦ ZDD_reduce.merge updatedRef nodes prev next)
-            (updatedRef, nodes, Ref.to nodes.size) )
+          (fun (updatedRef, nodes, prev) next ↦ ZDD_reduce.merge updatedRef nodes prev next)
+          (updatedRef, nodes, Ref.to nodes.size) )
       (HashMap.empty, g.nodes, Ref.bool false)
     |> (fun (updatedRef, nodes, _) ↦ if 0 < nodes.size then
           let g := Graph.fromNodes g.numVars nodes
@@ -89,10 +89,10 @@ def ZDD.convert (bdd : BDD) (var_nodes: HashMap Nat (Array Ref)) : ZDD :=
   var_nodes.toList.mergeSort (fun a b ↦ a.fst > b.fst) -- from bottom var to top var
     |>.foldl
       (fun (updatedRef, nodes, _) (_, refs) ↦
-        let (targets, updatedRef) := ZDD_reduce.transform bdd updatedRef refs
+        let (updatedRef, targets) := ZDD_reduce.trim bdd updatedRef refs
         targets.foldl
-            (fun (updatedRef, nodes, prev) next ↦ ZDD_reduce.merge updatedRef nodes prev next)
-            (updatedRef, nodes, Ref.to nodes.size) )
+          (fun (updatedRef, nodes, prev) next ↦ ZDD_reduce.merge updatedRef nodes prev next)
+          (updatedRef, nodes, Ref.to nodes.size) )
       (HashMap.empty, bdd.nodes, Ref.bool false)
     |> (fun (updatedRef, nodes, _) ↦ if 0 < nodes.size then
           let g := Graph.fromNodes bdd.numVars nodes
