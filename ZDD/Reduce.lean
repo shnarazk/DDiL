@@ -12,7 +12,12 @@ abbrev RefMap := HashMap Ref Ref
 
 variable (g : Graph)
 
-/-- TRIM nodes which hi points to `false`, and INSERT intermediate nodes. -/
+/-- instert intermediate nodes -/
+private def insert (updatedRef : RefMap) (targets : Array Ref) : RefMap × Array Ref :=
+  -- FIXME: do it
+  (updatedRef, targets)
+
+/-- TRIM nodes which hi points to `false` -/
 private def transform (updatedRef: RefMap) (targets: Array Ref) : Array Ref × RefMap :=
   targets.foldl
     (fun (acc, updatedRef) (ref: Ref) ↦
@@ -84,7 +89,7 @@ def ZDD.convert (bdd : BDD) (var_nodes: HashMap Nat (Array Ref)) : ZDD :=
   var_nodes.toList.mergeSort (fun a b ↦ a.fst > b.fst) -- from bottom var to top var
     |>.foldl
       (fun (updatedRef, nodes, _) (_, refs) ↦
-        let (targets, updatedRef) := ZDD_reduce.transform g updatedRef refs
+        let (targets, updatedRef) := ZDD_reduce.transform bdd updatedRef refs
         targets.foldl
             (fun (updatedRef, nodes, prev) next ↦ ZDD_reduce.merge updatedRef nodes prev next)
             (updatedRef, nodes, Ref.to nodes.size) )
