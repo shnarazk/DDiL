@@ -13,9 +13,18 @@ abbrev RefMap := HashMap Ref Ref
 variable (g : Graph)
 
 /-- insert intermediate nodes -/
-private def insert (updatedRef : RefMap) (targets : Array Ref) : RefMap × Array Ref :=
-  -- FIXME: do it
-  (updatedRef, targets)
+private def insert (g : Graph) : Array Node :=
+  let nodes := g.nodes.zipIdx.foldl
+    (fun nodes (node, ix) ↦
+      let seq := match node.li.link with
+        | none => []
+        | some i => List.range' node.varId.succ (nodes[i]!.varId - node.varId.succ)
+      seq.foldl
+        (fun nodes i => nodes.push {varId := i, li := Ref.to nodes.size, hi := Ref.to nodes.size})
+        (nodes.set! ix {node with li := Ref.to nodes.size.succ, hi := Ref.to nodes.size.succ}
+          |>.push default) )  -- FIXME
+    g.nodes
+  nodes
 
 /-- TRIM nodes which hi points to `false` -/
 private def trim (updatedRef : RefMap) (targets : Array Ref) : RefMap × Array Ref :=
