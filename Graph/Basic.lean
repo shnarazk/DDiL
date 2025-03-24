@@ -94,7 +94,7 @@ def Graph.addNode (g : Graph) (node : Node) : Graph × Nat :=
 def Graph.addNode' (g : Graph) (vi : Nat) (li hi : Ref) : Graph × Nat :=
   g.addNode {varId := vi, li := li, hi := hi}
 
-namespace convert
+namespace Graph_convert
 
 inductive Collector where
   | bool (val : Bool)
@@ -118,9 +118,9 @@ def collectFromTreeNode (tree : TreeNode) (mapping : Array Node := #[]) (varId :
         | Collector.link m => (m,       {node with hi := Ref.to (m.size - 1)})
       Collector.link (mapping.push node)
 
-end convert
+end Graph_convert
 
-open convert in
+open Graph_convert in
 def Graph.fromTreeNode (tree : TreeNode) : Graph :=
   match collectFromTreeNode tree with
     | Collector.bool b => {(default : Graph) with constant := b}
@@ -131,7 +131,7 @@ def Graph.fromTreeNode (tree : TreeNode) : Graph :=
 def Graph.fromNodes (n : Nat) (nodes : Array Node) : Graph :=
   nodes.foldl (fun g n ↦ g.addNode n |>.fst) (Graph.forVars n)
 
-namespace compacting
+namespace Graph_compact
 
 partial
 def usedNodes (nodes : Array Node) (root : Ref) (mapping : HashSet Ref := HashSet.empty) : HashSet Ref :=
@@ -159,25 +159,25 @@ def compact (nodes : Array Node) (root : Ref := Ref.to nodes.size.pred) : Array 
       else
         (default : Node) )
 
-end compacting
+end Graph_compact
 
 /-- make a graph compact, no unused nodes. -/
 def Graph.compact (self : Graph) (root : Option Ref := none) : Graph :=
   match root, self.nodes.isEmpty with
   | none, true => self
   | none, false =>
-    compacting.compact self.nodes
+    Graph_compact.compact self.nodes
       |>.foldl (fun g n ↦ g.addNode n |>.fst) (Graph.forVars self.numVars)
   | some _, true => self
   | some r, false => match r.link with
     | none   => {Graph.fromNodes self.numVars #[] with constant := r.grounded}
-    | some _ => Graph.fromNodes self.numVars (compacting.compact self.nodes r)
+    | some _ => Graph.fromNodes self.numVars (Graph_compact.compact self.nodes r)
 
 instance : GraphShape Graph where
   numberOfVars := (·.numVars)
   numberOfNodes := (·.nodes.size)
 
-namespace graph_counting
+namespace Graph_count
 
 /--
 Checks if the TreeNode satisfies all conditions.
@@ -194,13 +194,13 @@ partial def linearCount (g : Graph) (counter : Std.HashMap Ref Nat) (r : Ref) : 
       let (counter, b) := linearCount g counter node.hi
       (counter.insert r (a + b), (a + b))
 
-end graph_counting
+end Graph_count
 
 /--
 Returns the number of satisfying assignments for the given TreeNode.
 This is the number of paths. -/
 def Graph.numSatisfies (self : Graph) : Nat :=
-    graph_counting.linearCount self Std.HashMap.empty (Ref.to (self.nodes.size - 1)) |>.snd
+    Graph_count.linearCount self Std.HashMap.empty (Ref.to (self.nodes.size - 1)) |>.snd
 
 def Ref.for (g : Graph) : Ref :=
   if g.nodes.isEmpty then
