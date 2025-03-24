@@ -3,8 +3,24 @@ import Graph.Basic
 import Graph.Serialize
 import BDD.Def
 import ZDD.Def
+import ZDD.Reduce
 
 namespace Test_ZDD
+
+def insert : IO Unit := do
+  IO.println s!"{ANSI.bolded "## insert"}"
+  let x1_4 : BDD := Graph.fromNodes 4 #[
+    {varId := 4, li := Ref.bool true, hi := Ref.bool false},
+    {varId := 1, li := Ref.bool true, hi := Ref.to 0} ]
+  |>.toBDD
+  let r := Ref.last x1_4.toGraph.nodes
+  let y1_4 := ZDD_reduce.insert x1_4.toGraph
+    |>(fun nodes ↦ Graph.compact (Graph.fromNodes 4 (dbg? "insert" nodes)) (some r))
+  try
+    IO.println s!"📈 x1_4      → {← x1_4.dumpAsPng     "_test_zdd_insert-1.png"}"
+    IO.println s!"📈 y1_4      → {← y1_4.dumpAsPng     "_test_zdd_insert-2.png"}"
+  catch e => IO.println s!"Error: {e}"
+  return ()
 
 def reduce : IO Unit := do
   IO.println s!"{ANSI.bolded "## reduce"}"
@@ -66,8 +82,7 @@ def apply : IO Unit := do
   catch e => IO.println s!"Error: {e}"
   return ()
 
-
-def compose : IO Unit := do
+ def compose : IO Unit := do
   IO.println s!"{ANSI.bolded "## compose"}"
   return ()
 
@@ -79,6 +94,7 @@ def run : IO Unit := do
   let (beg, fin) := LogKind.error.color
   IO.println s!"{beg}{ANSI.bolded "#Test_ZDD"}"
 
+  insert
   reduce
   compaction
   apply

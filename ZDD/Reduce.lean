@@ -13,7 +13,7 @@ abbrev RefMap := HashMap Ref Ref
 variable (g : Graph)
 
 /-- insert intermediate nodes -/
-private def insert (g : Graph) : Array Node :=
+def insert (g : Graph) : Array Node :=
   let nodes := g.nodes.zipIdx.foldl
     (fun nodes (node, ix) ↦
       let seq := match node.li.link with
