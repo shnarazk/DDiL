@@ -19,25 +19,25 @@ def insert (g : Graph) : Array Node :=
       let nodes := match node.li.link with
         | none => nodes
         | some next =>
-          let seq := List.range' node.varId.succ (dbg? "range" (nodes[next]!.varId - node.varId.succ))
+          let seq := List.range' node.varId.succ (nodes[next]!.varId - node.varId.succ)
           if seq.isEmpty
             then nodes
             else
-              let nodes := (dbg? "seq" seq).foldl
+              let nodes := seq.foldl
                 (fun nodes i => nodes.push {varId := i, li := Ref.to nodes.size.succ, hi := Ref.to nodes.size.succ})
-                (nodes.set! ix {node with hi := Ref.to nodes.size.succ})
+                (nodes.set! ix {node with hi := Ref.to nodes.size})
               nodes.modify nodes.size.pred (fun n ↦ {n with li := Ref.to next, hi := Ref.to next})
       let nodes := match node.hi.link with
         | none => nodes
         | some next =>
-          let seq := List.range' node.varId.succ (dbg? "range" (nodes[next]!.varId - node.varId.succ))
+          let seq := List.range' node.varId.succ (nodes[next]!.varId - node.varId.succ)
           if seq.isEmpty
             then nodes
             else
               let node := nodes[ix]!
-              let nodes := (dbg? "seq" seq).foldl
+              let nodes := seq.foldl
                 (fun nodes i => nodes.push {varId := i, li := Ref.to nodes.size.succ, hi := Ref.to nodes.size.succ})
-                (nodes.set! ix {node with hi := Ref.to nodes.size.succ})
+                (nodes.set! ix {node with hi := Ref.to nodes.size})
               nodes.modify nodes.size.pred (fun n ↦ {n with li := Ref.to next, hi := Ref.to next})
       nodes )
     g.nodes

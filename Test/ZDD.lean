@@ -18,11 +18,11 @@ def insert : IO Unit := do
   let x2 := ZDD_reduce.insert x1_4.toGraph
     -- |>(fun nodes ↦ Graph.compact (Graph.fromNodes 4 (dbg? "insert" nodes)) (some r))
   IO.println s!"x2: {x2}"
-  let x3 := Graph.reorderNodes 4 x2
+  let x3 := Graph.reorderNodes 4 x2 (Ref.last x1_4.toGraph.nodes)
   IO.println s!"x3: {x3}"
   try
     IO.println s!"📈 x1_4      → {← x1_4.dumpAsPng     "_test_zdd_insert-1.png"}"
-    -- IO.println s!"📈 y1_4      → {← y1_4.dumpAsPng     "_test_zdd_insert-2.png"}"
+    IO.println s!"📈 x3        → {← x3.dumpAsPng     "_test_zdd_insert-2.png"}"
   catch e => IO.println s!"Error: {e}"
   return ()
 
