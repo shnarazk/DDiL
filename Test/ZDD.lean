@@ -1,5 +1,6 @@
 import Common.Debug
 import Graph.Basic
+import Graph.Reorder
 import Graph.Serialize
 import BDD.Def
 import ZDD.Def
@@ -13,12 +14,15 @@ def insert : IO Unit := do
     {varId := 4, li := Ref.bool true, hi := Ref.bool false},
     {varId := 1, li := Ref.bool true, hi := Ref.to 0} ]
   |>.toBDD
-  let r := Ref.last x1_4.toGraph.nodes
-  let y1_4 := ZDD_reduce.insert x1_4.toGraph
-    |>(fun nodes ↦ Graph.compact (Graph.fromNodes 4 (dbg? "insert" nodes)) (some r))
+  let _r := Ref.last x1_4.toGraph.nodes
+  let x2 := ZDD_reduce.insert x1_4.toGraph
+    -- |>(fun nodes ↦ Graph.compact (Graph.fromNodes 4 (dbg? "insert" nodes)) (some r))
+  IO.println s!"x2: {x2}"
+  let x3 := Graph.reorderNodes 4 x2
+  IO.println s!"x3: {x3}"
   try
     IO.println s!"📈 x1_4      → {← x1_4.dumpAsPng     "_test_zdd_insert-1.png"}"
-    IO.println s!"📈 y1_4      → {← y1_4.dumpAsPng     "_test_zdd_insert-2.png"}"
+    -- IO.println s!"📈 y1_4      → {← y1_4.dumpAsPng     "_test_zdd_insert-2.png"}"
   catch e => IO.println s!"Error: {e}"
   return ()
 

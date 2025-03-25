@@ -14,15 +14,32 @@ variable (g : Graph)
 
 /-- insert intermediate nodes -/
 def insert (g : Graph) : Array Node :=
-  let nodes := g.nodes.zipIdx.foldl
+  let nodes := (dbg? "src" g.nodes.zipIdx).foldl
     (fun nodes (node, ix) ↦
-      let seq := match node.li.link with
-        | none => []
-        | some i => List.range' node.varId.succ (nodes[i]!.varId - node.varId.succ)
-      seq.foldl
-        (fun nodes i => nodes.push {varId := i, li := Ref.to nodes.size, hi := Ref.to nodes.size})
-        (nodes.set! ix {node with li := Ref.to nodes.size.succ, hi := Ref.to nodes.size.succ}
-          |>.push default) )  -- FIXME
+      let nodes := match node.li.link with
+        | none => nodes
+        | some next =>
+          let seq := List.range' node.varId.succ (dbg? "range" (nodes[next]!.varId - node.varId.succ))
+          if seq.isEmpty
+            then nodes
+            else
+              let nodes := (dbg? "seq" seq).foldl
+                (fun nodes i => nodes.push {varId := i, li := Ref.to nodes.size.succ, hi := Ref.to nodes.size.succ})
+                (nodes.set! ix {node with hi := Ref.to nodes.size.succ})
+              nodes.modify nodes.size.pred (fun n ↦ {n with li := Ref.to next, hi := Ref.to next})
+      let nodes := match node.hi.link with
+        | none => nodes
+        | some next =>
+          let seq := List.range' node.varId.succ (dbg? "range" (nodes[next]!.varId - node.varId.succ))
+          if seq.isEmpty
+            then nodes
+            else
+              let node := nodes[ix]!
+              let nodes := (dbg? "seq" seq).foldl
+                (fun nodes i => nodes.push {varId := i, li := Ref.to nodes.size.succ, hi := Ref.to nodes.size.succ})
+                (nodes.set! ix {node with hi := Ref.to nodes.size.succ})
+              nodes.modify nodes.size.pred (fun n ↦ {n with li := Ref.to next, hi := Ref.to next})
+      nodes )
     g.nodes
   nodes
 
