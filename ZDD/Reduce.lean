@@ -44,7 +44,7 @@ def insert (g : Graph) : Array Node :=
   nodes
 
 /-- TRIM nodes which hi points to `false` -/
-private def trim (updatedRef : RefMap) (targets : Array Ref) : RefMap × Array Ref :=
+def trim (updatedRef : RefMap) (targets : Array Ref) : RefMap × Array Ref :=
   targets.foldl
     (fun (updatedRef, acc) (ref: Ref) ↦
       let node := g.nodes[ref.link.getD 0]!
@@ -63,7 +63,7 @@ private def trim (updatedRef : RefMap) (targets : Array Ref) : RefMap × Array R
     (updatedRef, #[])
 
 /-- Merage nodes which have the same varId, li, hi -/
-private def merge (updatedRef : RefMap) (nodes : Array Node) (prev next : Ref) : RefMap × Array Node × Ref :=
+def merge (updatedRef : RefMap) (nodes : Array Node) (prev next : Ref) : RefMap × Array Node × Ref :=
   let prevNode := nodes.getD (prev.link.getD 0) default
   let nextNode : Node := nodes[next.link.getD 0]!
   let node' : Node := { nextNode with
@@ -91,56 +91,3 @@ def ZDD.reduce (g : Graph) (var_nodes : HashMap Nat (Array Ref)) : ZDD :=
           {toGraph := g.compact (updatedRef.getD root root)}
         else
           default )
-
-/-- Check the trivial cases. Otherwise pass to `reduce`. -/
-def Graph.toZDD (g : Graph) : ZDD :=
-  -- build a mapping from `varId` to `List node`
-  let (all_false, all_true, var_nodes) := g.nodes.zipIdx.foldl
-    (fun (falses, trues, mapping) (node, i) =>
-     ( falses && (node.asBool == some false),
-       trues && (node.asBool == some true),
-       mapping.alter
-         node.varId
-         (fun list => match list with
-           | none => some #[Ref.to i]
-           | some l => some (l.push (Ref.to i)) )))
-    (true, true, (HashMap.empty : HashMap Nat (Array Ref)))
-  match all_false, all_true with
-    | true, _    => ↑{(default : Graph) with constant := false}
-    | _   , true => ↑{(default : Graph) with constant := true}
-    | _   , _    => ZDD.reduce g var_nodes
-
-/-- Rebuild the given bdd-encoded `Graph g` as ZDD. -/
-def ZDD.convert (bdd : BDD) (var_nodes: HashMap Nat (Array Ref)) : ZDD :=
-  var_nodes.toList.mergeSort (fun a b ↦ a.fst > b.fst) -- from bottom var to top var
-    |>.foldl
-      (fun (updatedRef, nodes, _) (_, refs) ↦
-        let (updatedRef, targets) := ZDD_reduce.trim bdd updatedRef refs
-        targets.foldl
-          (fun (updatedRef, nodes, prev) next ↦ ZDD_reduce.merge updatedRef nodes prev next)
-          (updatedRef, nodes, Ref.to nodes.size) )
-      (HashMap.empty, bdd.nodes, Ref.bool false)
-    |> (fun (updatedRef, nodes, _) ↦ if 0 < nodes.size then
-          let g := Graph.fromNodes bdd.numVars nodes
-          let root := Ref.last g.nodes
-          {toGraph := g.compact (updatedRef.getD root root)}
-        else
-          default )
-
-/-- Check the trivial cases. Otherwise pass to `reduce`. -/
-def BDD.toZDD (bdd : BDD) : ZDD :=
-  -- build a mapping from `varId` to `List node`
-  let (all_false, all_true, var_nodes) := bdd.nodes.zipIdx.foldl
-    (fun (falses, trues, mapping) (node, i) =>
-     ( falses && (node.asBool == some false),
-       trues && (node.asBool == some true),
-       mapping.alter
-         node.varId
-         (fun list => match list with
-           | none => some #[Ref.to i]
-           | some l => some (l.push (Ref.to i)) )))
-    (true, true, (HashMap.empty : HashMap Nat (Array Ref)))
-  match all_false, all_true with
-    | true, _    => ↑{(default : Graph) with constant := false}
-    | _   , true => ↑{(default : Graph) with constant := true}
-    | _   , _    => ZDD.convert bdd var_nodes
