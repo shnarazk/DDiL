@@ -87,7 +87,7 @@ def Graph.addNode (g : Graph) (node : Node) : Graph × Nat :=
     (g', nodes.size - 1)
   else
     dbg
-      s!"{g.nodes.size}:{node} violation: vi:{node.varId} < g.numVars:{g.numVars} or ref:{node.validRef g.nodes.size}"
+      s!"(Graph.addNode {g.nodes.size} {node}): violation: vi:{node.varId} < g.numVars:{g.numVars} or ref in range: {node.validRef g.nodes.size}"
       (g, g.nodes.size)
       LogKind.error
 

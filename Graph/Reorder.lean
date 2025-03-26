@@ -11,7 +11,7 @@ abbrev HashMap := Std.HashMap
 def includes (a b : Array Ref) : Bool :=
   b.all (a.contains ·)
 
-partial def topologicalSort (nodes : Array Node) : HashMap Ref (Array Ref) :=
+partial def topologicalSort (nodes : Array Node) (root : Ref) : HashMap Ref (Array Ref) :=
   nodes.zipIdx.foldl
     (fun m (node, i) ↦
       let m := match node.li.link with
@@ -25,11 +25,11 @@ partial def topologicalSort (nodes : Array Node) : HashMap Ref (Array Ref) :=
           node.hi
           (fun l ↦ if let some l := l then l.push (Ref.to i) else #[Ref.to i] |> some)
       m )
-    (HashMap.empty : HashMap Ref (Array Ref))
+    (HashMap.empty.insert root #[] : HashMap Ref (Array Ref))
 
 partial def sweep (mapping : HashMap Ref (Array Ref)) (order : Array Ref) : Array Ref :=
   if mapping.isEmpty then
-    (dbg? "pure order" order).reverse
+    (dbg? "sweep order" order).reverse
   else
     let (next, rest) := mapping.partition (fun _ sources ↦ includes order sources)
     if next.isEmpty
@@ -39,12 +39,12 @@ partial def sweep (mapping : HashMap Ref (Array Ref)) (order : Array Ref) : Arra
 end Graph_reorder
 
 def Graph.reorderNodes (numVars : Nat) (nodes : Array Node) (start : Ref) : Graph :=
-  let mapping := Graph_reorder.topologicalSort (dbg? "nodes" nodes)
-  let ordering := Graph_reorder.sweep (dbg! s!"mapping: {mapping.toList}" mapping) #[start]
-  let updatedRef := ordering.toList.zipIdx.map (fun (r, i) ↦ (Ref.to i, r)) |> HashMap.ofList
-  let nodes := dbg! s!"reorder(order): {ordering.toList}"
+  let mapping := Graph_reorder.topologicalSort (dbg? "nodes" nodes) start
+  let ordering := Graph_reorder.sweep (dbg! s!"mapping: {mapping.toList}" (mapping.erase start)) #[dbg? "start" start]
+  let updatedRef := ordering.toList.zipIdx.map (fun (r, i) ↦ (r, Ref.to i)) |> HashMap.ofList
+  let nodes := dbg? s!"updatedRef: {updatedRef.toList}\nreorder(order): {ordering.toList}\nreorderedNodes"
     (ordering.map
-    (fun to ↦
-      let n := nodes[to.link.get!]!
-      {varId := n.varId, li := updatedRef.getD n.li n.li, hi := updatedRef.getD n.hi n.hi} ) )
+      (fun to ↦
+        let n := nodes[to.link.get!]!
+        {varId := n.varId, li := updatedRef.getD n.li n.li, hi := updatedRef.getD n.hi n.hi} ) )
   nodes.foldl (fun g n ↦ g.addNode n |>.fst) (Graph.forVars numVars)

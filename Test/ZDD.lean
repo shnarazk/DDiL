@@ -11,33 +11,35 @@ namespace Test_ZDD
 
 def insert : IO Unit := do
   IO.println s!"{ANSI.bolded "## insert"}"
-  let x1_4 : BDD := Graph.fromNodes 4 #[
-    {varId := 4, li := Ref.bool true, hi := Ref.bool false},
-    {varId := 1, li := Ref.bool true, hi := Ref.to 0} ]
-  |>.toBDD
-  let _r := Ref.last x1_4.toGraph.nodes
-  let x14 := ZDD_reduce.insert x1_4.toGraph
-    -- |>(fun nodes ↦ Graph.compact (Graph.fromNodes 4 (dbg? "insert" nodes)) (some r))
-  IO.println s!"x14: {x14}"
-  let z14 := Graph.reorderNodes 4 x14 (Ref.last x1_4.toGraph.nodes)
-  IO.println s!"z14: {z14}"
-
-  let x2_5 : BDD := Graph.fromNodes 5 #[
-    {varId := 5, li := Ref.bool false, hi := Ref.bool true},
-    {varId := 2, li := Ref.bool true, hi := Ref.to 0} ]
-  |>.toBDD
-  let x2_5 := x2_5.startFromOne
-  let _r2 := Ref.last x2_5.toGraph.nodes
-  let x25 := ZDD_reduce.insert x2_5.toGraph
-    -- |>(fun nodes ↦ Graph.compact (Graph.fromNodes 4 (dbg? "insert" nodes)) (some r))
-  IO.println s!"x25: {x25}"
-  let z25 := Graph.reorderNodes 5 x25 (Ref.last x2_5.toGraph.nodes)
-  IO.println s!"z25: {z25}"
+  /-
+  let b14 : BDD := Graph.fromNodes 4 #[
+      {varId := 4, li := Ref.bool true, hi := Ref.bool false},
+      {varId := 1, li := Ref.bool true, hi := Ref.to 0} ]
+    |>.toBDD
+  let i14 := ZDD_reduce.insert b14.toGraph
+  IO.println s!"b14i: {i14}"
+  let g14 := Graph.reorderNodes 4 i14 (Ref.last b14.toGraph.nodes)
+  IO.println s!"g14: {g14}"
   try
-    IO.println s!"📈 x1_4   → {← x1_4.dumpAsPng "_test_zdd_insert-1.png"}"
-    IO.println s!"📈 z14    → {← z14.dumpAsPng  "_test_zdd_insert-2.png"}"
-    IO.println s!"📈 x2_5   → {← x2_5.dumpAsPng "_test_zdd_insert-3.png"}"
-    IO.println s!"📈 z25    → {← z25.dumpAsPng  "_test_zdd_insert-4.png"}"
+    IO.println s!"📈 i14   → {← b14.dumpAsPng "_test_zdd_insert-1.png"}"
+    IO.println s!"📈 g14   → {← g14.dumpAsPng "_test_zdd_insert-2.png"}"
+  catch e => IO.println s!"Error: {e}"
+  -/
+
+  let b25 : BDD := Graph.fromNodes 5 #[
+      {varId := 5, li := Ref.bool false, hi := Ref.bool true},
+      {varId := 2, li := Ref.bool true, hi := Ref.to 0} ]
+    |>.toBDD
+    |>.startFromOne
+  IO.println s!"b25: {b25}"
+  let i25 := ZDD_reduce.insert b25.toGraph
+  IO.println s!"i25: {i25}"
+  let g25 := Graph.reorderNodes 5 i25 (Ref.last b25.toGraph.nodes)
+  IO.println s!"g25: {g25}"
+
+  try
+    IO.println s!"📈 b25   → {← b25.dumpAsPng "_test_zdd_insert-3.png"}"
+    IO.println s!"📈 g25   → {← g25.dumpAsPng "_test_zdd_insert-4.png"}"
   catch e => IO.println s!"Error: {e}"
   return ()
 
