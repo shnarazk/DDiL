@@ -95,7 +95,7 @@ def ZDD.reduce (g : Graph) (var_nodes : HashMap Nat (Array Ref)) : ZDD :=
 /-- Convert a Graph to ZDD.
 Presume: no holes between lined var pairs. This condition holds by invoking `toBDD`.
 -/
-def Graph.ToZDD₂ (g : Graph) : ZDD :=
+def Graph.toZDD₂ (g : Graph) : ZDD :=
   -- build a mapping from `varId` to `List node`
   let (all_false, all_true, var_nodes) := g.nodes.zipIdx.foldl
     (fun (falses, trues, mapping) (node, i) =>

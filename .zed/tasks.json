@@ -4,7 +4,7 @@
     "command": "lake build",
     //"args": [],
     // Env overrides for the command, will be appended to the terminal's environment from the settings.
-    # "env": { "foo": "bar" },
+    // "env": { "foo": "bar" },
     // Whether to use a new terminal tab or reuse the existing one to spawn the process, defaults to `false`.
     "use_new_terminal": false,
     // What to do with the terminal pane and tab, after the command was started:
