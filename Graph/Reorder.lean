@@ -40,9 +40,9 @@ end Graph_reorder
 
 def Graph.reorderNodes (numVars : Nat) (nodes : Array Node) (start : Ref) : Graph :=
   let mapping := Graph_reorder.topologicalSort (dbg? "nodes" nodes) start
-  let ordering := Graph_reorder.sweep (dbg! s!"mapping: {mapping.toList}" (mapping.erase start)) #[dbg? "start" start]
+  let ordering := Graph_reorder.sweep (dbg! s!"mapping: {mapping}" (mapping.erase start)) #[dbg? "start" start]
   let updatedRef := ordering.toList.zipIdx.map (fun (r, i) ↦ (r, Ref.to i)) |> HashMap.ofList
-  let nodes := dbg? s!"updatedRef: {updatedRef.toList}\nreorder(order): {ordering.toList}\nreorderedNodes"
+  let nodes := dbg? s!"updatedRef: {updatedRef}\nreorder(order): {ordering.toList}\nreorderedNodes"
     (ordering.map
       (fun to ↦
         let n := nodes[to.link.get!]!

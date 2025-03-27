@@ -1,3 +1,5 @@
+import Common.Debug
+
 /--
 Reference to other node or a constant, having `grounded` and `link`.
 There are two constructors: `Ref.bool` and `Ref.to`. -/
@@ -59,3 +61,8 @@ instance : HAdd Ref Nat Ref where
   hAdd r n := match r.link with
     | none   => r
     | some i => { r with link := some (i + n) }
+
+instance {α : Type} [ToString α] : ToString (Std.HashMap Ref α) where
+  toString h := h.toList.mergeSort (·.fst < ·.fst)
+    |>.map (fun (k, v) ↦ s!"\n{paddingLeft k 8}: {paddingLeft v 8}")
+    |> String.join

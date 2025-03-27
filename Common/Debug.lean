@@ -1,3 +1,4 @@
+import Std.Data.HashMap
 
 inductive LogKind : Type where
   | info  : LogKind
@@ -52,3 +53,18 @@ def dbg? {α : Type} [ToString α] (label : String) (a : α) (kind : LogKind := 
     else
       let (beg, fin) := LogKind.error.color
       IO.println s!"{beg}🆖 {s} → {a} ≠ {b}{fin}"
+
+/--
+Format string with left padding. -/
+def paddingLeft {α : Type} [ToString α] (t : α) (w : Nat := 8) : String :=
+  let s := ToString.toString t
+  List.range (max (w - s.length) 0) |>.map (fun _ ↦ " ") |> String.join |>.append s
+
+-- #eval paddingLeft "Hello" 8
+
+instance {α : Type} [ToString α] : ToString (Std.HashMap Nat α) where
+  toString h := h.toList.mergeSort (·.fst < ·.fst)
+    |>.map (fun (k, v) ↦ s!"\n{paddingLeft k 4}: {paddingLeft v 8}")
+    |> String.join
+
+-- #eval s!"{(Std.HashMap.empty : Std.HashMap Nat String) |>.insert 2 "two" |>.insert 5 "five"}"

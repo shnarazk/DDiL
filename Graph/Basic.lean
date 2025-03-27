@@ -44,7 +44,9 @@ instance : Inhabited Graph where
       validRefs := ordered, }
 
 instance : ToString Graph where
-  toString g := s!"Graph: {g.nodes}"
+  toString g := match g.constant with
+    | none   => s!"Graph {g.numVars}: {g.nodes}"
+    | some b => s!"Graph {g.numVars}: {b} (|nodes| = {g.nodes.size})"
 
 def Graph.forVars (n : Nat) : Graph :=
  let g : Graph := default
@@ -87,7 +89,7 @@ def Graph.addNode (g : Graph) (node : Node) : Graph × Nat :=
     (g', nodes.size - 1)
   else
     dbg
-      s!"(Graph.addNode {g.nodes.size} {node}): violation: vi:{node.varId} < g.numVars:{g.numVars} or ref in range: {node.validRef g.nodes.size}"
+      s!"{ANSI.bold}(Graph.addNode {g.nodes.size} {node}): violation: vi:{node.varId} < g.numVars:{g.numVars} or ref in range: {node.validRef g.nodes.size}{ANSI.unbold}"
       (g, g.nodes.size)
       LogKind.error
 

@@ -1,3 +1,4 @@
+import Common.Debug
 import Graph.Ref
 
 /--
@@ -19,6 +20,9 @@ instance : ToString Node where
     if li == hi
     then s!"Node(var:{self.varId} ↦ {li})"
     else s!"Node(var:{self.varId}, li:{self.li}, hi:{self.hi})"
+
+instance : ToString (Array Node) where
+  toString a := a.zipIdx.map (fun (n, i) ↦ s!"\n{paddingLeft i 4}: {n}") |>.toList |> String.join
 
 /- FIXME: implement `decidable eq` -/
 def Node.lt (a b : Node) : Prop :=
