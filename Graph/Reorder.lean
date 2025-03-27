@@ -39,7 +39,7 @@ partial def sweep (mapping : HashMap Ref (Array Ref)) (order : Array Ref) : Arra
 end Graph_reorder
 
 def Graph.reorderNodes (numVars : Nat) (nodes : Array Node) (start : Ref) : Graph :=
-  let mapping := Graph_reorder.topologicalSort (dbg? "Graph.Reorder.reorderNodes.nodes" nodes) start
+  let mapping := Graph_reorder.topologicalSort nodes start
   let ordering := Graph_reorder.sweep (dbg! s!"Graph.Reorder.reorderNodes.mapping: {mapping}" (mapping.erase start)) #[dbg? "Graph.Reorder.reorderNodes.start" start]
   let updatedRef := ordering.toList.zipIdx.map (fun (r, i) ↦ (r, Ref.to i)) |> HashMap.ofList
   let nodes := dbg? s!"Graph.Reorder.reorderNodes.updatedRef: {updatedRef}\nGraph.Reorder.reorderNodes.reorder(order): {ordering.toList}\nGraph.Reorder.reorderNodes.reorderedNodes"

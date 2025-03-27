@@ -25,7 +25,7 @@ def insert (g : Graph) : Array Node :=
             else
               let nodes := seq.foldl
                 (fun nodes i => nodes.push {varId := i, li := Ref.to nodes.size.succ, hi := Ref.to nodes.size.succ})
-                (nodes.set! ix {node with hi := Ref.to nodes.size})
+                (nodes.set! ix {node with li := Ref.to nodes.size})
               nodes.modify nodes.size.pred (fun n ↦ {n with li := Ref.to next, hi := Ref.to next})
       let nodes := match node.hi.link with
         | none => nodes
@@ -41,7 +41,7 @@ def insert (g : Graph) : Array Node :=
               nodes.modify nodes.size.pred (fun n ↦ {n with li := Ref.to next, hi := Ref.to next})
       nodes )
     g.nodes
-  nodes
+  dbg? "ZDD.Reduce.insert returns" nodes
 
 /-- TRIM nodes which hi points to `false` -/
 def trim (updatedRef : RefMap) (targets : Array Ref) : RefMap × Array Ref :=
