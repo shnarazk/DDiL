@@ -43,7 +43,7 @@ def insert (g : Graph) : Array Node :=
     g.nodes
   dbg? "ZDD.Reduce.insert returns" nodes
 
-/-- TRIM nodes which hi points to `false` -/
+/-- FIXME: TRIM nodes which hi points to `false` AND REFERED BY UPSTREAM.hi. -/
 def trim (updatedRef : RefMap) (targets : Array Ref) : RefMap × Array Ref :=
   targets.foldl
     (fun (updatedRef, acc) (ref: Ref) ↦
@@ -51,19 +51,21 @@ def trim (updatedRef : RefMap) (targets : Array Ref) : RefMap × Array Ref :=
       let li := updatedRef.getD node.li node.li
       let hi := updatedRef.getD node.hi node.hi
       if hi == Ref.bool false
-      then dbg! s!"trim {ref} to {li}" (updatedRef.insert ref li, acc)
+      then dbg! s!"trim {ref} to {node.li}/{li}" (updatedRef.insert ref li, acc)
       else (updatedRef, acc.push ref) )
     (updatedRef, #[])
 
 /-- Merage nodes which have the same varId, li, hi -/
 def merge (updatedRef : RefMap) (nodes : Array Node) (prev next : Ref) : RefMap × Array Node × Ref :=
-  let prevNode := nodes.getD ((updatedRef.getD prev prev).link.getD 0) default
-  let nextNode : Node := nodes[(updatedRef.getD next next).link.getD 0]!
+  let next := updatedRef.getD next next
+  let prev := updatedRef.getD prev prev
+  let prevNode := nodes.getD (prev.link.getD 0) default
+  let nextNode : Node := nodes[next.link.getD 0]!
   let node' : Node := { nextNode with
     li := updatedRef.getD nextNode.li nextNode.li
     hi := updatedRef.getD nextNode.hi nextNode.hi }
   if prevNode == node'
-    then (updatedRef.insert next prev, nodes, prev)
+    then dbg! s!"merge {next} to {prev}" (updatedRef.insert next prev, nodes, prev)
     else (updatedRef, nodes.set! (next.link.getD 0) node', next)
 
 end ZDD_reduce
