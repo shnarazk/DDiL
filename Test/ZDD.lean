@@ -57,14 +57,17 @@ def reduce : IO Unit := do
               { {{{F F} {F F}} {{F F} {F F}}}
                 {{{F F} {F F}} {{F F} {F F}}} } } }"
       |> Graph.fromTreeNode
-  let independent := ind.toBDD.toZDD
+  let indB := ind.toBDD
+  let indZ := indB.toZDD
   -- assert_eq "ZDD.independent.shape" (GraphShape.shapeOf independent) (6, 17)
   -- assert_eq "ZDD.independent.paths" (DecisionDiagram.numberOfSatisfyingPaths independent) 18
   -- assert_eq "congruence" (independent_bdd.isCongruent independent) true
   try
     IO.println s!"ind (Graph) → {ind}"
-    IO.println s!"ind (ZDD)   → {independent}"
-    IO.println s!"📈 independent → {← independent.dumpAsPng "_test_zdd_reduce.png"}"
+    IO.println s!"ind (BDD)   → {indB}"
+    IO.println s!"ind (ZDD)   → {indZ}"
+    IO.println s!"📈 ind (BDD) → {← indB.dumpAsPng "_test_zdd_reduce-1.png"}"
+    IO.println s!"📈 ind (ZDD) → {← indZ.dumpAsPng "_test_zdd_reduce-2.png"}"
   catch e => IO.println s!"Error: {e}"
   return ()
 

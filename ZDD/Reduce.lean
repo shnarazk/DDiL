@@ -73,26 +73,32 @@ def trim_old (updatedRef : RefMap) (targets : Array Ref) : RefMap × Array Ref :
 
 /-- Merage nodes which have the same varId, li, hi -/
 def merge (updatedRef : RefMap) (nodes : Array Node) (prev next : Ref) : RefMap × Array Node × Ref :=
-  let next := updatedRef.getD next next
   let prev := updatedRef.getD prev prev
-  let prevNode := nodes.getD (prev.link.getD 0) default
-  let nextNode : Node := nodes[next.link.getD 0]!
-  let node' : Node := { nextNode with
-    li := updatedRef.getD nextNode.li nextNode.li
-    hi := updatedRef.getD nextNode.hi nextNode.hi }
-  if prevNode == node'
-    then dbg! s!"merge {next} to {prev}" (updatedRef.insert next prev, nodes, prev)
-    else (updatedRef, nodes.set! (next.link.getD 0) node', next)
+  let next := updatedRef.getD next next
+  let prevNode := nodes[prev.link.get!]!
+  let nextNode := nodes[next.link.get!]!
+  if prevNode == nextNode
+  then dbg! s!"merge {next} to {prev}" (updatedRef.insert next prev, nodes, prev)
+  else (updatedRef, nodes, next)
 
 end ZDD_reduce
 
 /-- Rebuild the given non-normalized `Graph g` as ZDD. -/
 def ZDD.reduce (nv : Nat) (nodes : Array Node) (root : Ref) (var_nodes : HashMap Nat (Array Ref)) : ZDD :=
-  var_nodes.toList.mergeSort (fun a b ↦ a.fst > b.fst) -- from bottom var to top var
+  (dbg? "var_nodes" var_nodes).toList.mergeSort (fun a b ↦ a.fst > b.fst) -- from bottom var to top var
     |>.foldl
       (fun (updatedRef, nodes, _) (_, refs) ↦
+        -- reorder refs
         -- let (updatedRef, targets) := ZDD_reduce.trim g updatedRef refs
-        refs.foldl
+        let nodes := refs.foldl
+          (fun nodes ref ↦
+            let n := nodes[ref.link.get!]!
+            nodes.set!
+              ref.link.get!
+              {n with li := updatedRef.getD n.li n.li, hi := updatedRef.getD n.hi n.hi} )
+          nodes
+        let refs := refs.insertionSort (fun r₁ r₂ ↦ nodes[r₁.link.get!]! < nodes[r₂.link.get!]!)
+        (dbg? s!"refs: {refs.map (nodes[·.link.get!]!)}" refs).foldl
           (fun (updatedRef, nodes, prev) next ↦ ZDD_reduce.merge updatedRef nodes prev next)
           (updatedRef, nodes, Ref.to nodes.size) )
       (HashMap.empty, nodes, Ref.bool false)
