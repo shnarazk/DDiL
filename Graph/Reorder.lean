@@ -29,7 +29,7 @@ partial def topologicalSort (nodes : Array Node) (root : Ref) : HashMap Ref (Arr
 
 partial def sweep (mapping : HashMap Ref (Array Ref)) (order : Array Ref) : Array Ref :=
   if mapping.isEmpty then
-    (dbg? "sweep order" order).reverse
+    order.reverse
   else
     let (next, rest) := mapping.partition (fun _ sources ↦ includes order sources)
     if next.isEmpty

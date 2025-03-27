@@ -91,3 +91,23 @@ def ZDD.reduce (g : Graph) (var_nodes : HashMap Nat (Array Ref)) : ZDD :=
           {toGraph := g.compact (updatedRef.getD root root)}
         else
           default )
+
+/-- Convert a Graph to ZDD.
+Presume: no holes between lined var pairs. This condition holds by invoking `toBDD`.
+-/
+def Graph.ToZDD₂ (g : Graph) : ZDD :=
+  -- build a mapping from `varId` to `List node`
+  let (all_false, all_true, var_nodes) := g.nodes.zipIdx.foldl
+    (fun (falses, trues, mapping) (node, i) =>
+     ( falses && (node.asBool == some false),
+       trues && (node.asBool == some true),
+       mapping.alter
+         node.varId
+         (fun list => match list with
+           | none => some #[Ref.to i]
+           | some l => some (l.push (Ref.to i)) )))
+    (true, true, (HashMap.empty : HashMap Nat (Array Ref)))
+  match all_false, all_true with
+    | true, _    => ↑{(default : Graph) with constant := false}
+    | _   , true => ↑{(default : Graph) with constant := true}
+    | _   , _    => ZDD.reduce g var_nodes

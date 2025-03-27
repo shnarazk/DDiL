@@ -4,6 +4,7 @@ import Graph.Ref
 import BDD.Basic
 import ZDD.Basic
 import ZDD.Reduce
+import Graph.Reorder
 
 open Std
 
@@ -63,7 +64,7 @@ def Graph.toZDD (g : Graph) : Graph :=
 -/
 
 /-- Check the trivial cases. Otherwise pass to `reduce`. -/
-def BDD.toZDD (bdd : BDD) : ZDD :=
+def BDD.toZDD' (bdd : BDD) : ZDD :=
   -- build a mapping from `varId` to `List node`
   let bdd := bdd.startFromOne
   let (all_false, all_true, var_nodes) := bdd.toGraph.nodes.zipIdx.foldl
@@ -80,3 +81,9 @@ def BDD.toZDD (bdd : BDD) : ZDD :=
     | true, _    => ↑{(default : Graph) with constant := false}
     | _   , true => ↑{(default : Graph) with constant := true}
     | _   , _    => ZDD_conversion.convert bdd var_nodes
+
+    def BDD.toZDD (bdd : BDD) : ZDD :=
+      let bdd := bdd.startFromOne
+      let nodes := ZDD_reduce.insert bdd.toGraph
+      let g := Graph.reorderNodes bdd.numVars nodes (Ref.last bdd.toGraph.nodes)
+      g.toZDD₂
