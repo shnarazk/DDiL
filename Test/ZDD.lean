@@ -62,7 +62,8 @@ def reduce : IO Unit := do
   -- assert_eq "ZDD.independent.paths" (DecisionDiagram.numberOfSatisfyingPaths independent) 18
   -- assert_eq "congruence" (independent_bdd.isCongruent independent) true
   try
-    IO.println s!"ind → {ind}"
+    IO.println s!"ind (Graph) → {ind}"
+    IO.println s!"ind (ZDD)   → {independent}"
     IO.println s!"📈 independent → {← independent.dumpAsPng "_test_zdd_reduce.png"}"
   catch e => IO.println s!"Error: {e}"
   return ()

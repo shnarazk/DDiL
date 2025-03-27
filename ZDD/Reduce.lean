@@ -51,21 +51,14 @@ def trim (updatedRef : RefMap) (targets : Array Ref) : RefMap × Array Ref :=
       let li := updatedRef.getD node.li node.li
       let hi := updatedRef.getD node.hi node.hi
       if hi == Ref.bool false
-      then
-        (updatedRef.insert ref li, acc)
-      else
-        let seq := match li.link with
-          | none   => List.range' node.varId.succ (g.numVars - node.varId)
-          | some k => List.range' node.varId.succ (g.nodes[k]!.varId - node.varId)
-        seq.foldl -- insert intermediate nodes.
-          (fun acc _ ↦ acc)
-          (updatedRef, acc) )
+      then dbg! s!"trim {ref} to {li}" (updatedRef.insert ref li, acc)
+      else (updatedRef, acc.push ref) )
     (updatedRef, #[])
 
 /-- Merage nodes which have the same varId, li, hi -/
 def merge (updatedRef : RefMap) (nodes : Array Node) (prev next : Ref) : RefMap × Array Node × Ref :=
-  let prevNode := nodes.getD (prev.link.getD 0) default
-  let nextNode : Node := nodes[next.link.getD 0]!
+  let prevNode := nodes.getD ((updatedRef.getD prev prev).link.getD 0) default
+  let nextNode : Node := nodes[(updatedRef.getD next next).link.getD 0]!
   let node' : Node := { nextNode with
     li := updatedRef.getD nextNode.li nextNode.li
     hi := updatedRef.getD nextNode.hi nextNode.hi }
@@ -110,4 +103,4 @@ def Graph.toZDD₂ (g : Graph) : ZDD :=
   match all_false, all_true with
     | true, _    => ↑{(default : Graph) with constant := false}
     | _   , true => ↑{(default : Graph) with constant := true}
-    | _   , _    => ZDD.reduce g var_nodes
+    | _   , _    => ZDD.reduce g var_nodes |> dbg? "ZDD.Reduce.Graph.toZDD₂ returns"
