@@ -23,8 +23,8 @@ def convert (bdd : BDD) (var_nodes: HashMap Nat (Array Ref)) : ZDD :=
   var_nodes.toList.mergeSort (fun a b ↦ a.fst > b.fst) -- from bottom var to top var
     |>.foldl
       (fun (updatedRef, nodes, _) (_, refs) ↦
-        let (updatedRef, targets) := ZDD_reduce.trim bdd updatedRef refs
-        targets.foldl
+        -- let (updatedRef, targets) := ZDD_reduce.trim bdd updatedRef refs
+        refs.foldl
           (fun (updatedRef, nodes, prev) next ↦ ZDD_reduce.merge updatedRef nodes prev next)
           (updatedRef, nodes, Ref.to nodes.size) )
       (HashMap.empty, bdd.nodes, Ref.bool false)

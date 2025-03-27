@@ -147,7 +147,7 @@ def usedNodes (nodes : Array Node) (root : Ref) (mapping : HashSet Ref := HashSe
   else
     mapping
 
-def compact (nodes : Array Node) (root : Ref := Ref.to nodes.size.pred) : Array Node :=
+def compact (nodes : Array Node) (root : Ref := Ref.last nodes) : Array Node :=
   let used : Array Ref := usedNodes nodes root
     |>.toArray
     |>.insertionSort (fun a b => a < b)

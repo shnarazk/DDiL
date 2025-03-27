@@ -43,8 +43,24 @@ def insert (g : Graph) : Array Node :=
     g.nodes
   dbg? "ZDD.Reduce.insert returns" nodes
 
-/-- FIXME: TRIM nodes which hi points to `false` AND REFERED BY UPSTREAM.hi. -/
-def trim (updatedRef : RefMap) (targets : Array Ref) : RefMap × Array Ref :=
+private partial def goDown (nodes : Array Node) (root : Ref) : Ref := match root with
+  | {grounded := _, link := none} => root
+  | {grounded := _, link := some i} => match nodes[i]! with
+    | {varId := _, li := li, hi := {grounded := false, link := none}} => goDown nodes li
+    | _ => root
+
+partial def trim (nodes : Array Node) (root : Ref := Ref.last nodes) : Array Node :=
+  match root.link with
+  | none   => nodes
+  | some i =>
+    let node := nodes[i]!
+    let ref := goDown nodes node.hi
+    let nodes := nodes.set! i {nodes[i]! with hi := ref}
+    trim (trim nodes node.li) ref
+
+/-- FIXME: TRIM nodes which hi points to `false` AND REFERED BY UPSTREAM.hi.
+Probably top-down transforming is the best. -/
+def trim_old (updatedRef : RefMap) (targets : Array Ref) : RefMap × Array Ref :=
   targets.foldl
     (fun (updatedRef, acc) (ref: Ref) ↦
       let node := g.nodes[ref.link.getD 0]!
@@ -71,18 +87,17 @@ def merge (updatedRef : RefMap) (nodes : Array Node) (prev next : Ref) : RefMap 
 end ZDD_reduce
 
 /-- Rebuild the given non-normalized `Graph g` as ZDD. -/
-def ZDD.reduce (g : Graph) (var_nodes : HashMap Nat (Array Ref)) : ZDD :=
+def ZDD.reduce (nv : Nat) (nodes : Array Node) (root : Ref) (var_nodes : HashMap Nat (Array Ref)) : ZDD :=
   var_nodes.toList.mergeSort (fun a b ↦ a.fst > b.fst) -- from bottom var to top var
     |>.foldl
       (fun (updatedRef, nodes, _) (_, refs) ↦
-        let (updatedRef, targets) := ZDD_reduce.trim g updatedRef refs
-        targets.foldl
+        -- let (updatedRef, targets) := ZDD_reduce.trim g updatedRef refs
+        refs.foldl
           (fun (updatedRef, nodes, prev) next ↦ ZDD_reduce.merge updatedRef nodes prev next)
           (updatedRef, nodes, Ref.to nodes.size) )
-      (HashMap.empty, g.nodes, Ref.bool false)
+      (HashMap.empty, nodes, Ref.bool false)
     |> (fun (updatedRef, nodes, _) ↦ if 0 < nodes.size then
-          let g := Graph.fromNodes g.numVars nodes
-          let root := Ref.last g.nodes
+          let g := Graph.fromNodes nv nodes
           {toGraph := g.compact (updatedRef.getD root root)}
         else
           default )
@@ -92,7 +107,11 @@ Presume: no holes between lined var pairs. This condition holds by invoking `toB
 -/
 def Graph.toZDD₂ (g : Graph) : ZDD :=
   -- build a mapping from `varId` to `List node`
-  let (all_false, all_true, var_nodes) := g.nodes.zipIdx.foldl
+  let nodes := ZDD_reduce.trim g.nodes
+    |> dbg? "trimmed"
+    |> Graph_compact.compact
+    |> dbg? "compacted"
+  let (all_false, all_true, var_nodes) := nodes.zipIdx.foldl
     (fun (falses, trues, mapping) (node, i) =>
      ( falses && (node.asBool == some false),
        trues && (node.asBool == some true),
@@ -105,4 +124,4 @@ def Graph.toZDD₂ (g : Graph) : ZDD :=
   match all_false, all_true with
     | true, _    => ↑{(default : Graph) with constant := false}
     | _   , true => ↑{(default : Graph) with constant := true}
-    | _   , _    => ZDD.reduce g var_nodes |> dbg? "ZDD.Reduce.Graph.toZDD₂ returns"
+    | _   , _    => ZDD.reduce g.numVars nodes (Ref.last nodes) var_nodes |> dbg? "ZDD.Reduce.Graph.toZDD₂ returns"
