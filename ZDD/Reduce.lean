@@ -14,7 +14,7 @@ variable (g : Graph)
 
 /-- insert intermediate nodes -/
 def insert (g : Graph) : Array Node :=
-  let nodes := (dbg? "src" g.nodes.zipIdx).foldl
+  let nodes := (dbg? "ZDD.Reduce.insert src" g.nodes).zipIdx.foldl
     (fun nodes (node, ix) ↦
       let nodes := match node.li.link with
         | none => nodes

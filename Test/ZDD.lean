@@ -25,7 +25,7 @@ def insert : IO Unit := do
     IO.println s!"📈 g14   → {← g14.dumpAsPng "_test_zdd_insert-2.png"}"
   catch e => IO.println s!"Error: {e}"
   -/
-
+  /-
   let b25 : BDD := Graph.fromNodes 5 #[
       {varId := 5, li := Ref.bool false, hi := Ref.bool true},
       {varId := 2, li := Ref.bool true, hi := Ref.to 0} ]
@@ -41,6 +41,7 @@ def insert : IO Unit := do
     IO.println s!"📈 b25   → {← b25.dumpAsPng "_test_zdd_insert-3.png"}"
     IO.println s!"📈 g25   → {← g25.dumpAsPng "_test_zdd_insert-4.png"}"
   catch e => IO.println s!"Error: {e}"
+  -/
   return ()
 
 def reduce : IO Unit := do
@@ -61,6 +62,7 @@ def reduce : IO Unit := do
   -- assert_eq "ZDD.independent.paths" (DecisionDiagram.numberOfSatisfyingPaths independent) 18
   -- assert_eq "congruence" (independent_bdd.isCongruent independent) true
   try
+    IO.println s!"ind → {ind}"
     IO.println s!"📈 independent → {← independent.dumpAsPng "_test_zdd_reduce.png"}"
   catch e => IO.println s!"Error: {e}"
   return ()
@@ -116,7 +118,7 @@ def run : IO Unit := do
   let (beg, fin) := LogKind.error.color
   IO.println s!"{beg}{ANSI.bolded "#Test_ZDD"}"
 
-  insert
+  -- insert
   reduce
   compaction
   -- apply

@@ -25,6 +25,7 @@ structure Graph where
 instance : BEq Graph where
   beq g₁ g₂ := g₁.nodes == g₂.nodes && g₁.numVars == g₂.numVars && g₁.constant == g₂.constant
 
+/-- This default value is invalid, becaues it has no constant value and no node. -/
 instance : Inhabited Graph where
   default :=
     let nodes : Array Node := Array.empty
@@ -39,7 +40,7 @@ instance : Inhabited Graph where
     { nodes := nodes,
       numVars := 0,
       validVarIds := vi,
-      constant := some false,
+      constant := none,
       validSize := 0,
       validRefs := ordered, }
 
