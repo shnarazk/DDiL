@@ -44,7 +44,7 @@ def Graph.reorderNodes (numVars : Nat) (nodes : Array Node) (start : Ref) : Grap
   let updatedRef := ordering.toList.zipIdx.map (fun (r, i) ↦ (r, Ref.to i)) |> HashMap.ofList
   let nodes := dbg? s!"Graph.Reorder.reorderNodes.updatedRef: {updatedRef}\nGraph.Reorder.reorderNodes.reorder(order): {ordering.toList}\nGraph.Reorder.reorderNodes.reorderedNodes"
     (ordering.map
-      (fun to ↦
-        let n := nodes[to.link.get!]!
+      (fun r ↦
+        let n := nodes[r.link.get!]!
         {varId := n.varId, li := updatedRef.getD n.li n.li, hi := updatedRef.getD n.hi n.hi} ) )
   nodes.foldl (fun g n ↦ g.addNode n |>.fst) (Graph.forVars numVars)

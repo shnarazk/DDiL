@@ -33,7 +33,7 @@ def Node.lt (a b : Node) : Prop :=
 instance : LT Node where
   lt := Node.lt
 
-instance DecidableLTNode : DecidableLT Node
+instance decidableLTNode : DecidableLT Node
   | a, b =>
     if h : a.varId > b.varId ∨ (a.varId == b.varId ∧ (a.li < b.li ∨ (a.li == b.li ∧ a.hi < b.hi)))
     then isTrue h
@@ -56,25 +56,45 @@ def Node.append_nodes (self other : Array Node) (offset : Nat := self.size) : Ar
 
 -- #eval append_nodes #[(default : Node), default] #[{(default : Node) with li := Ref.to 0}]
 
-instance : LT ((Array Node) × Ref) where
+instance arrayRefOrder : LT ((Array Node) × Ref) where
   lt o₁ o₂ :=
     let (a₁, r₁) := o₁
     let (a₂, r₂) := o₂
     match r₁ with
     | {grounded := b₁, link := none} => match r₂ with
-      | {grounded := b₂, link := none} => b₁ < b₂
-      | {grounded := _, link := some n} => true
+      | {grounded := b₂, link := none}  => b₁ < b₂
+      | {grounded := _, link := some _} => true
     | {grounded := _, link := some n} => match r₂ with
-      | {grounded := _, link := none} => false
+      | {grounded := _, link := none}   => false
       | {grounded := _, link := some m} => a₁[n]! < a₂[m]!
 
+open Ref in
 instance : DecidableLT ((Array Node) × Ref) :=
-  fun o₁ o₂ ↦
-    let (a₁, r₁) := o₁
-    let (a₂, r₂) := o₂
-    match r₁, r₂ with
-    |{grounded := b₁, link := none}, {grounded := b₂, link := none} => if h : b₁ < b₂
-      then isTrue h else isFalse h
-    |{grounded := _, link := none}, {grounded := _, link := some n} => if h : none = none then isTrue h else isFalse sorry
-    |{grounded := _, link := some n}, {grounded := _, link := none} => isFalse sorry
-    |{grounded := _, link := some i₁}, {grounded := _, link := some i₂} => if h : a₁[i₁]! < a₂[i₂]! then isTrue h else isFalse h
+  fun o₁ o₂ ↦ by
+    rcases o₁ with ⟨a₁, r₁⟩
+    rcases r₁ with ⟨b₁, l₁⟩
+    rcases o₂ with ⟨a₂, r₂⟩
+    rcases r₂ with ⟨b₂, l₂⟩
+    induction' l₁ with m
+    {
+      induction' l₂ with n
+      {
+        simp [LT.lt] at *
+        exact instDecidableAnd
+      }
+      {
+        simp [LT.lt] at *
+        exact instDecidableTrue
+      }
+    }
+    {
+      induction' l₂ with n
+      {
+        simp [LT.lt] at *
+        exact instDecidableFalse
+      }
+      {
+        simp [arrayRefOrder] at *
+        exact decidableLTNode a₁[m]! a₂[n]!
+      }
+    }

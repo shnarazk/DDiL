@@ -97,7 +97,8 @@ def ZDD.reduce (nv : Nat) (nodes : Array Node) (root : Ref) (var_nodes : HashMap
               ref.link.get!
               {n with li := updatedRef.getD n.li n.li, hi := updatedRef.getD n.hi n.hi} )
           nodes
-        let refs := refs.insertionSort (fun r₁ r₂ ↦ nodes[r₁.link.get!]! < nodes[r₂.link.get!]!)
+        let refs := refs.map (fun r ↦ updatedRef.getD r r)
+          |>.insertionSort (fun r₁ r₂ ↦ nodes[r₁.link.get!]! < nodes[r₂.link.get!]!)
         (dbg? s!"refs: {refs.map (nodes[·.link.get!]!)}" refs).foldl
           (fun (updatedRef, nodes, prev) next ↦ ZDD_reduce.merge updatedRef nodes prev next)
           (updatedRef, nodes, Ref.to nodes.size) )
