@@ -49,27 +49,14 @@ private partial def goDown (nodes : Array Node) (root : Ref) : Ref := match root
     | {varId := _, li := li, hi := {grounded := false, link := none}} => goDown nodes li
     | _ => root
 
-partial def trim (nodes : Array Node) (root : Ref := Ref.last nodes) : Array Node :=
+partial def trim (updatedRef : RefMap) (nodes : Array Node) (root : Ref := Ref.last nodes) : RefMap × Array Node :=
   match root.link with
-  | none   => nodes
+  | none   => (updatedRef, nodes)
   | some i =>
     let node := nodes[i]!
     let ref := goDown nodes node.hi
-    let nodes := nodes.set! i {nodes[i]! with hi := ref}
-    trim (trim nodes node.li) ref
-
-/-- FIXME: TRIM nodes which hi points to `false` AND REFERED BY UPSTREAM.hi.
-Probably top-down transforming is the best. -/
-def trim_old (updatedRef : RefMap) (targets : Array Ref) : RefMap × Array Ref :=
-  targets.foldl
-    (fun (updatedRef, acc) (ref: Ref) ↦
-      let node := g.nodes[ref.link.getD 0]!
-      let li := updatedRef.getD node.li node.li
-      let hi := updatedRef.getD node.hi node.hi
-      if hi == Ref.bool false
-      then dbg! s!"trim {ref} to {node.li}/{li}" (updatedRef.insert ref li, acc)
-      else (updatedRef, acc.push ref) )
-    (updatedRef, #[])
+    let updatedRef := if ref == node.hi then updatedRef else updatedRef.insert root ref
+    (updatedRef, nodes)
 
 /-- Merage nodes which have the same varId, li, hi -/
 def merge (updatedRef : RefMap) (nodes : Array Node) (prev next : Ref) : RefMap × Array Node × Ref :=
