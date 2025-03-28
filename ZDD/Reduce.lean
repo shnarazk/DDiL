@@ -88,7 +88,7 @@ def ZDD.reduce (nv : Nat) (nodes : Array Node) (root : Ref) (var_nodes : HashMap
   (dbg? "var_nodes" var_nodes).toList.mergeSort (fun a b ↦ a.fst > b.fst) -- from bottom var to top var
     |>.foldl
       (fun (updatedRef, nodes, _) (_, refs) ↦
-        -- reorder refs
+        /- reorder refs -/
         -- let (updatedRef, targets) := ZDD_reduce.trim g updatedRef refs
         let nodes := refs.foldl
           (fun nodes ref ↦

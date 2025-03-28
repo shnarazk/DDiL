@@ -1,5 +1,6 @@
 import Common.Debug
 import Graph.Ref
+import Mathlib.Tactic
 
 /--
 Node representation for graph, having `varId`, `li`, and `hi`.
@@ -54,3 +55,26 @@ def Node.append_nodes (self other : Array Node) (offset : Nat := self.size) : Ar
   self.append <| other.map (fun n ↦ {n with li := n.li + offset, hi := n.hi + offset})
 
 -- #eval append_nodes #[(default : Node), default] #[{(default : Node) with li := Ref.to 0}]
+
+instance : LT ((Array Node) × Ref) where
+  lt o₁ o₂ :=
+    let (a₁, r₁) := o₁
+    let (a₂, r₂) := o₂
+    match r₁ with
+    | {grounded := b₁, link := none} => match r₂ with
+      | {grounded := b₂, link := none} => b₁ < b₂
+      | {grounded := _, link := some n} => true
+    | {grounded := _, link := some n} => match r₂ with
+      | {grounded := _, link := none} => false
+      | {grounded := _, link := some m} => a₁[n]! < a₂[m]!
+
+instance : DecidableLT ((Array Node) × Ref) :=
+  fun o₁ o₂ ↦
+    let (a₁, r₁) := o₁
+    let (a₂, r₂) := o₂
+    match r₁, r₂ with
+    |{grounded := b₁, link := none}, {grounded := b₂, link := none} => if h : b₁ < b₂
+      then isTrue h else isFalse h
+    |{grounded := _, link := none}, {grounded := _, link := some n} => if h : none = none then isTrue h else isFalse sorry
+    |{grounded := _, link := some n}, {grounded := _, link := none} => isFalse sorry
+    |{grounded := _, link := some i₁}, {grounded := _, link := some i₂} => if h : a₁[i₁]! < a₂[i₂]! then isTrue h else isFalse h

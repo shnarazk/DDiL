@@ -51,4 +51,46 @@ theorem array_index_induction {α : Type} (a : Array α) (p : α → Prop) (b : 
     have : ¬a.size < i := by exact Nat.not_lt.mpr this
     contradiction }
 
+instance : LT (Option Nat) where
+  lt o₁ o₂ := match o₁ with
+    | none => match o₂ with
+      | none => false
+      | some _ => true
+    | some i => match o₂ with
+      | none => false
+      | some j => i < j
+
+open Option
+instance : DecidableLT (Option Nat) :=
+  fun o₁ o₂ => by
+    induction' o₁ with i
+    {
+      induction' o₂ with j
+      {
+        have : ¬(none : Option Nat) < none := by simp [LT.lt]
+        exact isFalse this
+      }
+      {
+        have : (none : Option Nat) < some j := by simp [LT.lt]
+        exact isTrue this
+      }
+    }
+    {
+      induction' o₂ with j
+      {
+        have : ¬some i < none := by simp [LT.lt]
+        exact isFalse this
+      }
+      {
+        if h : i < j
+        then
+          have : some i < some j := by exact h
+          exact isTrue this
+        else
+          have : ¬some i < some j := by exact h
+          exact isFalse this
+      }
+    }
+
+
 end proofs
