@@ -46,17 +46,24 @@ def insert (g : Graph) : Array Node :=
 private partial def goDown (nodes : Array Node) (root : Ref) : Ref := match root with
   | {grounded := _, link := none} => root
   | {grounded := _, link := some i} => match nodes[i]! with
-    | {varId := _, li := li, hi := {grounded := false, link := none}} => goDown nodes li
+    | {varId := _, li, hi := {grounded := false, link := none}} => goDown nodes li
     | _ => root
 
-partial def trim (updatedRef : RefMap) (nodes : Array Node) (root : Ref := Ref.last nodes) : RefMap × Array Node :=
-  match root.link with
-  | none   => (updatedRef, nodes)
-  | some i =>
-    let node := nodes[i]!
-    let ref := goDown nodes node.hi
-    let updatedRef := if ref == node.hi then updatedRef else updatedRef.insert root ref
-    (updatedRef, nodes)
+partial def trim (nodes : Array Node)
+    (checked : HashSet Ref := HashSet.empty) (root : Ref := Ref.last nodes)
+    : Array Node × HashSet Ref :=
+  if checked.contains root then
+    (nodes, checked)
+  else
+    match root.link with
+    | none   => (nodes, checked)
+    | some i =>
+      let node := nodes[i]!
+      let li := goDown nodes node.li
+      let hi := goDown nodes node.hi
+      let (nodes, checked) := trim nodes checked li
+      let (nodes, checked) := trim nodes checked hi
+      (nodes.set! i {node with li, hi}, checked.insert root)
 
 /-- Merage nodes which have the same varId, li, hi -/
 def merge (updatedRef : RefMap) (nodes : Array Node) (prev next : Ref) : RefMap × Array Node × Ref :=
@@ -101,10 +108,14 @@ Presume: no holes between lined var pairs. This condition holds by invoking `toB
 -/
 def Graph.toZDD₂ (g : Graph) : ZDD :=
   -- build a mapping from `varId` to `List node`
-  let nodes := ZDD_reduce.trim g.nodes
+  let nodes := /- ZDD_reduce.trim -/ g.nodes
+    -- |>.fst
     |> dbg? "trimmed"
     |> Graph_compact.compact
     |> dbg? "compacted"
+  let g := nodes.foldl (fun g n ↦ g.addNode n |>.fst) (Graph.forVars g.numVars)
+  {toGraph := g}
+  /-
   let (all_false, all_true, var_nodes) := nodes.zipIdx.foldl
     (fun (falses, trues, mapping) (node, i) =>
      ( falses && (node.asBool == some false),
@@ -119,3 +130,4 @@ def Graph.toZDD₂ (g : Graph) : ZDD :=
     | true, _    => ↑{(default : Graph) with constant := false}
     | _   , true => ↑{(default : Graph) with constant := true}
     | _   , _    => ZDD.reduce g.numVars nodes (Ref.last nodes) var_nodes |> dbg? "ZDD.Reduce.Graph.toZDD₂ returns"
+-/
