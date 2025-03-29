@@ -163,7 +163,7 @@ def run : IO Unit := do
 
   -- insert
   trim
-  -- reduce
+  reduce
   -- compaction
   -- apply
   compose

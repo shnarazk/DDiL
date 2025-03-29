@@ -82,19 +82,19 @@ def Graph.toZDD₂ (g : Graph) : ZDD :=
     |> dbg? "trimmed"
     |> Graph_compact.compact
     |> dbg? "compacted"
-  let g := nodes.foldl (fun g n ↦ g.addNode n |>.fst) (Graph.forVars g.numVars)
-  {toGraph := g}
-  -- let (all_false, all_true, var_nodes) := nodes.zipIdx.foldl
-  --   (fun (falses, trues, mapping) (node, i) =>
-  --    ( falses && (node.asBool == some false),
-  --      trues && (node.asBool == some true),
-  --      mapping.alter
-  --        node.varId
-  --        (fun list => match list with
-  --          | none => some #[Ref.to i]
-  --          | some l => some (l.push (Ref.to i)) )))
-  --   (true, true, (HashMap.empty : HashMap Nat (Array Ref)))
-  -- match all_false, all_true with
-  --   | true, _    => ↑{(default : Graph) with constant := false}
-  --   | _   , true => ↑{(default : Graph) with constant := true}
-  --   | _   , _    => ZDD.reduce g.numVars nodes (Ref.last nodes) var_nodes |> dbg? "ZDD.Reduce.Graph.toZDD₂ returns"
+  -- let g := nodes.foldl (fun g n ↦ g.addNode n |>.fst) (Graph.forVars g.numVars)
+  -- {toGraph := g}
+  let (all_false, all_true, var_nodes) := nodes.zipIdx.foldl
+    (fun (falses, trues, mapping) (node, i) =>
+     ( falses && (node.asBool == some false),
+       trues && (node.asBool == some true),
+       mapping.alter
+         node.varId
+         (fun list => match list with
+           | none => some #[Ref.to i]
+           | some l => some (l.push (Ref.to i)) )))
+    (true, true, (HashMap.empty : HashMap Nat (Array Ref)))
+  match all_false, all_true with
+    | true, _    => ↑{(default : Graph) with constant := false}
+    | _   , true => ↑{(default : Graph) with constant := true}
+    | _   , _    => ZDD.reduce g.numVars nodes (Ref.last nodes) var_nodes |> dbg? "ZDD.Reduce.Graph.toZDD₂ returns"
