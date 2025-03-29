@@ -61,8 +61,8 @@ def insert : IO Unit := do
   let ind_reordered := Graph.reorderNodes 6 ind_inserted (Ref.last ind.nodes)
   IO.println s!"ind_reordered: {ind_reordered}"
   try
-    IO.println s!"📈 ind_inserted   → {← (Graph.ofNodes ind_inserted).dumpAsPng "_test_zdd_insert-3.png"}"
-    IO.println s!"📈 ind_reordered  → {← ind_reordered.dumpAsPng "_test_zdd_insert-4.png"}"
+    IO.println s!"📈 ind_inserted   → {← (Graph.ofNodes ind_inserted).dumpAsPng "_test_zdd_insert-3.png" "ind_inserted: ind → insert"}"
+    IO.println s!"📈 ind_reordered  → {← ind_reordered.dumpAsPng "_test_zdd_insert-4.png" "ind_reodered: ind → insert → reorder"}"
   catch e => IO.println s!"Error: {e}"
   return ()
 
@@ -75,7 +75,7 @@ def trim : IO Unit := do
     |> Graph_compact.compact
     |> Graph.ofNodes
   IO.println s!"ind_trim: {ind_trim}"
-  let indb      : BDD     := ind.toBDD
+  let indb      : BDD        := ind.toBDD
   let indb_ins  : Array Node := ZDD_conversion.insert indb.toGraph
   let indb_pp   : Graph      := Graph.reorderNodes 6 indb_ins (Ref.last indb.nodes)
   let indb_trim : Graph      := ZDD_reduce.trim indb_pp.nodes
@@ -85,11 +85,11 @@ def trim : IO Unit := do
   IO.println s!"indb_trim: {indb_trim}"
   try
     IO.println s!"📈 ind       → {← ind.dumpAsPng "_test_zdd_trim-1.png" "ind"}"
-    IO.println s!"📈 ind_pp    → {← ind_pp.dumpAsPng "_test_zdd_trim-2.png" "ind → insert+reorder"}"
-    IO.println s!"📈 ind_trim  → {← ind_trim.dumpAsPng "_test_zdd_trim-3.png" "ind → trim"}"
-    IO.println s!"📈 indb      → {← indb.dumpAsPng "_test_zdd_trim-4.png" "ind → BDD"}"
-    IO.println s!"📈 indb_pp   → {← indb_pp.dumpAsPng "_test_zdd_trim-5.png" "ind → BDD → insert+reorder"}"
-    IO.println s!"📈 indb_trim → {← indb_trim.dumpAsPng "_test_zdd_trim-6.png" "ind → BDD → trim"}"
+    IO.println s!"📈 ind_pp    → {← ind_pp.dumpAsPng "_test_zdd_trim-2.png" "ind_pp: ind → insert+reorder"}"
+    IO.println s!"📈 ind_trim  → {← ind_trim.dumpAsPng "_test_zdd_trim-3.png" "ind_trim: ind → trim"}"
+    IO.println s!"📈 indb      → {← indb.dumpAsPng "_test_zdd_trim-4.png" "indb: ind → BDD"}"
+    IO.println s!"📈 indb_pp   → {← indb_pp.dumpAsPng "_test_zdd_trim-5.png" "indb_pp: ind → BDD → insert+reorder"}"
+    IO.println s!"📈 indb_trim → {← indb_trim.dumpAsPng "_test_zdd_trim-6.png" "indb_trim: ind → BDD → trim"}"
   catch e => IO.println s!"Error: {e}"
   return ()
 
@@ -104,9 +104,9 @@ def reduce : IO Unit := do
     IO.println s!"ind (Graph) → {ind}"
     IO.println s!"ind (BDD)   → {indB}"
     IO.println s!"ind (ZDD)   → {indZ}"
-    IO.println s!"📈 ind (Graph) → {← ind.dumpAsPng "_test_zdd_reduce-1.png" "Tree→Graph ind."}"
-    IO.println s!"📈 ind (BDD)   → {← indB.dumpAsPng "_test_zdd_reduce-2.png" "Tree→BDD ind."}"
-    IO.println s!"📈 ind (ZDD)   → {← indZ.dumpAsPng "_test_zdd_reduce-3.png" "Tree→BDD→ZDD ind."}"
+    IO.println s!"📈 ind (Graph) → {← ind.dumpAsPng "_test_zdd_reduce-1.png" "ind: Tree→Graph ind."}"
+    IO.println s!"📈 ind (BDD)   → {← indB.dumpAsPng "_test_zdd_reduce-2.png" "indB: Tree→BDD ind."}"
+    IO.println s!"📈 ind (ZDD)   → {← indZ.dumpAsPng "_test_zdd_reduce-3.png" "indZ: Tree→BDD→ZDD ind."}"
   catch e => IO.println s!"Error: {e}"
   return ()
 
@@ -163,7 +163,7 @@ def run : IO Unit := do
 
   -- insert
   trim
-  reduce
+  -- reduce
   -- compaction
   -- apply
   compose
