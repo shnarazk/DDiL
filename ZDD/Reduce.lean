@@ -108,14 +108,13 @@ Presume: no holes between lined var pairs. This condition holds by invoking `toB
 -/
 def Graph.toZDD₂ (g : Graph) : ZDD :=
   -- build a mapping from `varId` to `List node`
-  let nodes := /- ZDD_reduce.trim -/ g.nodes
-    -- |>.fst
+  let nodes := ZDD_reduce.trim g.nodes
+    |>.fst
     |> dbg? "trimmed"
     |> Graph_compact.compact
     |> dbg? "compacted"
-  let g := nodes.foldl (fun g n ↦ g.addNode n |>.fst) (Graph.forVars g.numVars)
-  {toGraph := g}
-  /-
+  -- let g := nodes.foldl (fun g n ↦ g.addNode n |>.fst) (Graph.forVars g.numVars)
+  -- {toGraph := g}
   let (all_false, all_true, var_nodes) := nodes.zipIdx.foldl
     (fun (falses, trues, mapping) (node, i) =>
      ( falses && (node.asBool == some false),
@@ -130,4 +129,3 @@ def Graph.toZDD₂ (g : Graph) : ZDD :=
     | true, _    => ↑{(default : Graph) with constant := false}
     | _   , true => ↑{(default : Graph) with constant := true}
     | _   , _    => ZDD.reduce g.numVars nodes (Ref.last nodes) var_nodes |> dbg? "ZDD.Reduce.Graph.toZDD₂ returns"
--/

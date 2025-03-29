@@ -7,7 +7,21 @@ import ZDD.Def
 import ZDD.Reduce
 import ZDD.Conversion
 
+open Std
+
 namespace Test_ZDD
+
+private def ind : Graph :=
+  TreeNode.fromString
+      "{  { { {{{T T} {T F}} {{T T} {F F}}}
+              {{{T T} {T F}} {{F F} {F F}}} }
+            { {{{T T} {T F}} {{T T} {F F}}}
+              {{{F F} {F F}} {{F F} {F F}}} } }
+          { { {{{T F} {T F}} {{T F} {F F}}}
+              {{{T F} {T F}} {{F F} {F F}}} }
+            { {{{F F} {F F}} {{F F} {F F}}}
+              {{{F F} {F F}} {{F F} {F F}}} } } }"
+    |> Graph.fromTreeNode
 
 def insert : IO Unit := do
   IO.println s!"{ANSI.bolded "## insert"}"
@@ -42,21 +56,32 @@ def insert : IO Unit := do
     IO.println s!"📈 g25   → {← g25.dumpAsPng "_test_zdd_insert-4.png"}"
   catch e => IO.println s!"Error: {e}"
   -/
+  let ind_inserted : Array Node := ZDD_reduce.insert ind
+  IO.println s!"ind_inserted: {ind_inserted}"
+  let ind_reordered := Graph.reorderNodes 6 ind_inserted (Ref.last ind.nodes)
+  IO.println s!"ind_reordered: {ind_reordered}"
+  try
+    IO.println s!"📈 ind_inserted   → {← (Graph.ofNodes ind_inserted).dumpAsPng "_test_zdd_insert-3.png"}"
+    IO.println s!"📈 ind_reordered  → {← ind_reordered.dumpAsPng "_test_zdd_insert-4.png"}"
+  catch e => IO.println s!"Error: {e}"
+  return ()
+
+def trim : IO Unit := do
+  IO.println s!"{ANSI.bolded "## trim"}"
+  let ind_ins  : Array Node := ZDD_reduce.insert ind
+  let ind_pp   : Graph      := Graph.reorderNodes 6 ind_ins (Ref.last ind.nodes)
+  let ind_trim : Graph      := ZDD_reduce.trim  ind_pp.nodes
+    |>.fst
+    |> Graph_compact.compact
+    |> Graph.ofNodes
+  try
+    IO.println s!"📈 ind_pp    → {← ind_pp.dumpAsPng "_test_zdd_trim-1.png"}"
+    IO.println s!"📈 ind_trim  → {← ind_trim.dumpAsPng "_test_zdd_trim-2.png"}"
+  catch e => IO.println s!"Error: {e}"
   return ()
 
 def reduce : IO Unit := do
-  IO.println s!"{ANSI.bolded "## reduce"}"
-  let ind : Graph :=
-    TreeNode.fromString
-        "{  { { {{{T T} {T F}} {{T T} {F F}}}
-                {{{T T} {T F}} {{F F} {F F}}} }
-              { {{{T T} {T F}} {{T T} {F F}}}
-                {{{F F} {F F}} {{F F} {F F}}} } }
-            { { {{{T F} {T F}} {{T F} {F F}}}
-                {{{T F} {T F}} {{F F} {F F}}} }
-              { {{{F F} {F F}} {{F F} {F F}}}
-                {{{F F} {F F}} {{F F} {F F}}} } } }"
-      |> Graph.fromTreeNode
+  IO.println s!"{ANSI.bolded "## reduce independent toBDD toZDD"}"
   let indB := ind.toBDD
   let indZ := indB.toZDD
   -- assert_eq "ZDD.independent.shape" (GraphShape.shapeOf independent) (6, 17)
@@ -77,7 +102,7 @@ def compaction : IO Unit := do
 
 /- /- the apply example used in the paper -/
 def apply : IO Unit := do
-  IO.println s!"{ANSI.bolded "## ZDD apply on independent"}"
+  IO.println s!"{ANSI.bolded "## ZDD apply"}"
   let x1x3 : ZDD := Graph.fromNodes 3 #[
       {varId := 3, li := Ref.bool true, hi := Ref.bool false},
       {varId := 1, li := Ref.bool true, hi := Ref.to 0} ]
@@ -123,8 +148,9 @@ def run : IO Unit := do
   IO.println s!"{beg}{ANSI.bolded "#Test_ZDD"}"
 
   -- insert
-  reduce
-  compaction
+  trim
+  -- reduce
+  -- compaction
   -- apply
   compose
   satisfy
