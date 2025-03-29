@@ -37,5 +37,14 @@
     //         }
     //     }
     "shell": "system"
+  },
+  {
+    "label": "remove test graphs",
+    "command": "rm _test*",
+    "use_new_terminal": false,
+    "reveal": "never",
+    "reveal_target": "dock",
+    "hide": "never",
+    "shell": "system"
   }
 ]
