@@ -22,45 +22,22 @@ def startFromOne (nodes : Array Node) (root : Ref := Ref.last nodes) : Option No
 def insert (g : Graph) : Array Node :=
   let nodes := (dbg? "ZDD.Reduce.insert src" g.nodes).zipIdx.foldl
     (fun nodes (node, ix) ↦
-      let nodes := match node.li.link with
-        | none =>
-          let seq := List.range' node.varId.succ (g.numVars - node.varId)
-          if seq.isEmpty
-            then nodes
-            else
-              let nodes := seq.foldl
-                (fun nodes i => nodes.push {varId := i, li := Ref.to nodes.size.succ, hi := Ref.to nodes.size.succ})
-                (nodes.set! ix {node with li := Ref.to nodes.size})
-              nodes.modify nodes.size.pred (fun n ↦ {n with li := node.li, hi := node.li})
-        | some next =>
-          let seq := List.range' node.varId.succ (nodes[next]!.varId - node.varId.succ)
-          if seq.isEmpty
-            then nodes
-            else
-              let nodes := seq.foldl
-                (fun nodes i => nodes.push {varId := i, li := Ref.to nodes.size.succ, hi := Ref.to nodes.size.succ})
-                (nodes.set! ix {node with li := Ref.to nodes.size})
-              nodes.modify nodes.size.pred (fun n ↦ {n with li := Ref.to next, hi := Ref.to next})
-      let nodes := match node.hi.link with
-        | none =>
-          let seq := List.range' node.varId.succ (g.numVars - node.varId)
-          if seq.isEmpty
-            then nodes
-            else
-              let nodes := seq.foldl
-                (fun nodes i => nodes.push {varId := i, li := Ref.to nodes.size.succ, hi := Ref.to nodes.size.succ})
-                (nodes.set! ix {node with li := Ref.to nodes.size})
-              nodes.modify nodes.size.pred (fun n ↦ {n with li := node.hi, hi := node.hi})
-        | some next =>
-          let seq := List.range' node.varId.succ (nodes[next]!.varId - node.varId.succ)
-          if seq.isEmpty
-            then nodes
-            else
-              let node := nodes[ix]!
-              let nodes := seq.foldl
-                (fun nodes i => nodes.push {varId := i, li := Ref.to nodes.size.succ, hi := Ref.to nodes.size.succ})
-                (nodes.set! ix {node with hi := Ref.to nodes.size})
-              nodes.modify nodes.size.pred (fun n ↦ {n with li := Ref.to next, hi := Ref.to next})
+      let seq := List.range' node.varId.succ (if let some next := node.li.link then nodes[next]!.varId - node.varId.succ else g.numVars - node.varId)
+      let nodes := if seq.isEmpty then
+          nodes
+        else
+          seq.foldl
+              (fun nodes i ↦ nodes.push {varId := i, li := Ref.to nodes.size.succ, hi := Ref.to nodes.size.succ})
+              (nodes.modify ix (fun n ↦ {n with li := Ref.to nodes.size}))
+            |> (fun nodes ↦ nodes.modify nodes.size.pred (fun n ↦ {n with li := node.li, hi := node.li}))
+      let seq := List.range' node.varId.succ (if let some next := node.hi.link then nodes[next]!.varId - node.varId.succ else g.numVars - node.varId)
+      let nodes := if seq.isEmpty then
+          nodes
+        else
+          seq.foldl
+              (fun nodes i ↦ nodes.push {varId := i, li := Ref.to nodes.size.succ, hi := Ref.to nodes.size.succ})
+              (nodes.modify ix (fun n ↦ {n with hi := Ref.to nodes.size}))
+            |> (fun nodes ↦ nodes.modify nodes.size.pred (fun n ↦ {n with li := node.hi, hi := node.hi}))
       nodes )
     g.nodes
   dbg? "ZDD.Reduce.insert returns" nodes
