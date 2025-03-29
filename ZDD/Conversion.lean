@@ -18,6 +18,53 @@ def startFromOne (nodes : Array Node) (root : Ref := Ref.last nodes) : Option No
     then none
     else some {varId := 1, li := root, hi := root}
 
+/-- insert intermediate nodes -/
+def insert (g : Graph) : Array Node :=
+  let nodes := (dbg? "ZDD.Reduce.insert src" g.nodes).zipIdx.foldl
+    (fun nodes (node, ix) ↦
+      let nodes := match node.li.link with
+        | none =>
+          let seq := List.range' node.varId.succ (g.numVars - node.varId)
+          if seq.isEmpty
+            then nodes
+            else
+              let nodes := seq.foldl
+                (fun nodes i => nodes.push {varId := i, li := Ref.to nodes.size.succ, hi := Ref.to nodes.size.succ})
+                (nodes.set! ix {node with li := Ref.to nodes.size})
+              nodes.modify nodes.size.pred (fun n ↦ {n with li := node.li, hi := node.li})
+        | some next =>
+          let seq := List.range' node.varId.succ (nodes[next]!.varId - node.varId.succ)
+          if seq.isEmpty
+            then nodes
+            else
+              let nodes := seq.foldl
+                (fun nodes i => nodes.push {varId := i, li := Ref.to nodes.size.succ, hi := Ref.to nodes.size.succ})
+                (nodes.set! ix {node with li := Ref.to nodes.size})
+              nodes.modify nodes.size.pred (fun n ↦ {n with li := Ref.to next, hi := Ref.to next})
+      let nodes := match node.hi.link with
+        | none =>
+          let seq := List.range' node.varId.succ (g.numVars - node.varId)
+          if seq.isEmpty
+            then nodes
+            else
+              let nodes := seq.foldl
+                (fun nodes i => nodes.push {varId := i, li := Ref.to nodes.size.succ, hi := Ref.to nodes.size.succ})
+                (nodes.set! ix {node with li := Ref.to nodes.size})
+              nodes.modify nodes.size.pred (fun n ↦ {n with li := node.hi, hi := node.hi})
+        | some next =>
+          let seq := List.range' node.varId.succ (nodes[next]!.varId - node.varId.succ)
+          if seq.isEmpty
+            then nodes
+            else
+              let node := nodes[ix]!
+              let nodes := seq.foldl
+                (fun nodes i => nodes.push {varId := i, li := Ref.to nodes.size.succ, hi := Ref.to nodes.size.succ})
+                (nodes.set! ix {node with hi := Ref.to nodes.size})
+              nodes.modify nodes.size.pred (fun n ↦ {n with li := Ref.to next, hi := Ref.to next})
+      nodes )
+    g.nodes
+  dbg? "ZDD.Reduce.insert returns" nodes
+
 /-- Rebuild the given bdd-encoded `Graph g` as ZDD. -/
 def convert (bdd : BDD) (var_nodes: HashMap Nat (Array Ref)) : ZDD :=
   var_nodes.toList.mergeSort (fun a b ↦ a.fst > b.fst) -- from bottom var to top var
@@ -41,49 +88,47 @@ def BDD.startFromOne (bdd : BDD) : BDD :=
   if let some n := ZDD_conversion.startFromOne bdd.toGraph.nodes
   then bdd.addNode n |>.fst
   else bdd
---
 
-/- /-- Check the trivial cases. Otherwise pass to `reduce`. -/
-def Graph.toZDD (g : Graph) : Graph :=
-  -- build a mapping from `varId` to `List node`
-  let bdd := ZDD_fromBDD.startFromOne g
-  let (all_false, all_true, var_nodes) := bdd.toGraph.nodes.zipIdx.foldl
-    (fun (falses, trues, mapping) (node, i) =>
-     ( falses && (node.asBool == some false),
-       trues && (node.asBool == some true),
-       mapping.alter
-         node.varId
-         (fun list => match list with
-           | none => some #[Ref.to i]
-           | some l => some (l.push (Ref.to i)) )))
-    (true, true, (HashMap.empty : HashMap Nat (Array Ref)))
-  match all_false, all_true with
-    | true, _    => ↑{(default : Graph) with constant := false}
-    | _   , true => ↑{(default : Graph) with constant := true}
-    | _   , _    => ZDD_fromBDD.convert bdd var_nodes
--/
+-- /-- Check the trivial cases. Otherwise pass to `reduce`. -/
+-- def Graph.toZDD (g : Graph) : Graph :=
+--   -- build a mapping from `varId` to `List node`
+--   let bdd := ZDD_fromBDD.startFromOne g
+--   let (all_false, all_true, var_nodes) := bdd.toGraph.nodes.zipIdx.foldl
+--     (fun (falses, trues, mapping) (node, i) =>
+--      ( falses && (node.asBool == some false),
+--        trues && (node.asBool == some true),
+--        mapping.alter
+--          node.varId
+--          (fun list => match list with
+--            | none => some #[Ref.to i]
+--            | some l => some (l.push (Ref.to i)) )))
+--     (true, true, (HashMap.empty : HashMap Nat (Array Ref)))
+--   match all_false, all_true with
+--     | true, _    => ↑{(default : Graph) with constant := false}
+--     | _   , true => ↑{(default : Graph) with constant := true}
+--     | _   , _    => ZDD_fromBDD.convert bdd var_nodes
 
-/-- Check the trivial cases. Otherwise pass to `reduce`. -/
-def BDD.toZDD' (bdd : BDD) : ZDD :=
-  -- build a mapping from `varId` to `List node`
-  let bdd := bdd.startFromOne
-  let (all_false, all_true, var_nodes) := bdd.toGraph.nodes.zipIdx.foldl
-    (fun (falses, trues, mapping) (node, i) =>
-     ( falses && (node.asBool == some false),
-       trues && (node.asBool == some true),
-       mapping.alter
-         node.varId
-         (fun list => match list with
-           | none => some #[Ref.to i]
-           | some l => some (l.push (Ref.to i)) )))
-    (true, true, (HashMap.empty : HashMap Nat (Array Ref)))
-  match all_false, all_true with
-    | true, _    => ↑{(default : Graph) with constant := false}
-    | _   , true => ↑{(default : Graph) with constant := true}
-    | _   , _    => ZDD_conversion.convert bdd var_nodes
+-- /-- Check the trivial cases. Otherwise pass to `reduce`. -/
+-- def BDD.toZDD' (bdd : BDD) : ZDD :=
+--   -- build a mapping from `varId` to `List node`
+--   let bdd := bdd.startFromOne
+--   let (all_false, all_true, var_nodes) := bdd.toGraph.nodes.zipIdx.foldl
+--     (fun (falses, trues, mapping) (node, i) =>
+--      ( falses && (node.asBool == some false),
+--        trues && (node.asBool == some true),
+--        mapping.alter
+--          node.varId
+--          (fun list => match list with
+--            | none => some #[Ref.to i]
+--            | some l => some (l.push (Ref.to i)) )))
+--     (true, true, (HashMap.empty : HashMap Nat (Array Ref)))
+--   match all_false, all_true with
+--     | true, _    => ↑{(default : Graph) with constant := false}
+--     | _   , true => ↑{(default : Graph) with constant := true}
+--     | _   , _    => ZDD_conversion.convert bdd var_nodes
 
     def BDD.toZDD (bdd : BDD) : ZDD :=
-      let bdd := bdd.startFromOne
-      let nodes := ZDD_reduce.insert bdd.toGraph
+      let bdd := dbg! "start from one" <| bdd.startFromOne
+      let nodes := dbg! "insert intermediate nodes" <| ZDD_conversion.insert bdd.toGraph
       let g := Graph.reorderNodes bdd.numVars nodes (Ref.last bdd.toGraph.nodes)
       g.toZDD₂

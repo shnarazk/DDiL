@@ -56,7 +56,7 @@ def insert : IO Unit := do
     IO.println s!"📈 g25   → {← g25.dumpAsPng "_test_zdd_insert-4.png"}"
   catch e => IO.println s!"Error: {e}"
   -/
-  let ind_inserted : Array Node := ZDD_reduce.insert ind
+  let ind_inserted : Array Node := ZDD_conversion.insert ind
   IO.println s!"ind_inserted: {ind_inserted}"
   let ind_reordered := Graph.reorderNodes 6 ind_inserted (Ref.last ind.nodes)
   IO.println s!"ind_reordered: {ind_reordered}"
@@ -68,16 +68,28 @@ def insert : IO Unit := do
 
 def trim : IO Unit := do
   IO.println s!"{ANSI.bolded "## trim"}"
-  let ind_ins  : Array Node := ZDD_reduce.insert ind
+  let ind_ins  : Array Node := ZDD_conversion.insert ind
   let ind_pp   : Graph      := Graph.reorderNodes 6 ind_ins (Ref.last ind.nodes)
   let ind_trim : Graph      := ZDD_reduce.trim ind_pp.nodes
     |>.fst
     |> Graph_compact.compact
     |> Graph.ofNodes
   IO.println s!"ind_trim: {ind_trim}"
+  let indb      : BDD     := ind.toBDD
+  let indb_ins  : Array Node := ZDD_conversion.insert indb.toGraph
+  let indb_pp   : Graph      := Graph.reorderNodes 6 indb_ins (Ref.last indb.nodes)
+  let indb_trim : Graph      := ZDD_reduce.trim indb_pp.nodes
+    |>.fst
+    |> Graph_compact.compact
+    |> Graph.ofNodes
+  IO.println s!"indb_trim: {indb_trim}"
   try
-    IO.println s!"📈 ind_pp    → {← ind_pp.dumpAsPng "_test_zdd_trim-1.png"}"
-    IO.println s!"📈 ind_trim  → {← ind_trim.dumpAsPng "_test_zdd_trim-2.png"}"
+    IO.println s!"📈 ind       → {← ind.dumpAsPng "_test_zdd_trim-1.png" "ind"}"
+    IO.println s!"📈 ind_pp    → {← ind_pp.dumpAsPng "_test_zdd_trim-2.png" "ind → insert+reorder"}"
+    IO.println s!"📈 ind_trim  → {← ind_trim.dumpAsPng "_test_zdd_trim-3.png" "ind → trim"}"
+    IO.println s!"📈 indb      → {← indb.dumpAsPng "_test_zdd_trim-4.png" "ind → BDD"}"
+    IO.println s!"📈 indb_pp   → {← indb_pp.dumpAsPng "_test_zdd_trim-5.png" "ind → BDD → insert+reorder"}"
+    IO.println s!"📈 indb_trim → {← indb_trim.dumpAsPng "_test_zdd_trim-6.png" "ind → BDD → trim"}"
   catch e => IO.println s!"Error: {e}"
   return ()
 

@@ -12,37 +12,6 @@ abbrev RefMap := HashMap Ref Ref
 
 variable (g : Graph)
 
-/-- insert intermediate nodes -/
-def insert (g : Graph) : Array Node :=
-  let nodes := (dbg? "ZDD.Reduce.insert src" g.nodes).zipIdx.foldl
-    (fun nodes (node, ix) ↦
-      let nodes := match node.li.link with
-        | none => nodes
-        | some next =>
-          let seq := List.range' node.varId.succ (nodes[next]!.varId - node.varId.succ)
-          if seq.isEmpty
-            then nodes
-            else
-              let nodes := seq.foldl
-                (fun nodes i => nodes.push {varId := i, li := Ref.to nodes.size.succ, hi := Ref.to nodes.size.succ})
-                (nodes.set! ix {node with li := Ref.to nodes.size})
-              nodes.modify nodes.size.pred (fun n ↦ {n with li := Ref.to next, hi := Ref.to next})
-      let nodes := match node.hi.link with
-        | none => nodes
-        | some next =>
-          let seq := List.range' node.varId.succ (nodes[next]!.varId - node.varId.succ)
-          if seq.isEmpty
-            then nodes
-            else
-              let node := nodes[ix]!
-              let nodes := seq.foldl
-                (fun nodes i => nodes.push {varId := i, li := Ref.to nodes.size.succ, hi := Ref.to nodes.size.succ})
-                (nodes.set! ix {node with hi := Ref.to nodes.size})
-              nodes.modify nodes.size.pred (fun n ↦ {n with li := Ref.to next, hi := Ref.to next})
-      nodes )
-    g.nodes
-  dbg? "ZDD.Reduce.insert returns" nodes
-
 private partial def goDown (nodes : Array Node) (root : Ref) : Ref := match root with
   | {grounded := _, link := none} => root
   | {grounded := _, link := some i} => match nodes[i]! with

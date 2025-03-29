@@ -23,10 +23,10 @@ def Graph.dumpAsDot (self : Graph) (path : String) (title : String := path) : IO
           | none, true  => 1
           | some i, _   => i + 2
         if li == hi then
-              s!" {i + 2} -> {li} [color=black,penwidth=2];\n"
-            else
-              s!" {i + 2} -> {li} [color=red,style=\"dotted\"];\n" ++
-              s!" {i + 2} -> {hi} [color=blue];\n" )
+            s!" {i + 2} -> {li} [color=black,penwidth=2];\n"
+          else
+            s!" {i + 2} -> {li} [color=red,style=\"dotted\"];\n" ++
+            s!" {i + 2} -> {hi} [color=blue];\n" )
     |> String.join
   IO.FS.writeFile path (buffer ++ "\n" ++ nodes ++ "\n" ++ edges ++ "\n}\n")
   return path
