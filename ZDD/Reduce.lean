@@ -46,7 +46,7 @@ def insert (g : Graph) : Array Node :=
 private partial def goDown (nodes : Array Node) (root : Ref) : Ref := match root with
   | {grounded := _, link := none} => root
   | {grounded := _, link := some i} => match nodes[i]! with
-    | {varId := _, li, hi := {grounded := false, link := none}} => goDown nodes li
+    | {varId, li, hi := {grounded := false, link := none}} => dbg? s!"skip {varId}" <| goDown nodes li
     | _ => root
 
 partial def trim (nodes : Array Node)
@@ -59,10 +59,10 @@ partial def trim (nodes : Array Node)
     | none   => (nodes, checked)
     | some i =>
       let node := nodes[i]!
+      let (nodes, checked) := trim nodes checked node.li
+      let (nodes, checked) := trim nodes checked node.hi
       let li := goDown nodes node.li
       let hi := goDown nodes node.hi
-      let (nodes, checked) := trim nodes checked li
-      let (nodes, checked) := trim nodes checked hi
       (nodes.set! i {node with li, hi}, checked.insert root)
 
 /-- Merage nodes which have the same varId, li, hi -/
@@ -113,19 +113,19 @@ def Graph.toZDD₂ (g : Graph) : ZDD :=
     |> dbg? "trimmed"
     |> Graph_compact.compact
     |> dbg? "compacted"
-  -- let g := nodes.foldl (fun g n ↦ g.addNode n |>.fst) (Graph.forVars g.numVars)
-  -- {toGraph := g}
-  let (all_false, all_true, var_nodes) := nodes.zipIdx.foldl
-    (fun (falses, trues, mapping) (node, i) =>
-     ( falses && (node.asBool == some false),
-       trues && (node.asBool == some true),
-       mapping.alter
-         node.varId
-         (fun list => match list with
-           | none => some #[Ref.to i]
-           | some l => some (l.push (Ref.to i)) )))
-    (true, true, (HashMap.empty : HashMap Nat (Array Ref)))
-  match all_false, all_true with
-    | true, _    => ↑{(default : Graph) with constant := false}
-    | _   , true => ↑{(default : Graph) with constant := true}
-    | _   , _    => ZDD.reduce g.numVars nodes (Ref.last nodes) var_nodes |> dbg? "ZDD.Reduce.Graph.toZDD₂ returns"
+  let g := nodes.foldl (fun g n ↦ g.addNode n |>.fst) (Graph.forVars g.numVars)
+  {toGraph := g}
+  -- let (all_false, all_true, var_nodes) := nodes.zipIdx.foldl
+  --   (fun (falses, trues, mapping) (node, i) =>
+  --    ( falses && (node.asBool == some false),
+  --      trues && (node.asBool == some true),
+  --      mapping.alter
+  --        node.varId
+  --        (fun list => match list with
+  --          | none => some #[Ref.to i]
+  --          | some l => some (l.push (Ref.to i)) )))
+  --   (true, true, (HashMap.empty : HashMap Nat (Array Ref)))
+  -- match all_false, all_true with
+  --   | true, _    => ↑{(default : Graph) with constant := false}
+  --   | _   , true => ↑{(default : Graph) with constant := true}
+  --   | _   , _    => ZDD.reduce g.numVars nodes (Ref.last nodes) var_nodes |> dbg? "ZDD.Reduce.Graph.toZDD₂ returns"
