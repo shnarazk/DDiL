@@ -1,7 +1,8 @@
 import Graph.Basic
 
-def Graph.dumpAsDot (self : Graph) (path : String) : IO String := do
-  let buffer := "digraph regexp {
+def Graph.dumpAsDot (self : Graph) (path : String) (title : String := path) : IO String := do
+  let buffer := s!"digraph regexp \{
+    label=\"{title}\"
     fontname=\"Helvetica,Arial,sans-serif\"
     node [fontname=\"Helvetica,Arial,sans-serif\"]
     edge [fontname=\"Helvetica,Arial,sans-serif\", color=blue]
@@ -30,10 +31,10 @@ def Graph.dumpAsDot (self : Graph) (path : String) : IO String := do
   IO.FS.writeFile path (buffer ++ "\n" ++ nodes ++ "\n" ++ edges ++ "\n}\n")
   return path
 
-def Graph.dumpAsPng (self : Graph) (path : String) : IO String := do
+def Graph.dumpAsPng (self : Graph) (path : String) (title : String := path) : IO String := do
   try
     let gv := s!"{path}.gv"
-    let _ ← self.dumpAsDot gv
+    let _ ← self.dumpAsDot gv title
     let _ ← IO.Process.run { cmd := "dot", args := #["-T", "png", "-o", path, gv]}
     IO.FS.removeFile gv
     return path
