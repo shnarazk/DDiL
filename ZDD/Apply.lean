@@ -49,4 +49,4 @@ def ZDD.apply (operator : LiftedBool.BinaryFunction) (self other : ZDD) : ZDD :=
     |> (fun (_, (nodes : Array Node), _) ↦ if nodes.isEmpty
         then (default : Graph)
         else Graph.fromNodes (Nat.max self.numVars other.numVars) nodes /- (Node.compact nodes)-/ )
-    |>(fun g ↦ g.toZDD₂)
+    |> (fun (g : Graph) ↦ g.toZDD₂)

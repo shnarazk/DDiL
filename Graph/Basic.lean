@@ -138,38 +138,6 @@ def Graph.fromTreeNode (tree : TreeNode) : Graph :=
 def Graph.fromNodes (n : Nat) (nodes : Array Node) : Graph :=
   nodes.foldl (fun g n ↦ g.addNode n |>.fst) (Graph.forVars n)
 
-/-
-namespace Graph_compact
-
-partial
-def usedNodes (nodes : Array Node) (root : Ref) (mapping : HashSet Ref := HashSet.empty) : HashSet Ref :=
-  if let some (i) := root.link then
-    if mapping.contains root then
-      mapping
-    else
-      let node : Node := nodes[i]!
-      usedNodes nodes node.li (mapping.insert root) |> usedNodes nodes node.hi
-  else
-    mapping
-
-def compact (nodes : Array Node) (root : Ref := Ref.last nodes) : Array Node :=
-  let used : Array Ref := usedNodes nodes root
-    |>.toArray
-    |>.insertionSort (fun a b => a < b)
-  let mapping : HashMap Ref Ref := used.zipIdx.map (fun (n, i) ↦ (n, Ref.to i))
-    |>.toList
-    |>HashMap.ofList
-  used.map
-    (fun r ↦
-      if let some i := r.link then
-        let node := nodes[i]!
-        {node with li := mapping.getD node.li node.li, hi := mapping.getD node.hi node.hi}
-      else
-        (default : Node) )
-
-end Graph_compact
--/
-
 /-- make a graph compact, no unused nodes. -/
 def Graph.compact (self : Graph) (root : Option Ref := none) : Graph :=
   match root, self.nodes.isEmpty with
@@ -191,7 +159,7 @@ namespace Graph_count
 /--
 Checks if the TreeNode satisfies all conditions.
 Tree traversing approach isn't efficient because it visits subtrees many times. -/
-partial def linearCount (g : Graph) (counter : Std.HashMap Ref Nat) (r : Ref) : Std.HashMap Ref Nat × Nat :=
+private partial def linearCount (g : Graph) (counter : Std.HashMap Ref Nat) (r : Ref) : Std.HashMap Ref Nat × Nat :=
   match r.link with
   | none => (counter, if r.grounded then 1 else 0)
   | some i =>
