@@ -1,4 +1,5 @@
 import Common.GraphShape
+import Graph.Serialize
 import ZDD.Reduce
 import ZDD.Apply
 
@@ -16,3 +17,7 @@ instance : GraphShape ZDD where
 
 -- instance : Membership (List Int) BDD where
 --   mem b l := (b.contains l : Prop)
+
+instance : GraphSerialize ZDD where
+  dumpAsDot self path desc := GraphSerialize.dumpAsDot (↑self : Graph) path desc
+  dumpAsPng self path desc := GraphSerialize.dumpAsPng (↑self : Graph) path desc

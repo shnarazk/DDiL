@@ -42,5 +42,5 @@ def Graph.dumpAsPng (self : Graph) (path : String) (title : String := path) : IO
     return s!"Error dumping graph to PNG: {e}"
 
 instance : GraphSerialize Graph where
-  dumpAsDot := Graph.dumpAsDot
-  dumpAsPng := Graph.dumpAsPng
+  dumpAsDot g p t := Graph.dumpAsDot g p t
+  dumpAsPng g p t := Graph.dumpAsPng g p t

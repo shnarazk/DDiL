@@ -22,6 +22,15 @@ private def ind : Graph :=
             { {{{F F} {F F}} {{F F} {F F}}}
               {{{F F} {F F}} {{F F} {F F}}} } } }"
     |> Graph.fromTreeNode
+--  IO.println s!"📈 ind       → {← ind.dumpAsPng "_test_zdd_trim-1.png" "ind"}"
+
+def png {α : Type} [GraphSerialize α] (g : α) (label filename : String)
+    (description : String := "")
+    : IO Unit := do
+  let description := if description == "" then label else s!"{label}: {description}"
+  let val ← GraphSerialize.dumpAsPng g filename description
+  IO.println s!"📈 {label} → {val}"
+  return ()
 
 def insert : IO Unit := do
   IO.println s!"{ANSI.bolded "## insert"}"
@@ -61,8 +70,8 @@ def insert : IO Unit := do
   let ind_reordered := Graph.reorderNodes 6 ind_inserted (Ref.last ind.nodes)
   IO.println s!"ind_reordered: {ind_reordered}"
   try
-    IO.println s!"📈 ind_inserted   → {← (Graph.ofNodes ind_inserted).dumpAsPng "_test_zdd_insert-3.png" "ind_inserted: ind → insert"}"
-    IO.println s!"📈 ind_reordered  → {← ind_reordered.dumpAsPng "_test_zdd_insert-4.png" "ind_reodered: ind → insert → reorder"}"
+    png (Graph.ofNodes ind_inserted) "ind_inserted"  "_test_zdd_insert-3.png" "ind→insert"
+    png ind_reordered                "ind_reordered" "_test_zdd_insert-4.png" "ind→insert→reorder"
   catch e => IO.println s!"Error: {e}"
   return ()
 
@@ -84,12 +93,12 @@ def trim : IO Unit := do
     |> Graph.ofNodes
   IO.println s!"indb_trim: {indb_trim}"
   try
-    IO.println s!"📈 ind       → {← ind.dumpAsPng "_test_zdd_trim-1.png" "ind"}"
-    IO.println s!"📈 ind_pp    → {← ind_pp.dumpAsPng "_test_zdd_trim-2.png" "ind_pp: ind → insert+reorder"}"
-    IO.println s!"📈 ind_trim  → {← ind_trim.dumpAsPng "_test_zdd_trim-3.png" "ind_trim: ind → trim"}"
-    IO.println s!"📈 indb      → {← indb.dumpAsPng "_test_zdd_trim-4.png" "indb: ind → BDD"}"
-    IO.println s!"📈 indb_pp   → {← indb_pp.dumpAsPng "_test_zdd_trim-5.png" "indb_pp: ind → BDD → insert+reorder"}"
-    IO.println s!"📈 indb_trim → {← indb_trim.dumpAsPng "_test_zdd_trim-6.png" "indb_trim: ind → BDD → trim"}"
+    png ind      "ind (TreeNode)"   "_test_zdd_trim-1.png" "TreeNode"
+    png ind_pp   "ind_pp (Graph)"   "_test_zdd_trim-2.png" "ind→insert+reorder"
+    png ind_trim "ind_trim (Graph)" "_test_zdd_trim-3.png" "ind→trim"
+    png indb "indb (BDD)" "_test_zdd_trim-4.png" "ind→BDD"
+    png indb_pp "indb_pp (Graph)" "_test_zdd_trim-5.png" "ind→BDD→insert+reorder"
+    png indb_trim "indb_trim (Graph)" "_test_zdd_trim-6.png" "ind→BDD→insert+reorder→trim"
   catch e => IO.println s!"Error: {e}"
   return ()
 
@@ -104,9 +113,9 @@ def reduce : IO Unit := do
     IO.println s!"ind (Graph) → {ind}"
     IO.println s!"ind (BDD)   → {indB}"
     IO.println s!"ind (ZDD)   → {indZ}"
-    IO.println s!"📈 ind (Graph) → {← ind.dumpAsPng "_test_zdd_reduce-1.png" "ind: Tree→Graph ind."}"
-    IO.println s!"📈 ind (BDD)   → {← indB.dumpAsPng "_test_zdd_reduce-2.png" "indB: Tree→BDD ind."}"
-    IO.println s!"📈 ind (ZDD)   → {← indZ.dumpAsPng "_test_zdd_reduce-3.png" "indZ: Tree→BDD→ZDD ind."}"
+    png ind  "ind (Graph)" "_test_zdd_reduce-1.png" "Tree → Graph"
+    png indB "ind (BDD)"   "_test_zdd_reduce-2.png" "Tree → BDD"
+    png indZ "ind (ZDD)"   "_test_zdd_reduce-3.png" "Tree → BDD → ZDD"
   catch e => IO.println s!"Error: {e}"
   return ()
 
@@ -140,11 +149,11 @@ def apply : IO Unit := do
   assert_eq "x1x3.apply or x1x2 |> shape" (GraphShape.shapeOf applied) (3, 3)
   -- assert_eq "congruent (x1x3.apply or x1x2) fig7" (DecisionDiagram.isCongruent applied fig7_zdd) true
   try
-    IO.println s!"📈 x1x3            → {← x1x3.dumpAsPng     "_test_zdd_apply-1.png"}"
-    IO.println s!"📈 x1x2            → {← x1x2.dumpAsPng     "_test_zdd_apply-2.png"}"
-    IO.println s!"📈 x1x3.apply.x1x2 → {← applied.dumpAsPng  "_test_zdd_apply-3.png"}"
-    IO.println s!"📈 fig7_zdd        → {← fig7_zdd.dumpAsPng "_test_zdd_apply-4.png"}"
-    IO.println s!"📈 fig7            → {← fig7.dumpAsPng     "_test_zdd_apply-5.png"}"
+    png x1x3     "x1x3 (ZDD)"     "_test_zdd_apply-1.png"
+    png x1x2     "x1x2 (ZDD)"     "_test_zdd_apply-2.png"
+    png applied  "applied (ZDD)"  "_test_zdd_apply-3.png" "apply x1x3 x1x2"
+    png fig7     "fig7 (Graph)"   "_test_zdd_apply-5.png" "hand crafted version"
+    png fig7_zdd "fig7_zdd (ZDD)" "_test_zdd_apply-4.png" "fig7.toBDD.toZDD"
   catch e => IO.println s!"Error: {e}"
   return ()
 -/

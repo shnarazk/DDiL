@@ -172,8 +172,8 @@ instance : GraphShape TreeNode where
   numberOfNodes := (·.size)
 
 instance : GraphSerialize TreeNode where
-  dumpAsDot _ filename := do return filename
-  dumpAsPng := fun _ filename => do return filename
+  dumpAsDot _ filename _ := do return filename
+  dumpAsPng := fun _ filename (_ : String) => do return filename
 
 instance : DecisionDiagram TreeNode where
   numberOfSatisfyingPaths (t : TreeNode) := t.numSatisfies

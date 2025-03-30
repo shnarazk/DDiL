@@ -1,4 +1,5 @@
 import Common.DecisionDiagram
+import Graph.Serialize
 import BDD.Basic
 import BDD.Reduce
 import BDD.Apply
@@ -17,6 +18,10 @@ instance : DecisionDiagram BDD where
   compose := BDD.compose
   isCongruent := BDD.isCongruent
   contains := BDD.contains
+
+instance : GraphSerialize BDD where
+  dumpAsDot self path desc := GraphSerialize.dumpAsDot (↑self : Graph) path desc
+  dumpAsPng self path desc := GraphSerialize.dumpAsPng (↑self : Graph) path desc
 
 instance : Membership (List Int) BDD where
   mem b l := (b.contains l : Prop)
