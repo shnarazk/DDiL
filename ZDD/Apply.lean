@@ -3,18 +3,19 @@ import Common.GraphShape
 import Common.DecisionDiagram
 import Common.LiftedBool
 import Graph.Basic
+import Graph.Node
 import ZDD.Reduce
 import ZDD.Conversion
 
 open Std
 
-namespace ZDD_apply_private
+namespace ZDD_apply
 
 variable (g : Graph)
 
 abbrev Key := HashMap (Ref × Ref) Ref
 
-partial def apply (f : LiftedBool.BinaryFunction) (r₁ r₂ : Ref) (nodes : Array Node) (merged : Key)
+private partial def apply (f : LiftedBool.BinaryFunction) (r₁ r₂ : Ref) (nodes : Array Node) (merged : Key)
     : (Ref × (Array Node) × Key) :=
   if let some r := merged.get? (r₁, r₂) then
     (r, nodes, merged)
@@ -38,14 +39,14 @@ partial def apply (f : LiftedBool.BinaryFunction) (r₁ r₂ : Ref) (nodes : Arr
       let r := Ref.to nodes.size
       (r, nodes.push {varId := vi, li := l, hi := h}, merged.insert (r₁, r₂) r)
 
-end ZDD_apply_private
+end ZDD_apply
 
--- def ZDD.apply (operator : LiftedBool.BinaryFunction) (self other : ZDD) : ZDD :=
---   let r1 := Ref.to self.toGraph.nodes.size.pred
---   let all_nodes : Array Node := Node.append_nodes ↑self ↑other
---   let r2 := Ref.to all_nodes.size.pred
---   ZDD_apply_private.apply operator r1 r2 all_nodes HashMap.empty
---     |> (fun (_, (nodes : Array Node), _) ↦ if nodes.isEmpty
---         then default
---         else Graph.fromNodes (Nat.max self.numVars other.numVars) nodes )
---     |> (·.compact.toZDD)
+def ZDD.apply (operator : LiftedBool.BinaryFunction) (self other : ZDD) : ZDD :=
+  let r1 := Ref.to self.toGraph.nodes.size.pred
+  let all_nodes : Array Node := Node.append_nodes ↑self ↑other
+  let r2 := Ref.to all_nodes.size.pred
+  ZDD_apply.apply operator r1 r2 all_nodes HashMap.empty
+    |> (fun (_, (nodes : Array Node), _) ↦ if nodes.isEmpty
+        then (default : Graph)
+        else Graph.fromNodes (Nat.max self.numVars other.numVars) nodes /- (Node.compact nodes)-/ )
+    |>(fun g ↦ g.toZDD₂)

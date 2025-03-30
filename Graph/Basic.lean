@@ -138,6 +138,7 @@ def Graph.fromTreeNode (tree : TreeNode) : Graph :=
 def Graph.fromNodes (n : Nat) (nodes : Array Node) : Graph :=
   nodes.foldl (fun g n ↦ g.addNode n |>.fst) (Graph.forVars n)
 
+/-
 namespace Graph_compact
 
 partial
@@ -167,18 +168,19 @@ def compact (nodes : Array Node) (root : Ref := Ref.last nodes) : Array Node :=
         (default : Node) )
 
 end Graph_compact
+-/
 
 /-- make a graph compact, no unused nodes. -/
 def Graph.compact (self : Graph) (root : Option Ref := none) : Graph :=
   match root, self.nodes.isEmpty with
   | none, true => self
   | none, false =>
-    Graph_compact.compact self.nodes
+    Node.compact self.nodes
       |>.foldl (fun g n ↦ g.addNode n |>.fst) (Graph.forVars self.numVars)
   | some _, true => self
   | some r, false => match r.link with
     | none   => {Graph.fromNodes self.numVars #[] with constant := r.grounded}
-    | some _ => Graph.fromNodes self.numVars (Graph_compact.compact self.nodes r)
+    | some _ => Graph.fromNodes self.numVars (Node.compact self.nodes r)
 
 instance : GraphShape Graph where
   numberOfVars := (·.numVars)

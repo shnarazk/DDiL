@@ -81,7 +81,7 @@ def trim : IO Unit := do
   let ind_pp   : Graph      := Graph.reorderNodes 6 ind_ins (Ref.last ind.nodes)
   let ind_trim : Graph      := ZDD_reduce.trim ind_pp.nodes
     |>.fst
-    |> Graph_compact.compact
+    |> Node.compact
     |> Graph.ofNodes
   -- IO.println s!"ind_trim: {ind_trim}"
   let indb      : BDD        := ind.toBDD
@@ -89,7 +89,7 @@ def trim : IO Unit := do
   let indb_pp   : Graph      := Graph.reorderNodes 6 indb_ins (Ref.last indb.nodes)
   let indb_trim : Graph      := ZDD_reduce.trim indb_pp.nodes
     |>.fst
-    |> Graph_compact.compact
+    |> Node.compact
     |> Graph.ofNodes
   -- IO.println s!"indb_trim: {indb_trim}"
   try

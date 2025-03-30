@@ -8,12 +8,12 @@ instance : GraphShape ZDD where
   numberOfNodes self := GraphShape.numberOfNodes (↑self : Graph)
   shapeOf self := GraphShape.shapeOf (↑self : Graph)
 
--- instance : DecisionDiagram ZDD where
---   numberOfSatisfyingPaths := ZDD.numSatisfies
---   apply := ZDD.apply
---   compose := ZDD.compose
---   isCongruent := ZDD.isCongruent
---   contains := ZDD.contains
+instance : DecisionDiagram ZDD where
+  numberOfSatisfyingPaths := ZDD.numSatisfies
+  apply := ZDD.apply
+  compose a _ _ := a -- ZDD.compose
+  isCongruent _ _ := false -- ZDD.isCongruent
+  contains _ _ := false -- -ZDD.contains
 
 -- instance : Membership (List Int) BDD where
 --   mem b l := (b.contains l : Prop)

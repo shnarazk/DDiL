@@ -1,5 +1,6 @@
 import Std.Data.HashMap
 import Graph.Basic
+import Graph.Node
 import Graph.Ref
 import BDD.Basic
 import ZDD.Basic
@@ -77,7 +78,7 @@ Convert a Graph to ZDD.
 Presume: no holes between lined var pairs. This condition holds by invoking `toBDD`. -/
 def Graph.toZDD₂ (g : Graph) : ZDD :=
   -- build a mapping from `varId` to `List node`
-  let nodes := ZDD_reduce.trim g.nodes |>.fst |> Graph_compact.compact
+  let nodes := ZDD_reduce.trim g.nodes |>.fst |> Node.compact
   let (all_false, all_true, var_nodes) := nodes.zipIdx.foldl
     (fun (falses, trues, mapping) (node, i) =>
      ( falses && (node.asBool == some false),
