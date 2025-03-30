@@ -154,35 +154,9 @@ instance : GraphShape Graph where
   numberOfVars := (·.numVars)
   numberOfNodes := (·.nodes.size)
 
-namespace Graph_count
-
-/--
-Checks if the TreeNode satisfies all conditions.
-Tree traversing approach isn't efficient because it visits subtrees many times. -/
-private partial def linearCount (g : Graph) (counter : Std.HashMap Ref Nat) (r : Ref) : Std.HashMap Ref Nat × Nat :=
-  match r.link with
-  | none => (counter, if r.grounded then 1 else 0)
-  | some i =>
-    if let some count := counter[r]? then
-     (counter, count)
-    else
-      let node := g.nodes[i]!
-      let (counter, a) := linearCount g counter node.li
-      let (counter, b) := linearCount g counter node.hi
-      (counter.insert r (a + b), (a + b))
-
-end Graph_count
-
-/--
-Returns the number of satisfying assignments for the given TreeNode.
-This is the number of paths. -/
-def Graph.numSatisfies (self : Graph) : Nat :=
-    Graph_count.linearCount self Std.HashMap.empty (Ref.to (self.nodes.size - 1)) |>.snd
-
 def Ref.for (g : Graph) : Ref :=
-  if g.nodes.isEmpty then
-    Ref.bool (g.constant.getD false)
-  else
-    Ref.to g.nodes.size.pred
+  if g.nodes.isEmpty
+  then Ref.bool g.constant.get!
+  else Ref.to g.nodes.size.pred
 
 end defs
