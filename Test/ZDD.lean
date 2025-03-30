@@ -83,7 +83,7 @@ def trim : IO Unit := do
     |>.fst
     |> Graph_compact.compact
     |> Graph.ofNodes
-  IO.println s!"ind_trim: {ind_trim}"
+  -- IO.println s!"ind_trim: {ind_trim}"
   let indb      : BDD        := ind.toBDD
   let indb_ins  : Array Node := ZDD_conversion.insert indb.toGraph
   let indb_pp   : Graph      := Graph.reorderNodes 6 indb_ins (Ref.last indb.nodes)
@@ -91,7 +91,7 @@ def trim : IO Unit := do
     |>.fst
     |> Graph_compact.compact
     |> Graph.ofNodes
-  IO.println s!"indb_trim: {indb_trim}"
+  -- IO.println s!"indb_trim: {indb_trim}"
   try
     png ind      "ind (TreeNode)"   "_test_zdd_trim-1.png" "TreeNode"
     png ind_pp   "ind_pp (Graph)"   "_test_zdd_trim-2.png" "ind→insert+reorder"
@@ -104,15 +104,16 @@ def trim : IO Unit := do
 
 def reduce : IO Unit := do
   IO.println s!"{ANSI.bolded "## reduce independent toBDD toZDD"}"
-  let indB := ind.toBDD
-  let indZ := indB.toZDD
-  -- assert_eq "ZDD.independent.shape" (GraphShape.shapeOf independent) (6, 17)
-  -- assert_eq "ZDD.independent.paths" (DecisionDiagram.numberOfSatisfyingPaths independent) 18
+  let indB : BDD := ind.toBDD
+  let indZ : ZDD := indB.toZDD
+  assert_eq "ZDD.independent.shape" (GraphShape.shapeOf indZ) (6, 9)
+  assert_eq "ZDD.independent.paths" indZ.numSatisfies 18
+  -- assert_eq "ZDD.independent.paths" (DecisionDiagram.numberOfSatisfyingPaths indZ) 18
   -- assert_eq "congruence" (independent_bdd.isCongruent independent) true
   try
-    IO.println s!"ind (Graph) → {ind}"
-    IO.println s!"ind (BDD)   → {indB}"
-    IO.println s!"ind (ZDD)   → {indZ}"
+    -- IO.println s!"ind (Graph) → {ind}"
+    -- IO.println s!"ind (BDD)   → {indB}"
+    -- IO.println s!"ind (ZDD)   → {indZ}"
     png ind  "ind (Graph)" "_test_zdd_reduce-1.png" "Tree → Graph"
     png indB "ind (BDD)"   "_test_zdd_reduce-2.png" "Tree → BDD"
     png indZ "ind (ZDD)"   "_test_zdd_reduce-3.png" "Tree → BDD → ZDD"

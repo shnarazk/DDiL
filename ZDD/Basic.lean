@@ -44,11 +44,9 @@ partial def countPaths (g : Graph) (counter : Counter) (r : Ref) : Counter × Na
       let (counter, b) := countPaths g counter node.hi
       (counter.insert r (a + b), (a + b))
 
--- private def order_to_scan (ia ib : Nat) : Bool := g.nodes[ia]! < g.nodes[ib]!
-
 end ZDD
 
 def ZDD.numSatisfies (self : ZDD) : Nat :=
   if self.nodes.isEmpty
-    then 1
-    else ZDD.countPaths self.toGraph Std.HashMap.empty (Ref.last self.toGraph.nodes) |>.snd
+  then 1
+  else ZDD.countPaths self.toGraph Std.HashMap.empty (Ref.last self.toGraph.nodes) |>.snd

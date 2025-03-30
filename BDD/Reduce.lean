@@ -48,7 +48,7 @@ def BDD.reduce (nv : Nat) (nodes : Array Node) (root : Ref) (var_nodes : HashMap
           nodes
         let refs := refs.map (fun r ↦ updatedRef.getD r r)
           |>.insertionSort (fun r₁ r₂ ↦ if (nodes, r₁) < (nodes, r₂) then true else false)
-        (dbg? s!"sorted refs: {refs.map (nodes[·.link.get!]!)}" refs).foldl
+        refs.foldl
           (fun (updatedRef, nodes, prev) next ↦ BDD_reduce.merge updatedRef nodes prev next)
           (updatedRef, nodes, Ref.to nodes.size) )
       (HashMap.empty, nodes, Ref.bool false)
