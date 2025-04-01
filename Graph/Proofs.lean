@@ -92,5 +92,4 @@ instance : DecidableLT (Option Nat) :=
       }
     }
 
-
 end proofs

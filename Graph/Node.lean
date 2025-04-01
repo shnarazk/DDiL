@@ -10,8 +10,8 @@ Node representation for graph, having `varId`, `li`, and `hi`.
 This has an order that matches the occurence order of the nodes in the `Graph.nodes`. -/
 structure Node where
   varId : Nat
-  li : Ref
-  hi : Ref
+  li    : Ref
+  hi    : Ref
 deriving BEq, Hashable
 
 instance : Inhabited Node where
@@ -81,19 +81,21 @@ instance : DecidableLT ((Array Node) × Ref) :=
     induction' l₁ with m
     {
       induction' l₂ with n
-      { simp [LT.lt] at * ; exact instDecidableAnd }
-      { simp [LT.lt] at * ; exact instDecidableTrue }
+      {simp [LT.lt] at * ; exact instDecidableAnd}
+      {simp [LT.lt] at * ; exact instDecidableTrue}
     }
     {
       induction' l₂ with n
-      { simp [LT.lt] at * ; exact instDecidableFalse }
-      { simp [arrayRefOrder] at * ; exact decidableLTNode a₁[m]! a₂[n]! }
+      {simp [LT.lt] at * ; exact instDecidableFalse}
+      {simp [arrayRefOrder] at * ; exact decidableLTNode a₁[m]! a₂[n]!}
     }
 
 namespace Node_compact
 
 private partial
-def usedNodes (nodes : Array Node) (root : Ref) (mapping : HashSet Ref := HashSet.empty) : HashSet Ref :=
+def usedNodes (nodes : Array Node) (root : Ref)
+    (mapping : HashSet Ref := HashSet.empty)
+    : HashSet Ref :=
   if let some (i) := root.link then
     if mapping.contains root then
       mapping

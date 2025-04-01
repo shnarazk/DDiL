@@ -15,12 +15,12 @@ section defs
 variable {γ : Type} [GraphShape γ] (g : γ)
 
 structure Graph where
-  nodes : Array Node
-  constant : Option Bool
-  validSize : Nat := nodes.size
-  numVars : Nat := 0
+  nodes       : Array Node
+  constant    : Option Bool
+  validSize   : Nat := nodes.size
+  numVars     : Nat := 0
   validVarIds : ∀ node ∈ nodes, (fun s n ↦ n.varId ≤ s) numVars node
-  validRefs : ∀ node_index ∈ nodes.zipIdx, (fun (n, i) ↦ n.validRef i) node_index
+  validRefs   : ∀ node_index ∈ nodes.zipIdx, (fun (n, i) ↦ n.validRef i) node_index
 
 instance : BEq Graph where
   beq g₁ g₂ := g₁.nodes == g₂.nodes && g₁.numVars == g₂.numVars && g₁.constant == g₂.constant
@@ -141,17 +141,17 @@ def Graph.fromNodes (n : Nat) (nodes : Array Node) : Graph :=
 /-- make a graph compact, no unused nodes. -/
 def Graph.compact (self : Graph) (root : Option Ref := none) : Graph :=
   match root, self.nodes.isEmpty with
-  | none, true => self
+  | none, true  => self
   | none, false =>
     Node.compact self.nodes
       |>.foldl (fun g n ↦ g.addNode n |>.fst) (Graph.forVars self.numVars)
-  | some _, true => self
+  | some _, true  => self
   | some r, false => match r.link with
     | none   => {Graph.fromNodes self.numVars #[] with constant := r.grounded}
     | some _ => Graph.fromNodes self.numVars (Node.compact self.nodes r)
 
 instance : GraphShape Graph where
-  numberOfVars := (·.numVars)
+  numberOfVars  := (·.numVars)
   numberOfNodes := (·.nodes.size)
 
 def Ref.for (g : Graph) : Ref :=
