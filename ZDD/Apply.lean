@@ -50,3 +50,33 @@ def ZDD.apply (operator : LiftedBool.BinaryFunction) (self other : ZDD) : ZDD :=
         then (default : Graph)
         else Graph.fromNodes (Nat.max self.numVars other.numVars) nodes /- (Node.compact nodes)-/ )
     |> (fun (g : Graph) ↦ g.toZDD₂)
+
+/-
+-- ZDDと列挙問題 -- 最新の技法とプログラミングツール
+Algorithm 1: Getnode(x, F₀, F₁)
+  if F₁ is true then
+    (F₀, table)
+  else if let some F := table.get {varId := x, li := F₀, hi := F₁} then
+    (F, table)
+  else
+    let F := [varId := x, li := F₀, hi := F₁}
+    (F, table.insert F)
+
+Algorithm 5: Apply(⋄, F, G)
+  if F or G is terminal then
+    return (F ⋄ G) as ZDD
+  if F.index == G.index then
+    let x  := F.index -- varId
+    let H₀ := Apply(⋄, F.child[0], G.child[0])
+    let H₁ := Apply(⋄, F.child[1], G.child[1])
+  else if F.index < G.index then
+    let x  := F.index
+    let H₀ := Apply(⋄, F.child[0], G)
+    let H₁ := Apply(⋄, F.child[1], G)
+  else
+    let x  := G.index
+    let H₀ := Apply(⋄, F, G.child[0])
+    let H₁ := Apply(⋄, F, G.child[1])
+  Getnode(x, H₀, H₁)
+
+-/
