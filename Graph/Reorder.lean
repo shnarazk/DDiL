@@ -11,23 +11,22 @@ abbrev HashMap := Std.HashMap
 def includes (a b : Array Ref) : Bool :=
   b.all (a.contains ·)
 
-partial def topologicalSort (nodes : Array Node) (root : Ref) : HashMap Ref (Array Ref) :=
+partial
+def topologicalSort (nodes : Array Node) (root : Ref) : HashMap Ref (Array Ref) :=
   nodes.zipIdx.foldl
     (fun m (node, i) ↦
+      let r := Ref.to i
       let m := match node.li.link with
-        | none => m
-        | some _ => m.alter
-          node.li
-          (fun l ↦ if let some l := l then l.push (Ref.to i) else #[Ref.to i] |> some)
+        | none   => m
+        | some _ => m.alter node.li (if let some l := · then l.push r else #[r] |> some)
       let m := match node.hi.link with
-        | none => m
-        | some _ => m.alter
-          node.hi
-          (fun l ↦ if let some l := l then l.push (Ref.to i) else #[Ref.to i] |> some)
+        | none   => m
+        | some _ => m.alter node.hi (if let some l := · then l.push r else #[r] |> some)
       m )
     (HashMap.empty.insert root #[] : HashMap Ref (Array Ref))
 
-partial def sweep (mapping : HashMap Ref (Array Ref)) (order : Array Ref) : Array Ref :=
+partial
+def sweep (mapping : HashMap Ref (Array Ref)) (order : Array Ref) : Array Ref :=
   if mapping.isEmpty then
     order.reverse
   else

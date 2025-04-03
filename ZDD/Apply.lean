@@ -24,8 +24,8 @@ private partial def apply (f : LiftedBool.BinaryFunction) (r₁ r₂ : Ref) (nod
     (r, nodes, merged.insert (r₁, r₂) r)
   else match r₁.link, r₂.link with
     | none,   none   =>
-        let r := Ref.bool <| (↑f : Bool → Bool → Bool) r₁.grounded r₂.grounded
-        (r, nodes, merged.insert (r₁, r₂) r)
+      let r := Ref.bool <| (↑f : Bool → Bool → Bool) r₁.grounded r₂.grounded
+      (r, nodes, merged.insert (r₁, r₂) r)
     | none,   some _ => (r₂, nodes, merged.insert (r₁, r₂) r₂)
     | some _, none   => (r₁, nodes, merged.insert (r₁, r₂) r₁)
     | some a, some b =>

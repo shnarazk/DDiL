@@ -4,7 +4,6 @@ import Common.DecisionDiagram
 import Common.TreeNode
 import Common.GraphSerialize
 import Common.GraphShape
--- import Common.Basic
 import Graph.Ref
 import Graph.Node
 
@@ -132,19 +131,18 @@ def Graph.fromTreeNode (tree : TreeNode) : Graph :=
   match collectFromTreeNode tree with
     | Collector.bool b => {(default : Graph) with constant := b}
     | Collector.link m => m.foldl
-      (fun g node => g.addNode node |>.fst)
-      (Graph.forVars (GraphShape.numberOfVars tree))
+        (·.addNode · |>.fst)
+        (Graph.forVars (GraphShape.numberOfVars tree))
 
 def Graph.fromNodes (n : Nat) (nodes : Array Node) : Graph :=
-  nodes.foldl (fun g n ↦ g.addNode n |>.fst) (Graph.forVars n)
+  nodes.foldl (·.addNode · |>.fst) (Graph.forVars n)
 
 /-- make a graph compact, no unused nodes. -/
 def Graph.compact (self : Graph) (root : Option Ref := none) : Graph :=
   match root, self.nodes.isEmpty with
   | none, true  => self
   | none, false =>
-    Node.compact self.nodes
-      |>.foldl (fun g n ↦ g.addNode n |>.fst) (Graph.forVars self.numVars)
+    Node.compact self.nodes |>.foldl (·.addNode · |>.fst) (Graph.forVars self.numVars)
   | some _, true  => self
   | some r, false => match r.link with
     | none   => {Graph.fromNodes self.numVars #[] with constant := r.grounded}
