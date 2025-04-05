@@ -98,7 +98,7 @@ def Graph.addNode' (g : Graph) (vi : Nat) (li hi : Ref) : Graph × Nat :=
 
 def Graph.ofNodes (nodes : Array Node) : Graph :=
   let numVars := nodes.map (·.varId) |>.maxD 0
-  nodes.foldl (fun g n ↦ g.addNode n |>.fst) (Graph.forVars numVars)
+  nodes.foldl (·.addNode · |>.fst) (Graph.forVars numVars)
 
 namespace Graph_convert
 

@@ -15,7 +15,8 @@ variable (g : Graph)
 
 abbrev Key := HashMap (Ref × Ref) Ref
 
-private partial def apply (f : LiftedBool.BinaryFunction) (r₁ r₂ : Ref) (nodes : Array Node) (merged : Key)
+private partial
+def apply (f : LiftedBool.BinaryFunction) (r₁ r₂ : Ref) (nodes : Array Node) (merged : Key)
     : (Ref × (Array Node) × Key) :=
   if let some r := merged.get? (r₁, r₂) then
     (r, nodes, merged)

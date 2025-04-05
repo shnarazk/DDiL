@@ -11,15 +11,17 @@ namespace ZDD_reduce
 
 abbrev RefMap := HashMap Ref Ref
 
-variable (g : Graph)
+-- variable (g : Graph)
 
-private partial def goDown (nodes : Array Node) (root : Ref) : Ref := match root with
+private partial
+def goDown (nodes : Array Node) (root : Ref) : Ref := match root with
   | {grounded := _, link := none} => root
   | {grounded := _, link := some i} => match nodes[i]! with
     | {varId := _, li, hi := {grounded := false, link := none}} => goDown nodes li
     | _ => root
 
-partial def trim (nodes : Array Node)
+partial
+def trim (nodes : Array Node)
     (checked : HashSet Ref := HashSet.empty) (root : Ref := Ref.last nodes)
     : Array Node × HashSet Ref :=
   if checked.contains root then
@@ -68,8 +70,7 @@ def ZDD.reduce (nv : Nat) (nodes : Array Node) (root : Ref) (var_nodes : HashMap
           (updatedRef, nodes, Ref.to nodes.size) )
       (HashMap.empty, nodes, Ref.bool false)
     |> (fun (updatedRef, nodes, _) ↦ if 0 < nodes.size then
-          let g := Graph.fromNodes nv nodes
-          {toGraph := g.compact (updatedRef.getD root root)}
+          {toGraph := Graph.fromNodes nv nodes |>.compact (updatedRef.getD root root)}
         else
           default )
 

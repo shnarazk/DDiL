@@ -105,16 +105,14 @@ def usedNodes (nodes : Array Node) (root : Ref)
   else
     mapping
 
-private def compact (nodes : Array Node) (root : Ref := Ref.last nodes) : Array Node :=
-  let used : Array Ref := usedNodes nodes root
-    |>.toArray
-    |>.insertionSort (fun a b => a < b)
+private
+def compact (nodes : Array Node) (root : Ref := Ref.last nodes) : Array Node :=
+  let used : Array Ref := usedNodes nodes root |>.toArray |>.insertionSort (· < ·)
   let mapping : HashMap Ref Ref := used.zipIdx.map (fun (n, i) ↦ (n, Ref.to i))
     |>.toList
     |>HashMap.ofList
   used.map
-    (fun r ↦
-      if let some i := r.link then
+    (if let some i := ·.link then
         let node := nodes[i]!
         {node with li := mapping.getD node.li node.li, hi := mapping.getD node.hi node.hi}
       else

@@ -61,6 +61,7 @@ instance : LT (Option Nat) where
       | some j => i < j
 
 open Option
+
 instance : DecidableLT (Option Nat) :=
   fun o₁ o₂ => by
     induction' o₁ with i
