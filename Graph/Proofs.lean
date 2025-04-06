@@ -39,13 +39,13 @@ theorem array_index_induction {α : Type} (a : Array α) (p : α → Prop) (b : 
     rcases get₀ h₀ with get₀
     have get₁ : i < a.size → (a.push b)[i]? = some a[i] := by
       intro h
-      exact Array.getElem?_push_lt a b i h
+      exact Array.getElem?_push_lt h₀
     rcases get₁ h₀ with get₁
     simp [get₀, get₁]
     simp [get₀, get₁] at h₁
     exact h₁ }
   { simp [h'] ; exact pb }
-  { have : (a.push b).size = a.size + 1 := by exact Array.size_push a b
+  { have : (a.push b).size = a.size + 1 := by exact Array.size_push b
     simp [this] at h'
     have : i ≤ a.size := by exact Nat.le_of_lt_succ h'
     have : ¬a.size < i := by exact Nat.not_lt.mpr this
