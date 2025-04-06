@@ -22,7 +22,7 @@ def goDown (nodes : Array Node) (root : Ref) : Ref := match root with
 
 partial
 def trim (nodes : Array Node)
-    (checked : HashSet Ref := HashSet.empty) (root : Ref := Ref.last nodes)
+    (checked : HashSet Ref := HashSet.emptyWithCapacity) (root : Ref := Ref.last nodes)
     : Array Node × HashSet Ref :=
   if checked.contains root then
     (nodes, checked)
@@ -68,7 +68,7 @@ def ZDD.reduce (nv : Nat) (nodes : Array Node) (root : Ref) (var_nodes : HashMap
         (/- dbg? s!"refs: {refs.map (nodes[·.link.get!]!)}" -/ refs).foldl
           (fun (updatedRef, nodes, prev) next ↦ ZDD_reduce.merge updatedRef nodes prev next)
           (updatedRef, nodes, Ref.to nodes.size) )
-      (HashMap.empty, nodes, Ref.bool false)
+      (HashMap.emptyWithCapacity, nodes, Ref.bool false)
     |> (fun (updatedRef, nodes, _) ↦ if 0 < nodes.size then
           {toGraph := Graph.fromNodes nv nodes |>.compact (updatedRef.getD root root)}
         else
@@ -89,7 +89,7 @@ def Graph.toZDD₂ (g : Graph) : ZDD :=
          (fun list => match list with
            | none => some #[Ref.to i]
            | some l => some (l.push (Ref.to i)) )))
-    (true, true, (HashMap.empty : HashMap Nat (Array Ref)))
+    (true, true, (HashMap.emptyWithCapacity : HashMap Nat (Array Ref)))
   match all_false, all_true with
     | true, _    => ↑{(default : Graph) with constant := false}
     | _   , true => ↑{(default : Graph) with constant := true}

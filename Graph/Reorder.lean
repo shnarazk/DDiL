@@ -23,7 +23,7 @@ def topologicalSort (nodes : Array Node) (root : Ref) : HashMap Ref (Array Ref) 
         | none   => m
         | some _ => m.alter node.hi (if let some l := · then l.push r else #[r] |> some)
       m )
-    (HashMap.empty.insert root #[] : HashMap Ref (Array Ref))
+    (HashMap.emptyWithCapacity.insert root #[] : HashMap Ref (Array Ref))
 
 partial
 def sweep (mapping : HashMap Ref (Array Ref)) (order : Array Ref) : Array Ref :=

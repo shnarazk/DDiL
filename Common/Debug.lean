@@ -67,4 +67,4 @@ instance {α : Type} [ToString α] : ToString (Std.HashMap Nat α) where
     |>.map (fun (k, v) ↦ s!"\n{paddingLeft k 4}: {paddingLeft v 8}")
     |> String.join
 
--- #eval s!"{(Std.HashMap.empty : Std.HashMap Nat String) |>.insert 2 "two" |>.insert 5 "five"}"
+-- #eval s!"{(Std.HashMap.emptyWithCapacity : Std.HashMap Nat String) |>.insert 2 "two" |>.insert 5 "five"}"

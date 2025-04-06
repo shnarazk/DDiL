@@ -50,7 +50,7 @@ def convert (bdd : BDD) (var_nodes: HashMap Nat (Array Ref)) : ZDD :=
         refs.foldl
           (fun (updatedRef, nodes, prev) next ↦ ZDD_reduce.merge updatedRef nodes prev next)
           (updatedRef, nodes, Ref.to nodes.size) )
-      (HashMap.empty, bdd.nodes, Ref.bool false)
+      (HashMap.emptyWithCapacity, bdd.nodes, Ref.bool false)
     |> (fun (updatedRef, nodes, _) ↦ if 0 < nodes.size then
           let g := Graph.fromNodes bdd.numVars nodes
           let root := Ref.last g.nodes

@@ -66,7 +66,7 @@ def BDD.compose (self other : BDD) (varIndex : Nat) : BDD :=
   let r1 := Ref.to self.toGraph.nodes.size.pred
   let all_nodes : Array Node := Node.append_nodes ↑self ↑other
   let r2 := Ref.to all_nodes.size.pred
-  BDD_compose.step r1 r1 r2 varIndex all_nodes HashMap.empty HashMap.empty
+  BDD_compose.step r1 r1 r2 varIndex all_nodes HashMap.emptyWithCapacity HashMap.emptyWithCapacity
     |> (fun (_root, (nodes : Array Node), _, _) ↦ if nodes.isEmpty
         then default
         else Graph.fromNodes (Nat.max self.numVars other.numVars) nodes )

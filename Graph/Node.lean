@@ -94,7 +94,7 @@ namespace Node_compact
 
 private partial
 def usedNodes (nodes : Array Node) (root : Ref)
-    (mapping : HashSet Ref := HashSet.empty)
+    (mapping : HashSet Ref := HashSet.emptyWithCapacity)
     : HashSet Ref :=
   if let some (i) := root.link then
     if mapping.contains root then

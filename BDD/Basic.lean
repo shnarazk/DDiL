@@ -64,4 +64,4 @@ def BDD.numSatisfies (self : BDD) : Nat :=
   if self.nodes.isEmpty then
     2 ^ self.numVars
   else
-    BDD.countPaths ↑self Std.HashMap.empty (Ref.to self.toGraph.nodes.size.pred) |>.snd
+    BDD.countPaths ↑self Std.HashMap.emptyWithCapacity (Ref.to self.toGraph.nodes.size.pred) |>.snd

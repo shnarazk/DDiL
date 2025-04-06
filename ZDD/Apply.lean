@@ -46,7 +46,7 @@ def ZDD.apply (operator : LiftedBool.BinaryFunction) (self other : ZDD) : ZDD :=
   let r1 := Ref.to self.toGraph.nodes.size.pred
   let all_nodes : Array Node := Node.append_nodes ↑self ↑other
   let r2 := Ref.to all_nodes.size.pred
-  ZDD_apply.apply operator r1 r2 all_nodes HashMap.empty
+  ZDD_apply.apply operator r1 r2 all_nodes HashMap.emptyWithCapacity
     |> (fun (_, (nodes : Array Node), _) ↦ if nodes.isEmpty
         then (default : Graph)
         else Graph.fromNodes (Nat.max self.numVars other.numVars) nodes /- (Node.compact nodes)-/ )

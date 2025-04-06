@@ -51,7 +51,7 @@ def BDD.reduce (nv : Nat) (nodes : Array Node) (root : Ref) (var_nodes : HashMap
         refs.foldl
           (fun (updatedRef, nodes, prev) next ↦ BDD_reduce.merge updatedRef nodes prev next)
           (updatedRef, nodes, Ref.to nodes.size) )
-      (HashMap.empty, nodes, Ref.bool false)
+      (HashMap.emptyWithCapacity, nodes, Ref.bool false)
     |> (fun (updatedRef, nodes, _) ↦ if 0 < nodes.size then
           let g := Graph.fromNodes nv nodes
           -- let root := Ref.to g.nodes.size.pred
@@ -72,7 +72,7 @@ def Graph.toBDD (g : Graph) : BDD :=
          (fun list => match list with
            | none => some #[Ref.to i]
            | some l => some (l.push (Ref.to i)) )))
-    (true, true, (HashMap.empty : HashMap Nat (Array Ref)))
+    (true, true, (HashMap.emptyWithCapacity : HashMap Nat (Array Ref)))
   match all_false, all_true with
     | true, _    => ↑{(default : Graph) with constant := false}
     | _   , true => ↑{(default : Graph) with constant := true}

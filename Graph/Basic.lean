@@ -27,7 +27,7 @@ instance : BEq Graph where
 /-- This default value is invalid, becaues it has no constant value and no node. -/
 instance : Inhabited Graph where
   default :=
-    let nodes : Array Node := Array.empty
+    let nodes : Array Node := #[]
     have nodes₀ : nodes.size = 0 := rfl
     have nodes_def : nodes = #[] := by exact rfl
     have vi : ∀ node ∈ nodes, node.varId ≤ 0 := by

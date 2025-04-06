@@ -70,13 +70,13 @@ def TreeNode.isConstant (self : TreeNode) : Option Bool := match self with
   | .isTrue     => some true
   | .node _ _ _ => none
 
-def TreeNode.toHashMap (self : TreeNode) (set : Std.HashMap Nat TreeNode := Std.HashMap.empty)
+def TreeNode.toHashMap (self : TreeNode) (set : Std.HashMap Nat TreeNode := Std.HashMap.emptyWithCapacity)
     : Std.HashMap Nat TreeNode := match self with
   | .isFalse    => set.insert 0 self
   | .isTrue     => set.insert 1 self
   | .node l h _ => set.insert (self.index) self |> l.toHashMap |> h.toHashMap
 
-def TreeNode.toHashSet (self : TreeNode) (set : Std.HashSet TreeNode := Std.HashSet.empty): Std.HashSet TreeNode := match self with
+def TreeNode.toHashSet (self : TreeNode) (set : Std.HashSet TreeNode := Std.HashSet.emptyWithCapacity): Std.HashSet TreeNode := match self with
   | .isFalse | .isTrue => set.insert self
   | .node low high _   => set.insert self |> low.toHashSet |> high.toHashSet
 
@@ -117,7 +117,7 @@ end TreeNode_private
 Returns the number of satisfying assignments for the given TreeNode.
 This is the number of paths. -/
 def TreeNode.numSatisfies (self : TreeNode) : Nat :=
-  TreeNode_private.count Std.HashMap.empty self |>.snd
+  TreeNode_private.count Std.HashMap.emptyWithCapacity self |>.snd
 
 namespace TreeNode_parser
 

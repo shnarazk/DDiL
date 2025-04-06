@@ -49,4 +49,4 @@ end ZDD
 def ZDD.numSatisfies (self : ZDD) : Nat :=
   if self.nodes.isEmpty
   then 1
-  else ZDD.countPaths self.toGraph Std.HashMap.empty (Ref.last self.toGraph.nodes) |>.snd
+  else ZDD.countPaths self.toGraph Std.HashMap.emptyWithCapacity (Ref.last self.toGraph.nodes) |>.snd
