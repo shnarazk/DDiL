@@ -11,8 +11,6 @@ open Std
 
 namespace ZDD_apply
 
-variable (g : Graph)
-
 abbrev Key := HashMap (Ref × Ref) Ref
 
 private partial
@@ -29,14 +27,14 @@ def apply (f : LiftedBool.BinaryFunction) (r₁ r₂ : Ref) (nodes : Array Node)
       (r, nodes, merged.insert (r₁, r₂) r)
     | none,   some _ => (r₂, nodes, merged.insert (r₁, r₂) r₂)
     | some _, none   => (r₁, nodes, merged.insert (r₁, r₂) r₁)
-    | some a, some b =>
-      let node1 : Node := nodes[a]!
-      let node2 : Node := nodes[b]!
-      let vi : Nat := Nat.min node1.varId node2.varId
-      let (l1, h1) := if vi == node1.varId then (node1.li, node1.hi) else (r₁, r₁)
-      let (l2, h2) := if vi == node2.varId then (node2.li, node2.hi) else (r₂, r₂)
-      let (l, nodes, merged) := apply f l1 l2 nodes merged
-      let (h, nodes, merged) := apply f h1 h2 nodes merged
+    | some l, some h =>
+      let nodeₗ : Node := nodes[l]!
+      let nodeₕ : Node := nodes[h]!
+      let vi : Nat := Nat.min nodeₗ.varId nodeₕ.varId
+      let (l₁, h₁) := if vi == nodeₗ.varId then (nodeₗ.li, nodeₗ.hi) else (r₁, r₁)
+      let (l₂, h₂) := if vi == nodeₕ.varId then (nodeₕ.li, nodeₕ.hi) else (r₂, r₂)
+      let (l, nodes, merged) := apply f l₁ l₂ nodes merged
+      let (h, nodes, merged) := apply f h₁ h₂ nodes merged
       let r := Ref.to nodes.size
       (r, nodes.push {varId := vi, li := l, hi := h}, merged.insert (r₁, r₂) r)
 
