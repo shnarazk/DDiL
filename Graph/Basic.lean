@@ -86,15 +86,15 @@ def Graph.addNode (g : Graph) (node : Node) : Graph × Nat :=
           exact base₁ }
         { simp [j.left, j.right]
           exact h.right } }
-    (g', nodes.size - 1)
+    (g', nodes.size.pred)
   else
     dbg
       s!"{ANSI.bold}(Graph.addNode {g.nodes.size} {node}): violation: vi:{node.varId} < g.numVars:{g.numVars} or ref in range: {node.validRef g.nodes.size}{ANSI.unbold}"
       (g, g.nodes.size)
       LogKind.error
 
-def Graph.addNode' (g : Graph) (vi : Nat) (li hi : Ref) : Graph × Nat :=
-  g.addNode {varId := vi, li := li, hi := hi}
+def Graph.addNode' (g : Graph) (varId : Nat) (li hi : Ref) : Graph × Nat :=
+  g.addNode {varId, li, hi}
 
 def Graph.ofNodes (nodes : Array Node) : Graph :=
   let numVars := nodes.map (·.varId) |>.maxD 0
@@ -116,12 +116,12 @@ def collectFromTreeNode (tree : TreeNode) (mapping : Array Node := #[]) (varId :
     | TreeNode.isTrue  => Collector.bool true
     | TreeNode.node low high _ =>
       let node : Node := {(default : Node) with varId}
-      let (mapping, node) := match collectFromTreeNode low mapping (varId + 1) with
+      let (mapping, node) := match collectFromTreeNode low mapping varId.succ with
         | Collector.bool b => (mapping, {node with li := Ref.bool b})
-        | Collector.link m => (m,       {node with li := Ref.to (m.size - 1)})
-      let (mapping, node) := match collectFromTreeNode high mapping (varId + 1) with
+        | Collector.link m => (m,       {node with li := Ref.to m.size.pred})
+      let (mapping, node) := match collectFromTreeNode high mapping varId.succ with
         | Collector.bool b => (mapping, {node with hi := Ref.bool b})
-        | Collector.link m => (m,       {node with hi := Ref.to (m.size - 1)})
+        | Collector.link m => (m,       {node with hi := Ref.to m.size.pred})
       Collector.link (mapping.push node)
 
 end Graph_convert

@@ -46,4 +46,4 @@ def Graph.reorderNodes (numVars : Nat) (nodes : Array Node) (start : Ref) : Grap
       (fun r ↦
         let n := nodes[r.link.get!]!
         {varId := n.varId, li := updatedRef.getD n.li n.li, hi := updatedRef.getD n.hi n.hi} ) )
-  nodes.foldl (fun g n ↦ g.addNode n |>.fst) (Graph.forVars numVars)
+  nodes.foldl (·.addNode · |>.fst) (Graph.forVars numVars)

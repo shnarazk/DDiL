@@ -82,13 +82,11 @@ instance : DecidableLT ((Array Node) × Ref) :=
     {
       induction' l₂ with n
       {simp [LT.lt] at * ; exact instDecidableAnd}
-      {simp [LT.lt] at * ; exact instDecidableTrue}
-    }
+      {simp [LT.lt] at * ; exact instDecidableTrue} }
     {
       induction' l₂ with n
       {simp [LT.lt] at * ; exact instDecidableFalse}
-      {simp [arrayRefOrder] at * ; exact decidableLTNode a₁[m]! a₂[n]!}
-    }
+      {simp [arrayRefOrder] at * ; exact decidableLTNode a₁[m]! a₂[n]!} }
 
 namespace Node_compact
 

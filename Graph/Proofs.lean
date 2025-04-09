@@ -69,19 +69,15 @@ instance : DecidableLT (Option Nat) :=
       induction' o₂ with j
       {
         have : ¬(none : Option Nat) < none := by simp [LT.lt]
-        exact isFalse this
-      }
+        exact isFalse this }
       {
         have : (none : Option Nat) < some j := by simp [LT.lt]
-        exact isTrue this
-      }
-    }
+        exact isTrue this } }
     {
       induction' o₂ with j
       {
         have : ¬some i < none := by simp [LT.lt]
-        exact isFalse this
-      }
+        exact isFalse this }
       {
         if h : i < j
         then
@@ -89,8 +85,6 @@ instance : DecidableLT (Option Nat) :=
           exact isTrue this
         else
           have : ¬some i < some j := by exact h
-          exact isFalse this
-      }
-    }
+          exact isFalse this } }
 
 end proofs
