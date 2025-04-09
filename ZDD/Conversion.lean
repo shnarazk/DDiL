@@ -62,7 +62,7 @@ end ZDD_conversion
 
 def BDD.startFromOne (bdd : BDD) : BDD :=
   if let some n := ZDD_conversion.startFromOne bdd.toGraph.nodes
-  then bdd.addNode n |>.fst
+  then bdd.addNode n
   else bdd
 
 def BDD.toZDD (bdd : BDD) : ZDD :=

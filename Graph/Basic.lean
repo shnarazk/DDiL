@@ -60,7 +60,7 @@ def Graph.forVars (n : Nat) : Graph :=
 def Graph.asBool (g : Graph) : Option Bool :=
   if g.nodes.isEmpty then g.constant else none
 
-def Graph.addNode (g : Graph) (node : Node) : Graph × Nat :=
+def Graph.addNode (g : Graph) (node : Node) : Graph :=
   let nodes := g.nodes.push node
   if h : node.varId ≤ g.numVars ∧ node.validRef g.nodes.size then
     let g' : Graph := { g with
@@ -86,19 +86,19 @@ def Graph.addNode (g : Graph) (node : Node) : Graph × Nat :=
           exact base₁ }
         { simp [j.left, j.right]
           exact h.right } }
-    (g', nodes.size.pred)
+    g'
   else
     dbg
       s!"{ANSI.bold}(Graph.addNode {g.nodes.size} {node}): violation: vi:{node.varId} < g.numVars:{g.numVars} or ref in range: {node.validRef g.nodes.size}{ANSI.unbold}"
-      (g, g.nodes.size)
+      g
       LogKind.error
 
-def Graph.addNode' (g : Graph) (varId : Nat) (li hi : Ref) : Graph × Nat :=
+def Graph.addNode' (g : Graph) (varId : Nat) (li hi : Ref) : Graph :=
   g.addNode {varId, li, hi}
 
 def Graph.ofNodes (nodes : Array Node) : Graph :=
   let numVars := nodes.map (·.varId) |>.maxD 0
-  nodes.foldl (·.addNode · |>.fst) (Graph.forVars numVars)
+  nodes.foldl (·.addNode ·) (Graph.forVars numVars)
 
 namespace Graph_convert
 
@@ -131,18 +131,18 @@ def Graph.fromTreeNode (tree : TreeNode) : Graph :=
   match collectFromTreeNode tree with
     | Collector.bool b => {(default : Graph) with constant := b}
     | Collector.link m => m.foldl
-        (·.addNode · |>.fst)
+        (·.addNode ·)
         (Graph.forVars (GraphShape.numberOfVars tree))
 
 def Graph.fromNodes (n : Nat) (nodes : Array Node) : Graph :=
-  nodes.foldl (·.addNode · |>.fst) (Graph.forVars n)
+  nodes.foldl (·.addNode ·) (Graph.forVars n)
 
 /-- make a graph compact, no unused nodes. -/
 def Graph.compact (self : Graph) (root : Option Ref := none) : Graph :=
   match root, self.nodes.isEmpty with
   | none, true  => self
   | none, false =>
-    Node.compact self.nodes |>.foldl (·.addNode · |>.fst) (Graph.forVars self.numVars)
+    Node.compact self.nodes |>.foldl (·.addNode ·) (Graph.forVars self.numVars)
   | some _, true  => self
   | some r, false => match r.link with
     | none   => {Graph.fromNodes self.numVars #[] with constant := r.grounded}

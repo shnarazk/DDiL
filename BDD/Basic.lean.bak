@@ -8,7 +8,7 @@ open Std
 
 structure BDD extends Graph
 
-instance : Inhabited BDD := ⟨{toGraph := default}⟩
+instance : Inhabited BDD := u2308{toGraph := default}u2309
 
 instance : ToString BDD where
   toString bdd := s!"[bdd {bdd.toGraph}]"
@@ -22,10 +22,13 @@ instance : Coe BDD Graph where
 instance : Coe BDD (Array Node) where
   coe b := b.toGraph.nodes
 
-def BDD.addNode (self: BDD) (node : Node) : BDD :=
-  {self with toGraph := self.toGraph.addNode node}
+def BDD.addNode (self: BDD) (node : Node) : BDD u00d7 Nat :=
+  -- Graph.addNode now returns only Graph, not a tuple
+  let updatedGraph := self.toGraph.addNode node
+  let n := updatedGraph.nodes.size.pred
+  ({self with toGraph := updatedGraph}, n)
 
-def BDD.addNode' (self: BDD) (varId : Nat) (li hi : Ref) : BDD :=
+def BDD.addNode' (self: BDD) (varId : Nat) (li hi : Ref) : BDD u00d7 Nat :=
   self.addNode {varId, li, hi}
 
 namespace BDD
@@ -42,7 +45,7 @@ private def path_distance (a b : Ref) : Nat :=
 /--
 Checks if the TreeNode satisfies all conditions.
 Tree traversing approach isn't efficient because it visits subtrees many times. -/
-partial def countPaths (g : Graph) (counter : Std.HashMap Ref Nat) (r : Ref) : Std.HashMap Ref Nat × Nat :=
+partial def countPaths (g : Graph) (counter : Std.HashMap Ref Nat) (r : Ref) : Std.HashMap Ref Nat u00d7 Nat :=
   match r.link with
   | none => (counter, if r.grounded then 1 else 0)
   | some i =>
@@ -63,4 +66,4 @@ def BDD.numSatisfies (self : BDD) : Nat :=
   if self.nodes.isEmpty then
     2 ^ self.numVars
   else
-    BDD.countPaths ↑self Std.HashMap.emptyWithCapacity (Ref.to self.toGraph.nodes.size.pred) |>.snd
+    BDD.countPaths u2191self Std.HashMap.emptyWithCapacity (Ref.to self.toGraph.nodes.size.pred) |>.snd

@@ -20,10 +20,10 @@ instance : Coe ZDD Graph where
 instance : Coe ZDD (Array Node) where
   coe b := b.toGraph.nodes
 
-def ZDD.addNode (self: ZDD) (node : Node) : ZDD × Nat :=
-  self.toGraph.addNode node |> fun (g, n) => ({self with toGraph := g}, n)
+def ZDD.addNode (self: ZDD) (node : Node) : ZDD :=
+  {self with toGraph := self.toGraph.addNode node}
 
-def ZDD.addNode' (self: ZDD) (varId : Nat) (li hi : Ref) : ZDD × Nat :=
+def ZDD.addNode' (self: ZDD) (varId : Nat) (li hi : Ref) : ZDD :=
   self.addNode {varId, li, hi}
 
 namespace ZDD
