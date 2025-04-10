@@ -8,16 +8,42 @@ inductive LogKind : Type where
 
 namespace ANSI
 
+def black   : String := "\x1B[030m"
 def red     : String := "\x1B[031m"
 def green   : String := "\x1B[032m"
+def yellow  : String := "\x1B[033m"
 def blue    : String := "\x1B[034m"
 def magenta : String := "\x1B[035m"
 def cyan    : String := "\x1B[036m"
-def reset   : String := "\x1B[000m"
-def revert  : String := "\x1B[1A\x1B[1G\x1B[1K"
-def reverse : String := "\x1B[007m"
-def bold    : String := "\x1B[001m"
-def unbold  : String := "\x1B[022m"
+def white   : String := "\x1B[037m"
+def gray    : String := "\x1B[090m"
+def grey    : String := "\x1B[090m"
+
+def bgBlack   : String := "\x1B[040m"
+def bgRed     : String := "\x1B[041m"
+def bgGreen   : String := "\x1B[042m"
+def bgYellow  : String := "\x1B[043m"
+def bgBlue    : String := "\x1B[044m"
+def bgMagenta : String := "\x1B[045m"
+def bgCyan    : String := "\x1B[046m"
+def bgWhite   : String := "\x1B[047m"
+
+def brightBlack   : String := "\x1B[090m"
+def brightRed     : String := "\x1B[091m"
+def brightGreen   : String := "\x1B[092m"
+def brightYellow  : String := "\x1B[093m"
+def brightBlue    : String := "\x1B[094m"
+def brightMagenta : String := "\x1B[095m"
+def brightCyan    : String := "\x1B[096m"
+def brightWhite   : String := "\x1B[097m"
+
+def underline : String := "\x1B[004m"
+def blink     : String := "\x1B[005m"
+def reset     : String := "\x1B[000m"
+def revert    : String := "\x1B[1A\x1B[1G\x1B[1K"
+def reverse   : String := "\x1B[007m"
+def bold      : String := "\x1B[001m"
+def unbold    : String := "\x1B[022m"
 
 def bolded {α : Type} [ToString α] (s : α) : String :=
   s!"{bold}{s}{unbold}"
