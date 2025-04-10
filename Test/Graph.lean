@@ -22,7 +22,7 @@ namespace Test_Graph
 
 def g₀ : Graph := default
 def g₁ : Graph := {(default : Graph) with numVars := 3, validVarIds := by decide}
-def g₁₁ := Graph.forVars 3
+def g₁₁ := (↑(3 : Nat) : Graph)
 def g₂ : Graph := g₁.addNode' 1 (Ref.bool true) (Ref.bool false)
 def g₃ : Graph := TreeNode.fromString "{{{T F} {F F}} {{T F} {F F}}}" |> Graph.fromTreeNode
 

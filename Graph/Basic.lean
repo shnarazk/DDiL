@@ -57,6 +57,9 @@ def Graph.forVars (n : Nat) : Graph :=
     simp at h₀
   {g with numVars := n, validVarIds := vi}
 
+instance : Coe Nat Graph where
+  coe n := Graph.forVars n
+
 def Graph.asBool (g : Graph) : Option Bool :=
   if g.nodes.isEmpty then g.constant else none
 
@@ -97,8 +100,8 @@ def Graph.addNode' (g : Graph) (varId : Nat) (li hi : Ref) : Graph :=
   g.addNode {varId, li, hi}
 
 def Graph.ofNodes (nodes : Array Node) : Graph :=
-  let numVars := nodes.map (·.varId) |>.maxD 0
-  nodes.foldl (·.addNode ·) (Graph.forVars numVars)
+  let numVars : Nat := nodes.map (·.varId) |>.maxD 0
+  nodes.foldl (·.addNode ·) (↑numVars : Graph)
 
 namespace Graph_convert
 
@@ -132,17 +135,17 @@ def Graph.fromTreeNode (tree : TreeNode) : Graph :=
     | Collector.bool b => {(default : Graph) with constant := b}
     | Collector.link m => m.foldl
         (·.addNode ·)
-        (Graph.forVars (GraphShape.numberOfVars tree))
+        (↑(GraphShape.numberOfVars tree) : Graph)
 
 def Graph.fromNodes (n : Nat) (nodes : Array Node) : Graph :=
-  nodes.foldl (·.addNode ·) (Graph.forVars n)
+  nodes.foldl (·.addNode ·) (↑n : Graph)
 
 /-- make a graph compact, no unused nodes. -/
 def Graph.compact (self : Graph) (root : Option Ref := none) : Graph :=
   match root, self.nodes.isEmpty with
   | none, true  => self
   | none, false =>
-    Node.compact self.nodes |>.foldl (·.addNode ·) (Graph.forVars self.numVars)
+    Node.compact self.nodes |>.foldl (·.addNode ·) (↑self.numVars : Graph)
   | some _, true  => self
   | some r, false => match r.link with
     | none   => {Graph.fromNodes self.numVars #[] with constant := r.grounded}
