@@ -16,7 +16,7 @@ def SquareGrid.of (size : Nat) : SquareGrid size := (SquareGrid.mk : SquareGrid 
 
 def SquareGrid.getSize (_ : SquareGrid size) : Nat := size
 
-def SquareGrid.goal (_ : SquareGrid size) : Nat := (size + 1) * (size + 1) - 1
+def SquareGrid.goal (_ : SquareGrid size) : Nat := size.succ * size.succ - 1
 def SquareGrid.start (_ : SquareGrid size) : Nat := 0
 
 def SquareGrid.goalPosition (_ : SquareGrid size) : Nat × Nat := (size, size)
@@ -27,9 +27,9 @@ def SquareGrid.mask (_ : SquareGrid size) (p : Nat × Nat) : Option (Nat × Nat)
 
 example : (SquareGrid.of 2).mask (4, 0) = none := rfl
 
-def SquareGrid.position (_ : SquareGrid size) (id : Nat) : Nat × Nat := (id / (size + 1), id % (size + 1))
+def SquareGrid.position (_ : SquareGrid size) (id : Nat) : Nat × Nat := (id / size.succ, id % size.succ)
 
-def SquareGrid.toId (_ : SquareGrid size) (p : Nat × Nat) : Nat := p.1 * (size + 1) + p.2
+def SquareGrid.toId (_ : SquareGrid size) (p : Nat × Nat) : Nat := p.1 * size.succ + p.2
 
 /-
 -- I don't like to import mathlib just for proving it.
@@ -41,10 +41,10 @@ lemma from_to_eq_id (n : Nat) : @fromDim2 size (@toDim2 size n) = n := by
 def SquareGrid.neighborsOf (s : SquareGrid size) (n : Nat) : Array Nat :=
   let p := s.position n
   [
-    p.1 > 0    |> toSome (p.1 - 1, p.2),
-    p.1 < size |> toSome (p.1 + 1, p.2),
-    p.2 > 0    |> toSome (p.1, p.2 - 1),
-    p.2 < size |> toSome (p.1, p.2 + 1),
+    p.1 > 0    |> toSome (p.1.pred, p.2     ),
+    p.1 < size |> toSome (p.1.succ, p.2     ),
+    p.2 > 0    |> toSome (p.1,      p.2.pred),
+    p.2 < size |> toSome (p.1,      p.2.succ),
   ]
     |>.filterMap id
     |>.map (s.toId ·)

@@ -92,7 +92,7 @@ Current version can't handle shared subtrees. -/
 def TreeNode.assignIndex (self : TreeNode) (index : Nat := 2) : TreeNode × Nat := match self with
   | .isFalse | .isTrue => (self, index)
   | .node low high _ =>
-    let (l, i₁) := low.assignIndex (index + 1)
+    let (l, i₁) := low.assignIndex index.succ
     let (h, i₂) := high.assignIndex i₁
     (TreeNode.newVar l h index, i₂)
 
