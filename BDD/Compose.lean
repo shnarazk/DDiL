@@ -15,20 +15,18 @@ abbrev Evaluation := HashMap Ref Bool
 
 variable (g : Graph)
 
-
-def varId (nodes : Array Node) (ref : Ref) : Option Nat :=
+ def varId (nodes : Array Node) (ref : Ref) : Option Nat :=
   match ref.link with
-    | none => none
+    | none   => none
     | some i => some nodes[i]!.varId
 
 def goDown (nodes : Array Node) (ref : Ref) : Ref × Ref :=
   match ref.link with
-    | none => (ref, ref)
+    | none   => (ref, ref)
     | some i => (nodes[i]!.li, nodes[i]!.hi)
 
 partial def step (v1l v1h v2 : Ref) (vi : Nat) (nodes : Nodes) (key : Key) (evaluation : Evaluation)
     : Ref × Nodes × Key × Evaluation :=
-
   -- Perform restrictions
   let v1l := if let some i := v1l.link then
       let node := nodes[i]!
@@ -38,7 +36,6 @@ partial def step (v1l v1h v2 : Ref) (vi : Nat) (nodes : Nodes) (key : Key) (eval
       let node := nodes[i]!
       if node.varId == vi then node.hi else v1h
     else v1h
-
   -- Apply operation ITE
   if let some u := key[(v1l, v1h, v2)]? then
     (u, nodes, key, evaluation) -- have already evaluated

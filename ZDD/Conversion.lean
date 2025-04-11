@@ -12,7 +12,7 @@ namespace ZDD_conversion
 
 def startFromOne (nodes : Array Node) (root : Ref := Ref.last nodes) : Option Node :=
   match root.link with
-  | none => none
+  | none   => none
   | some i =>
     if nodes[i]!.varId == 1
     then none

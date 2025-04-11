@@ -11,11 +11,9 @@ namespace ZDD_reduce
 
 abbrev RefMap := HashMap Ref Ref
 
--- variable (g : Graph)
-
 private partial
 def goDown (nodes : Array Node) (root : Ref) : Ref := match root with
-  | {grounded := _, link := none} => root
+  | {grounded := _, link := none}   => root
   | {grounded := _, link := some i} => match nodes[i]! with
     | {varId := _, li, hi := {grounded := false, link := none}} => goDown nodes li
     | _ => root

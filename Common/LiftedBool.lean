@@ -12,7 +12,7 @@ def UnaryFunction.apply (f : UnaryFunction) (b : Option Bool) : Option Bool := m
   | none   => none
   | some b => f.fn b |> some
 
-  instance : Coe UnaryFunction (Bool → Bool) where
+instance : Coe UnaryFunction (Bool → Bool) where
   coe f := f.fn
 
 def not : UnaryFunction := UnaryFunction.of (! ·)

@@ -107,9 +107,9 @@ def count (counter : Std.HashMap Nat Nat) (n : TreeNode) : Std.HashMap Nat Nat �
     | .isFalse => (counter, 0)
     | .isTrue  => (counter, 1)
     | .node low high index =>
-        let (c₁, k₁) := count counter low
-        let (c₂, k₂) := count c₁ high
-        (c₂.insert index (k₁ + k₂), k₁ + k₂)
+        let (c, k₁) := count counter low
+        let (c, k₂) := count c high
+        (c.insert index (k₁ + k₂), k₁ + k₂)
 
 end TreeNode_private
 
@@ -132,12 +132,10 @@ def parse_comment : Parser String := do
   return (s.toList.map toString |>String.join)
 
 def parse_false : Parser TreeNode := do
-  let _ ← pchar 'F'
-  return TreeNode.isFalse
+  pchar 'F' *> return TreeNode.isFalse
 
 def parse_true : Parser TreeNode := do
-  let _ ← pchar 'T'
-  return TreeNode.isTrue
+  pchar 'T' *> return TreeNode.isTrue
 
 mutual
 
@@ -168,7 +166,7 @@ def TreeNode.fromString (input : String) : TreeNode :=
 -- #eval TreeNode.fromfString "{1 T F}"
 
 instance : GraphShape TreeNode where
-  numberOfVars := (·.depth)
+  numberOfVars  := (·.depth)
   numberOfNodes := (·.size)
 
 instance : GraphSerialize TreeNode where
