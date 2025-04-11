@@ -8,8 +8,7 @@ namespace Graph_reorder
 
 abbrev HashMap := Std.HashMap
 
-def includes (a b : Array Ref) : Bool :=
-  b.all (a.contains ·)
+def includes (a b : Array Ref) : Bool := b.all (a.contains ·)
 
 partial
 def topologicalSort (nodes : Array Node) (root : Ref) : HashMap Ref (Array Ref) :=

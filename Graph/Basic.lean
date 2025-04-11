@@ -133,9 +133,7 @@ open Graph_convert in
 def Graph.fromTreeNode (tree : TreeNode) : Graph :=
   match collectFromTreeNode tree with
     | Collector.bool b => {(default : Graph) with constant := b}
-    | Collector.link m => m.foldl
-        (·.addNode ·)
-        (↑(GraphShape.numberOfVars tree) : Graph)
+    | Collector.link m => m.foldl (·.addNode ·) (↑(GraphShape.numberOfVars tree) : Graph)
 
 def Graph.fromNodes (n : Nat) (nodes : Array Node) : Graph :=
   nodes.foldl (·.addNode ·) (↑n : Graph)

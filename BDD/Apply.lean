@@ -5,15 +5,13 @@ import Common.LiftedBool
 import Graph.Basic
 import BDD.Reduce
 
-open Std
+open Std LiftedBool
 
 namespace BDD_apply
 
-variable (g : Graph)
-
 abbrev Key := HashMap (Ref × Ref) Ref
 
-partial def apply_aux (f : LiftedBool.BinaryFunction) (r₁ r₂ : Ref) (nodes : Array Node) (merged : Key)
+partial def apply_aux (f : BinaryFunction) (r₁ r₂ : Ref) (nodes : Array Node) (merged : Key)
     : (Ref × (Array Node) × Key) :=
   if let some r := merged.get? (r₁, r₂) then
     (r, nodes, merged)
@@ -39,7 +37,7 @@ partial def apply_aux (f : LiftedBool.BinaryFunction) (r₁ r₂ : Ref) (nodes :
 
 end BDD_apply
 
-def BDD.apply (operator : LiftedBool.BinaryFunction) (self other : BDD) : BDD :=
+def BDD.apply (operator : BinaryFunction) (self other : BDD) : BDD :=
   let r1 := Ref.to self.toGraph.nodes.size.pred
   let all_nodes : Array Node := Node.append_nodes ↑self ↑other
   let r2 := Ref.to all_nodes.size.pred
