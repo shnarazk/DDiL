@@ -42,9 +42,11 @@ def insert (g : Graph) : Array Node :=
           nodes
         else
           seq.foldl
-              (fun nodes i ↦ nodes.push {varId := i, li := Ref.to nodes.size.succ, hi := Ref.to nodes.size.succ})
-              (nodes.modify ix (fun n ↦ {n with hi := Ref.to nodes.size}))
-            |> (fun nodes ↦ nodes.modify nodes.size.pred (fun n ↦ {n with li := node.hi, hi := node.hi}))
+              (fun nodes i ↦
+                let r := Ref.to nodes.size.succ
+                nodes.push {varId := i, li := r, hi := r} )
+              (nodes.modify ix ({· with hi := Ref.to nodes.size}))
+            |> (fun nodes ↦ nodes.modify nodes.size.pred ({· with li := node.hi, hi := node.hi}))
       nodes )
     g.nodes
 

@@ -38,8 +38,8 @@ partial def apply_aux (f : BinaryFunction) (r₁ r₂ : Ref) (nodes : Array Node
 end BDD_apply
 
 def BDD.apply (operator : BinaryFunction) (self other : BDD) : BDD :=
-  let r1 := Ref.to self.toGraph.nodes.size.pred
   let all_nodes : Array Node := Node.append_nodes ↑self ↑other
+  let r1 := Ref.to self.toGraph.nodes.size.pred
   let r2 := Ref.to all_nodes.size.pred
   BDD_apply.apply_aux operator r1 r2 all_nodes HashMap.emptyWithCapacity
     |> (fun (_, (nodes : Array Node), _) ↦ if nodes.isEmpty

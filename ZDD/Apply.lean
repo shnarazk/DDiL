@@ -30,13 +30,13 @@ def apply (f : LiftedBool.BinaryFunction) (r₁ r₂ : Ref) (nodes : Array Node)
     | some l, some h =>
       let nodeₗ : Node := nodes[l]!
       let nodeₕ : Node := nodes[h]!
-      let vi : Nat := Nat.min nodeₗ.varId nodeₕ.varId
-      let (l₁, h₁) := if vi == nodeₗ.varId then (nodeₗ.li, nodeₗ.hi) else (r₁, r₁)
-      let (l₂, h₂) := if vi == nodeₕ.varId then (nodeₕ.li, nodeₕ.hi) else (r₂, r₂)
-      let (l, nodes, merged) := apply f l₁ l₂ nodes merged
-      let (h, nodes, merged) := apply f h₁ h₂ nodes merged
+      let varId : Nat := Nat.min nodeₗ.varId nodeₕ.varId
+      let (l₁, h₁) := if varId == nodeₗ.varId then (nodeₗ.li, nodeₗ.hi) else (r₁, r₁)
+      let (l₂, h₂) := if varId == nodeₕ.varId then (nodeₕ.li, nodeₕ.hi) else (r₂, r₂)
+      let (li, nodes, merged) := apply f l₁ l₂ nodes merged
+      let (hi, nodes, merged) := apply f h₁ h₂ nodes merged
       let r := Ref.to nodes.size
-      (r, nodes.push {varId := vi, li := l, hi := h}, merged.insert (r₁, r₂) r)
+      (r, nodes.push {varId, li, hi}, merged.insert (r₁, r₂) r)
 
 end ZDD_apply
 
