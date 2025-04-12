@@ -27,13 +27,13 @@ partial def apply_aux (f : BinaryFunction) (r₁ r₂ : Ref) (nodes : Array Node
     | some a, some b =>
       let node1 : Node := nodes[a]!
       let node2 : Node := nodes[b]!
-      let vi : Nat := Nat.min node1.varId node2.varId
-      let (l1, h1) := if vi == node1.varId then (node1.li, node1.hi) else (r₁, r₁)
-      let (l2, h2) := if vi == node2.varId then (node2.li, node2.hi) else (r₂, r₂)
-      let (l, nodes, merged) := apply_aux f l1 l2 nodes merged
-      let (h, nodes, merged) := apply_aux f h1 h2 nodes merged
+      let varId : Nat := Nat.min node1.varId node2.varId
+      let (l1, h1) := if varId == node1.varId then (node1.li, node1.hi) else (r₁, r₁)
+      let (l2, h2) := if varId == node2.varId then (node2.li, node2.hi) else (r₂, r₂)
+      let (li, nodes, merged) := apply_aux f l1 l2 nodes merged
+      let (hi, nodes, merged) := apply_aux f h1 h2 nodes merged
       let r := Ref.to nodes.size
-      (r, nodes.push {varId := vi, li := l, hi := h}, merged.insert (r₁, r₂) r)
+      (r, nodes.push {varId, li, hi}, merged.insert (r₁, r₂) r)
 
 end BDD_apply
 

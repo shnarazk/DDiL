@@ -77,5 +77,4 @@ Algorithm 5: Apply(⋄, F, G)
     let H₀ := Apply(⋄, F, G.child[0])
     let H₁ := Apply(⋄, F, G.child[1])
   Getnode(x, H₀, H₁)
-
 -/

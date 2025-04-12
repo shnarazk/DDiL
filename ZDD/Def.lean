@@ -4,7 +4,7 @@ import ZDD.Reduce
 import ZDD.Apply
 
 instance : GraphShape ZDD where
-  numberOfVars self := GraphShape.numberOfVars (↑self : Graph)
+  numberOfVars self  := GraphShape.numberOfVars (↑self : Graph)
   numberOfNodes self := GraphShape.numberOfNodes (↑self : Graph)
   shapeOf self := GraphShape.shapeOf (↑self : Graph)
 

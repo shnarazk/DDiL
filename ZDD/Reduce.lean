@@ -81,11 +81,11 @@ def Graph.toZDD₂ (g : Graph) : ZDD :=
   let (all_false, all_true, var_nodes) := nodes.zipIdx.foldl
     (fun (falses, trues, mapping) (node, i) =>
      ( falses && (node.asBool == some false),
-       trues && (node.asBool == some true),
+       trues  && (node.asBool == some true),
        mapping.alter
          node.varId
          (fun list => match list with
-           | none => some #[Ref.to i]
+           | none  => some #[Ref.to i]
            | some l => some (l.push (Ref.to i)) )))
     (true, true, (HashMap.emptyWithCapacity : HashMap Nat (Array Ref)))
   match all_false, all_true with
