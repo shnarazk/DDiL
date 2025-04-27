@@ -191,15 +191,15 @@ partial def zdd_diff (mgr : ZDDManager) (f g : ZDD) : ZDD × ZDDManager :=
 
 /--
   Counts the number of paths (satisfying assignments) in a ZDD.
-  
+
   This function calculates the total number of sets represented by the ZDD by counting
   paths that lead to the terminal 1 node. Each path corresponds to a set in the
   family encoded by the ZDD.
-  
+
   * For terminal 0 node: Returns 0 (represents empty family, no sets)
   * For terminal 1 node: Returns 1 (represents family with only the empty set)
   * For decision nodes: Returns sum of paths in both branches
-  
+
   @param z The ZDD instance to analyze
   @return The number of distinct sets represented by the ZDD
 -/
@@ -218,7 +218,7 @@ def countPaths (z :ZDD) : Nat := match z with
   Then computes and prints their union, which represents the family {0}, {1}.
 -/
 def main : IO Unit :=
-  let mgr := { uniq := HashMap.emptyWithCapacity }
+  let mgr := (default : ZDDManager)
   let (a, mgr) := make_node mgr 0 ZDD.terminal1 ZDD.terminal0
   let (b, mgr) := make_node mgr 1 ZDD.terminal1 ZDD.terminal0
   let (u, _mg) := zdd_union mgr a b
