@@ -27,8 +27,8 @@ deriving BEq, Hashable, Repr
 -/
 def toStringZDD (z : ZDD) := match z with
     | ZDD.node v t e => s!"[ZDD: {v} {toStringZDD t} {toStringZDD e}]"
-    | ZDD.terminal0 => "ZDD: 0"
-    | ZDD.terminal1 => "ZDD: 1"
+    | ZDD.terminal0  => "ZDD: 0"
+    | ZDD.terminal1  => "ZDD: 1"
 
 /--
   Implements ToString typeclass for ZDD using the toStringZDD function
@@ -72,9 +72,9 @@ def make_node (mgr : ZDDManager) (v : Nat) (t e : ZDD) : ZDD × ZDDManager :=
     let key := (v, t, e)
     match mgr.uniq.get? key with
     | some n => (n, mgr)
-    | none =>
+    | none   =>
       let n := ZDD.node v t e
-      (n, { mgr with uniq := mgr.uniq.insert key n })
+      (n, {mgr with uniq := mgr.uniq.insert key n})
 
 /--
   Computes the union (logical OR) of two ZDDs.
@@ -98,7 +98,7 @@ partial def zdd_union (mgr : ZDDManager) (f g : ZDD) : ZDD × ZDDManager :=
   match f, g with
   | ZDD.terminal0, _ => (g, mgr)
   | _, ZDD.terminal0 => (f, mgr)
-  | ZDD.terminal1, _ | _, ZDD.terminal1 => (ZDD.terminal1, mgr)
+  | ZDD.terminal1, _ | _, ZDD.terminal1  => (ZDD.terminal1, mgr)
   | ZDD.node v1 t1 e1, ZDD.node v2 t2 e2 =>
     if v1 == v2 then
       let (t, mgr) := zdd_union mgr t1 t2
@@ -133,9 +133,9 @@ partial def zdd_union (mgr : ZDDManager) (f g : ZDD) : ZDD × ZDDManager :=
 -/
 partial def zdd_inter (mgr : ZDDManager) (f g : ZDD) : ZDD × ZDDManager :=
   match f, g with
-  | ZDD.terminal0, _ | _, ZDD.terminal0 => (ZDD.terminal0, mgr)
-  | ZDD.terminal1, ZDD.terminal1 => (ZDD.terminal1, mgr)
-  | ZDD.terminal1, _ | _, ZDD.terminal1 => (ZDD.terminal0, mgr)
+  | ZDD.terminal0, _ | _, ZDD.terminal0  => (ZDD.terminal0, mgr)
+  | ZDD.terminal1, ZDD.terminal1         => (ZDD.terminal1, mgr)
+  | ZDD.terminal1, _ | _, ZDD.terminal1  => (ZDD.terminal0, mgr)
   | ZDD.node v1 t1 e1, ZDD.node v2 t2 e2 =>
     if v1 == v2 then
       let (t, mgr) := zdd_inter mgr t1 t2
