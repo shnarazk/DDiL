@@ -203,10 +203,27 @@ partial def zdd_diff (mgr : ZDDManager) (f g : ZDD) : ZDD × ZDDManager :=
   @param z The ZDD instance to analyze
   @return The number of distinct sets represented by the ZDD
 -/
-def countPaths (z :ZDD) : Nat := match z with
+def countPaths' (z :ZDD) : Nat := match z with
   | ZDD.terminal0 => 0
   | ZDD.terminal1 => 1
-  | ZDD.node _ t e => countPaths t + countPaths e
+  | ZDD.node _ t e => countPaths' t + countPaths' e
+
+  -- Efficient countPaths with memoization
+  partial def countPathsM (z : ZDD) (count : HashMap ZDD Nat := HashMap.emptyWithCapacity)  : Nat × HashMap ZDD Nat :=
+    match count.get? z with
+    | some n => (n, count)
+    | none   =>
+      let (n, count) :=
+        match z with
+        | ZDD.terminal0 => (0, count)
+        | ZDD.terminal1 => (1, count)
+        | ZDD.node _ t e =>
+          let (nt, count) := countPathsM t count
+          let (ne, count) := countPathsM e count
+          (nt + ne, count)
+      (n, count.insert z n)
+
+def countPaths (z : ZDD) := countPathsM z |>.fst
 
 /--
   Main function demonstrating basic ZDD operations.
