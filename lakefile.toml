@@ -38,7 +38,3 @@ root = "TestNumberOfPaths.Driver"
 [[lean_exe]]
 name = "test1"
 root = "Test.driver"
-
-[[lean_exe]]
-name = "vibe"
-root = "Vibe"
