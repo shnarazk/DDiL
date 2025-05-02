@@ -2,6 +2,7 @@ import Std.Data.HashMap
 
 open Std
 
+abbrev VarIndex := Nat
 /--
   ZDD (Zero-suppressed Decision Diagram) - A data structure for efficiently representing and
   manipulating sets of combinations.
@@ -12,7 +13,7 @@ open Std
   - `terminal1`: Terminal node representing the set containing only empty set (⊤)
 -/
 inductive ZDD
-| node : Nat → ZDD → ZDD → ZDD
+| node : VarIndex → ZDD → ZDD → ZDD
 | terminal0 : ZDD
 | terminal1 : ZDD
 deriving BEq, Hashable, Repr
