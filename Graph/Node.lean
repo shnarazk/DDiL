@@ -7,7 +7,7 @@ open Std
 
 /--
 Node representation for graph, having `varId`, `li`, and `hi`.
-This has an order that matches the occurence order of the nodes in the `Graph.nodes`. -/
+This has an order that matches the occurrence order of the nodes in the `Graph.nodes`. -/
 structure Node where
   varId : Nat
   li    : Ref
@@ -32,7 +32,7 @@ instance : ToString (Array Node) where
 def Node.lt (a b : Node) : Prop :=
   a.varId > b.varId ∨ (a.varId == b.varId ∧ (a.li < b.li ∨ (a.li == b.li ∧ a.hi < b.hi)))
 
-/- This order matches the occurence order of the nodes in the `Graph.nodes`. -/
+/- This order matches the occurrence order of the nodes in the `Graph.nodes`. -/
 instance : LT Node where
   lt := Node.lt
 

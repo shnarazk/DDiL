@@ -8,5 +8,5 @@ import ZDD.Operations
   This function takes a `TreeNode` and produces a corresponding `ZDD`.
   The current implementation returns the default value for `ZDD`.
 -/
-def convert fromTreeNode (t : TreeNode) : ZDD :=
+def convertFromTreeNode (t : TreeNode) : ZDD :=
   (default : ZDD)

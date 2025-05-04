@@ -33,12 +33,12 @@ def BinaryFunction.apply (f : BinaryFunction) (a b : Option Bool) : Option Bool 
   instance : Coe BinaryFunction (Bool → Bool → Bool) where
   coe f := f.fn
 
-/-- an extended boolean function that can take wildecards
+/-- an extended boolean function that can take wildcards
 - `falld && *` => `false`
 - `* && false` => `false` -/
 def and : BinaryFunction := BinaryFunction.of (· && ·) (some (false, false))
 
-/-- an extended boolean function that can take wildecards
+/-- an extended boolean function that can take wildcards
 - `true || *` => `true`
 - `* || true` => `true` -/
 def or : BinaryFunction := BinaryFunction.of (· || ·) (some (true, true))
