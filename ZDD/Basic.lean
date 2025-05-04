@@ -18,6 +18,9 @@ inductive ZDD
 | terminal1 : ZDD
 deriving BEq, Hashable, Repr
 
+instance : Inhabited ZDD where
+  default := ZDD.terminal0
+
 /--
   Converts a ZDD to a human-readable string representation.
 
