@@ -10,7 +10,7 @@ open Std
   ensuring that equivalent nodes are shared for memory efficiency.
 -/
 structure ZDDManager where
-  uniq : HashMap (Nat × ZDD × ZDD) ZDD
+  uniq : HashMap (VarIndex × ZDD × ZDD) ZDD
 deriving Inhabited
 
 /--
@@ -30,7 +30,7 @@ deriving Inhabited
   Returns:
   - A tuple of (resulting ZDD node, updated manager)
 -/
-def make_node (mgr : ZDDManager) (v : Nat) (t e : ZDD) : ZDD × ZDDManager :=
+def make_node (mgr : ZDDManager) (v : VarIndex) (t e : ZDD) : ZDD × ZDDManager :=
   if t == ZDD.terminal0 then
     (e, mgr)
   else if t == e then

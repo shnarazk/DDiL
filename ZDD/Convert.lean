@@ -1,4 +1,4 @@
-import Graph.TreeNode
+import Common.TreeNode
 import ZDD.Basic
 import ZDD.Operations
 
