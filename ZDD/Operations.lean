@@ -13,6 +13,9 @@ structure ZDDManager where
   uniq : HashMap (VarIndex × ZDD × ZDD) ZDD
 deriving Inhabited
 
+instance : Coe ZDD ZDDManager where
+  coe z := ZDD.collectNodes z HashMap.emptyWithCapacity
+
 /--
   Creates a new ZDD node with zero-suppression rules applied.
 
@@ -191,3 +194,8 @@ def countPaths' (z :ZDD) : Nat := match z with
       (n, count.insert z n)
 
 def countPaths (z : ZDD) := countPathsM z |>.fst
+
+def addNode (z : ZDD) (vi : VarIndex) (f t : ZDD) : ZDD :=
+   let mgr := (↑z : ZDDManager)
+   let (z₁, mgr) := make_node mgr vi f t
+   zdd_union mgr z z₁ |>.fst

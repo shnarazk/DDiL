@@ -58,3 +58,7 @@ def main : IO Unit :=
   let (u, _mg) := zdd_union mgr a b
   IO.println s!"Union: {u} => {countPaths u}"
 -/
+
+def ZDD.manager : Type := HashMap (VarIndex × ZDD × ZDD) ZDD
+
+def ZDD.collectNodes (z : ZDD) (m : ZDD.manager) : ZDD.manager := m
