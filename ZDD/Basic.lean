@@ -56,9 +56,9 @@ instance : ToString ZDD where
 /-
 def main : IO Unit :=
   let mgr := (default : ZDD.manager)
-  let (a, mgr) := make_node mgr 0 ZDD.terminal1 ZDD.terminal0
-  let (b, mgr) := make_node mgr 1 ZDD.terminal1 ZDD.terminal0
-  let (u, _mg) := zdd_union mgr a b
+  let (a, mgr) := makeNode mgr 0 ZDD.terminal1 ZDD.terminal0
+  let (b, mgr) := makeNode mgr 1 ZDD.terminal1 ZDD.terminal0
+  let (u, _mg) := zddUnion mgr a b
   IO.println s!"Union: {u} => {countPaths u}"
 -/
 
