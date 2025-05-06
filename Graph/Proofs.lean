@@ -1,4 +1,4 @@
-import Mathlib.Tactic
+import Mathlib.Tactic.Cases
 
 section proofs
 
@@ -64,27 +64,21 @@ open Option
 
 instance : DecidableLT (Option Nat) :=
   fun o₁ o₂ => by
-    induction' o₁ with i
-    {
-      induction' o₂ with j
-      {
+    match o₁, o₂ with
+      | none, none =>
         have : ¬(none : Option Nat) < none := by simp [LT.lt]
-        exact isFalse this }
-      {
+        exact isFalse this
+      | none, some j =>
         have : (none : Option Nat) < some j := by simp [LT.lt]
-        exact isTrue this } }
-    {
-      induction' o₂ with j
-      {
-        have : ¬some i < none := by simp [LT.lt]
-        exact isFalse this }
-      {
-        if h : i < j
-        then
-          have : some i < some j := by exact h
-          exact isTrue this
-        else
-          have : ¬some i < some j := by exact h
-          exact isFalse this } }
+        exact isTrue this
+      | some i, none =>
+        have : ¬ some i < (none : Option Nat) := by simp [LT.lt]
+        exact isFalse this
+      | some i, some j => if h : i < j then
+            have : some i < some j := by exact h
+            exact isTrue this
+          else
+            have : ¬some i < some j := by exact h
+            exact isFalse this
 
 end proofs
