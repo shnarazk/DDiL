@@ -45,24 +45,6 @@ instance : ToString ZDD where
 
 
 /-
-  Main function demonstrating basic ZDD operations.
-
-  Creates two simple ZDDs:
-  - a: ZDD for the set {0}
-  - b: ZDD for the set {1}
-
-  Then computes and prints their union, which represents the family {0}, {1}.
--/
-/-
-def main : IO Unit :=
-  let mgr := (default : ZDD.manager)
-  let (a, mgr) := makeNode mgr 0 ZDD.terminal1 ZDD.terminal0
-  let (b, mgr) := makeNode mgr 1 ZDD.terminal1 ZDD.terminal0
-  let (u, _mg) := zddUnion mgr a b
-  IO.println s!"Union: {u} => {countPaths u}"
--/
-
-/-
   ZDD.manager - Manages unique table to ensure canonicity of ZDD nodes.
 
   The unique table maps (variable, then-child, else-child) tuples to ZDD nodes,

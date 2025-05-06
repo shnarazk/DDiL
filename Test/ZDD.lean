@@ -180,7 +180,7 @@ def satisfy : IO Unit := do
 -/
 def newVersion : IO Unit :=
   let mgr := (default : ZDDManager)
-  let (a, mgr) := makeNode mgr 0 ZDD.terminal1 ZDD.terminal0
+  let (a, mgr) := makeNode mgr 1 ZDD.terminal0 ZDD.terminal1
   let (b, mgr) := makeNode mgr 1 ZDD.terminal1 ZDD.terminal0
   let (u, _mg) := zddUnion mgr a b
   IO.println s!"Union: {u} => \n{(↑u : ZDDManager)}"

@@ -29,18 +29,18 @@ partial def zddUnion (mgr : ZDD.manager) (f g : ZDD) : ZDD × ZDD.manager :=
   | ZDD.terminal0, _ => (g, mgr)
   | _, ZDD.terminal0 => (f, mgr)
   | ZDD.terminal1, _ | _, ZDD.terminal1 => (ZDD.terminal1, mgr)
-  | ZDD.node v1 t1 e1, ZDD.node v2 t2 e2 =>
+  | ZDD.node v1 f1 t1, ZDD.node v2 f2 t2 =>
     if v1 == v2 then
-      let (t, mgr) := zddUnion mgr t1 t2
-      let (e, mgr) := zddUnion mgr e1 e2
+      let (t, mgr) := zddUnion mgr f1 f2
+      let (e, mgr) := zddUnion mgr t1 t2
       makeNode mgr v1 t e
     else if v1 < v2 then
-      let (t, mgr) := zddUnion mgr t1 g
-      let (e, mgr) := zddUnion mgr e1 g
+      let (t, mgr) := zddUnion mgr f1 g
+      let (e, mgr) := zddUnion mgr t1 g
       makeNode mgr v1 t e
     else
-      let (t, mgr) := zddUnion mgr f t2
-      let (e, mgr) := zddUnion mgr f e2
+      let (t, mgr) := zddUnion mgr f f2
+      let (e, mgr) := zddUnion mgr f t2
       makeNode mgr v2 t e
 
 /--
@@ -52,18 +52,18 @@ partial def zddInter (mgr : ZDD.manager) (f g : ZDD) : ZDD × ZDD.manager :=
   | ZDD.terminal0, _ | _, ZDD.terminal0 => (ZDD.terminal0, mgr)
   | ZDD.terminal1, ZDD.terminal1        => (ZDD.terminal1, mgr)
   | ZDD.terminal1, _ | _, ZDD.terminal1 => (ZDD.terminal0, mgr)
-  | ZDD.node v1 t1 e1, ZDD.node v2 t2 e2 =>
+  | ZDD.node v1 f1 t1, ZDD.node v2 f2 t2 =>
     if v1 == v2 then
-      let (t, mgr) := zddInter mgr t1 t2
-      let (e, mgr) := zddInter mgr e1 e2
+      let (t, mgr) := zddInter mgr f1 f2
+      let (e, mgr) := zddInter mgr t1 t2
       makeNode mgr v1 t e
     else if v1 < v2 then
-      let (t, mgr) := zddInter mgr t1 g
-      let (e, mgr) := zddInter mgr e1 g
+      let (t, mgr) := zddInter mgr f1 g
+      let (e, mgr) := zddInter mgr t1 g
       makeNode mgr v1 t e
     else
-      let (t, mgr) := zddInter mgr f t2
-      let (e, mgr) := zddInter mgr f e2
+      let (t, mgr) := zddInter mgr f f2
+      let (e, mgr) := zddInter mgr f t2
       makeNode mgr v2 t e
 
 /--
@@ -77,18 +77,18 @@ partial def zddDiff (mgr : ZDD.manager) (f g : ZDD) : ZDD × ZDD.manager :=
   | ZDD.terminal1, ZDD.terminal1     => (ZDD.terminal0, mgr)
   | ZDD.terminal1, _                 => (ZDD.terminal1, mgr)
   | _, ZDD.terminal1                 => (ZDD.terminal0, mgr)
-  | ZDD.node v1 t1 e1, ZDD.node v2 t2 e2 =>
+  | ZDD.node v1 f1 t1, ZDD.node v2 f2 t2 =>
     if v1 == v2 then
-      let (t, mgr) := zddDiff mgr t1 t2
-      let (e, mgr) := zddDiff mgr e1 e2
+      let (t, mgr) := zddDiff mgr f1 f2
+      let (e, mgr) := zddDiff mgr t1 t2
       makeNode mgr v1 t e
     else if v1 < v2 then
-      let (t, mgr) := zddDiff mgr t1 g
-      let (e, mgr) := zddDiff mgr e1 g
+      let (t, mgr) := zddDiff mgr f1 g
+      let (e, mgr) := zddDiff mgr t1 g
       makeNode mgr v1 t e
     else
-      let (t, mgr) := zddDiff mgr f t2
-      let (e, mgr) := zddDiff mgr f e2
+      let (t, mgr) := zddDiff mgr f f2
+      let (e, mgr) := zddDiff mgr f t2
       makeNode mgr v2 t e
 
 /--
