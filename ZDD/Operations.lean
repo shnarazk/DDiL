@@ -12,8 +12,6 @@ Creates a new ZDD node with zero-suppression rules applied.
 def makeNode (mgr : ZDD.manager) (v : VarIndex) (t e : ZDD) : ZDD × ZDD.manager :=
   if t == ZDD.terminal0 then
     (e, mgr)
-  else if t == e then
-    (t, mgr)
   else
     let key := (v, t, e)
     match mgr.get? key with
