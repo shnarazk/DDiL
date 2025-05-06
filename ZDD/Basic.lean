@@ -1,52 +1,77 @@
-import Common.GraphShape
-import Common.DecisionDiagram
-import Graph.Basic
+import Std.Data.HashMap
 
 open Std
 
-structure ZDD extends Graph
+abbrev VarIndex := Nat
+/--
+  ZDD (Zero-suppressed Decision Diagram) - A data structure for efficiently representing and
+  manipulating sets of combinations.
 
-instance : Inhabited ZDD := ⟨{toGraph := default}⟩
+  Core components:
+  - `node`: Internal node with variable index, then-child (1-edge), and else-child (0-edge)
+  - `terminal0`: Terminal node representing empty set (⊥)
+  - `terminal1`: Terminal node representing the set containing only empty set (⊤)
+-/
+inductive ZDD
+| node : VarIndex → ZDD → ZDD → ZDD
+| terminal0 : ZDD
+| terminal1 : ZDD
+deriving BEq, Hashable, Repr
 
+instance : Inhabited ZDD where
+  default := ZDD.terminal0
+
+abbrev ZDDKey := VarIndex × ZDD × ZDD
+def ZDD.Key : Type := ZDDKey
+
+/--
+  Converts a ZDD to a human-readable string representation.
+
+  Formats:
+  - Nodes as `[ZDD: v t e]` where v is variable index, t and e are child nodes
+  - Terminal 0 as "ZDD: 0"
+  - Terminal 1 as "ZDD: 1"
+-/
+def toStringZDD (z : ZDD) := match z with
+    | ZDD.node v t e => s!"[ZDD: {v} {toStringZDD t} {toStringZDD e}]"
+    | ZDD.terminal0  => "⊥"
+    | ZDD.terminal1  => "⊤"
+
+/--
+  Implements ToString typeclass for ZDD using the toStringZDD function
+-/
 instance : ToString ZDD where
-  toString zdd := s!"[zdd {zdd.toGraph}]"
+  toString := toStringZDD
 
-instance : BEq ZDD where
-  beq a b := a.toGraph == b.toGraph
 
-instance : Coe ZDD Graph where
-  coe b := b.toGraph
+/-
+  ZDD.manager - Manages unique table to ensure canonicity of ZDD nodes.
 
-instance : Coe ZDD (Array Node) where
-  coe b := b.toGraph.nodes
+  The unique table maps (variable, then-child, else-child) tuples to ZDD nodes,
+  ensuring that equivalent nodes are shared for memory efficiency.
+-/
+structure ZDDManager where
+  uniq : HashMap ZDDKey ZDD
+deriving Inhabited
 
-def ZDD.addNode (self: ZDD) (node : Node) : ZDD :=
-  {self with toGraph := self.toGraph.addNode node}
+instance : ToString ZDDManager where
+  toString m := List.map (toString · ++ "\n") m.uniq.toList |>String.join
 
-def ZDD.addNode' (self: ZDD) (varId : Nat) (li hi : Ref) : ZDD :=
-  self.addNode {varId, li, hi}
+def ZDDManager.get? (mgr : ZDDManager) (key : ZDDKey) : Option ZDD :=
+  mgr.uniq.get? key
 
-namespace ZDD
+def ZDDManager.insert (mgr : ZDDManager) (key : ZDD.Key) (z : ZDD) : ZDDManager :=
+  {mgr with uniq := mgr.uniq.insert key z}
 
-abbrev Counter := Std.HashMap Ref Nat
+def ZDD.manager : Type := ZDDManager
 
-variable (g : Graph)
+def ZDD.collectNodes (z : ZDD) (m : ZDDManager) : ZDDManager := match z with
+  | node vi l h => if m.uniq.get? (vi, l, h) |>.isSome
+    then m
+    else l.collectNodes (m.insert (vi, l, h) z) |> (h.collectNodes ·)
+  | _ => m
 
-partial def countPaths (g : Graph) (counter : Counter) (r : Ref) : Counter × Nat :=
-  match r.link with
-  | none => (counter, if r.grounded then 1 else 0)
-  | some i =>
-    if let some count := counter[r]? then
-      (counter, count)
-    else
-      let node := g.nodes[i]!
-      let (counter, a) := countPaths g counter node.li
-      let (counter, b) := countPaths g counter node.hi
-      (counter.insert r (a + b), (a + b))
+instance : Coe ZDD ZDDManager where
+  coe z := ZDD.collectNodes z (default : ZDDManager)
 
-end ZDD
-
-def ZDD.numSatisfies (self : ZDD) : Nat :=
-  if self.nodes.isEmpty
-  then 1
-  else ZDD.countPaths self.toGraph Std.HashMap.emptyWithCapacity (Ref.last self.toGraph.nodes) |>.snd
+-- #check (↑ ZDD.terminal0 : ZDDManager)

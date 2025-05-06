@@ -10,7 +10,7 @@ def merger : IO Unit := do
 
 def run : IO Unit := do
   let (beg, fin) := LogKind.info.color
-  IO.println s!"{beg}{ANSI.bolded "ListedBool"}"
+  IO.println s!"{beg}{ANSI.bolded "LiftedBool"}"
   merger
   IO.println fin
   return ()

@@ -20,7 +20,7 @@ def trim (nodes : Array Node) (updatedRef : RefMap) (targets : Array Ref) : RefM
       if li == hi then updatedRef.insert ref li else updatedRef )
     updatedRef
 
-/-- Merage nodes which have the same varId, li, hi -/
+/-- Merge nodes which have the same varId, li, hi -/
 def merge (updatedRef : RefMap) (nodes : Array Node) (prev next : Ref)
     : RefMap × Array Node × Ref :=
   let prev := updatedRef.getD prev prev

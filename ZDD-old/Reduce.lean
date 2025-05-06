@@ -35,7 +35,7 @@ def trim (nodes : Array Node)
       let hi := goDown nodes node.hi
       (nodes.set! i {node with li, hi}, checked.insert root)
 
-/-- Merage nodes which have the same varId, li, hi -/
+/-- Merge nodes which have the same varId, li, hi -/
 def merge (updatedRef : RefMap) (nodes : Array Node) (prev next : Ref) : RefMap × Array Node × Ref :=
   let prev := updatedRef.getD prev prev
   let next := updatedRef.getD next next

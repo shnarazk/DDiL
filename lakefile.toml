@@ -11,7 +11,7 @@ autoImplicit = false
 [[require]]
 name = "mathlib"
 scope = "leanprover-community"
-rev = "v4.19.0"
+# rev = "v4.20.0-rc4"
 
 [[lean_lib]]
 name = "BDD"
@@ -38,7 +38,3 @@ root = "TestNumberOfPaths.Driver"
 [[lean_exe]]
 name = "test1"
 root = "Test.driver"
-
-[[lean_exe]]
-name = "vibe"
-root = "Vibe"
