@@ -3,7 +3,8 @@ import Graph.Basic
 import Graph.Reorder
 import Graph.Serialize
 -- import BDD.Def
--- import ZDD.Def
+import ZDD.Basic
+import ZDD.Operations
 -- import ZDD.Reduce
 -- import ZDD.Conversion
 
@@ -168,6 +169,22 @@ def satisfy : IO Unit := do
   return ()
 -/
 
+/-
+  Main function demonstrating basic ZDD operations.
+
+  Creates two simple ZDDs:
+  - a: ZDD for the set {0}
+  - b: ZDD for the set {1}
+
+  Then computes and prints their union, which represents the family {0}, {1}.
+-/
+def newVersion : IO Unit :=
+  let mgr := (default : ZDDManager)
+  let (a, mgr) := make_node mgr 0 ZDD.terminal1 ZDD.terminal0
+  let (b, mgr) := make_node mgr 1 ZDD.terminal1 ZDD.terminal0
+  let (u, _mg) := zdd_union mgr a b
+  IO.println s!"Union: {u} => {(↑u : ZDDManager)}"
+
 def run : IO Unit := do
   let (beg, fin) := LogKind.error.color
   IO.println s!"{beg}{ANSI.bolded "#Test_ZDD"}"
@@ -179,6 +196,7 @@ def run : IO Unit := do
   -- apply
   -- compose
   -- satisfy
+  newVersion
 
   IO.println fin
   return ()

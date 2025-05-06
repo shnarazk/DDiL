@@ -4,19 +4,6 @@ import ZDD.Basic
 open Std
 
 /--
-  ZDDManager - Manages unique table to ensure canonicity of ZDD nodes.
-
-  The unique table maps (variable, then-child, else-child) tuples to ZDD nodes,
-  ensuring that equivalent nodes are shared for memory efficiency.
--/
-structure ZDDManager where
-  uniq : HashMap (VarIndex × ZDD × ZDD) ZDD
-deriving Inhabited
-
-instance : Coe ZDD ZDDManager where
-  coe z := ZDD.collectNodes z HashMap.emptyWithCapacity
-
-/--
   Creates a new ZDD node with zero-suppression rules applied.
 
   Zero-suppression rules:
@@ -33,18 +20,18 @@ instance : Coe ZDD ZDDManager where
   Returns:
   - A tuple of (resulting ZDD node, updated manager)
 -/
-def make_node (mgr : ZDDManager) (v : VarIndex) (t e : ZDD) : ZDD × ZDDManager :=
+def make_node (mgr : ZDD.manager) (v : VarIndex) (t e : ZDD) : ZDD × ZDD.manager :=
   if t == ZDD.terminal0 then
     (e, mgr)
   else if t == e then
     (t, mgr)
   else
     let key := (v, t, e)
-    match mgr.uniq.get? key with
+    match mgr.get? key with
     | some n => (n, mgr)
     | none   =>
       let n := ZDD.node v t e
-      (n, {mgr with uniq := mgr.uniq.insert key n})
+      (n, mgr.insert key n)
 
 /--
   Computes the union (logical OR) of two ZDDs.
@@ -64,7 +51,7 @@ def make_node (mgr : ZDDManager) (v : VarIndex) (t e : ZDD) : ZDD × ZDDManager 
   Returns:
   - A tuple of (resulting ZDD node, updated manager)
 -/
-partial def zdd_union (mgr : ZDDManager) (f g : ZDD) : ZDD × ZDDManager :=
+partial def zdd_union (mgr : ZDD.manager) (f g : ZDD) : ZDD × ZDD.manager :=
   match f, g with
   | ZDD.terminal0, _ => (g, mgr)
   | _, ZDD.terminal0 => (f, mgr)
@@ -101,7 +88,7 @@ partial def zdd_union (mgr : ZDDManager) (f g : ZDD) : ZDD × ZDDManager :=
   Returns:
   - A tuple of (resulting ZDD node, updated manager)
 -/
-partial def zdd_inter (mgr : ZDDManager) (f g : ZDD) : ZDD × ZDDManager :=
+partial def zdd_inter (mgr : ZDD.manager) (f g : ZDD) : ZDD × ZDD.manager :=
   match f, g with
   | ZDD.terminal0, _ | _, ZDD.terminal0  => (ZDD.terminal0, mgr)
   | ZDD.terminal1, ZDD.terminal1         => (ZDD.terminal1, mgr)
@@ -138,7 +125,7 @@ partial def zdd_inter (mgr : ZDDManager) (f g : ZDD) : ZDD × ZDDManager :=
   Returns:
   - A tuple of (resulting ZDD node, updated manager)
 -/
-partial def zdd_diff (mgr : ZDDManager) (f g : ZDD) : ZDD × ZDDManager :=
+partial def zdd_diff (mgr : ZDD.manager) (f g : ZDD) : ZDD × ZDD.manager :=
   match f, g with
   | ZDD.terminal0, _ => (ZDD.terminal0, mgr)
   | _, ZDD.terminal0 => (f, mgr)
