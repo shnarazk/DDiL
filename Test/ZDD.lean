@@ -183,7 +183,7 @@ def newVersion : IO Unit :=
   let (a, mgr) := makeNode mgr 0 ZDD.terminal1 ZDD.terminal0
   let (b, mgr) := makeNode mgr 1 ZDD.terminal1 ZDD.terminal0
   let (u, _mg) := zddUnion mgr a b
-  IO.println s!"Union: {u} => {(↑u : ZDDManager)}"
+  IO.println s!"Union: {u} => \n{(↑u : ZDDManager)}"
 
 def run : IO Unit := do
   let (beg, fin) := LogKind.error.color

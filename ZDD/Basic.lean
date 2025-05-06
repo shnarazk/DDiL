@@ -34,8 +34,8 @@ def ZDD.Key : Type := ZDDKey
 -/
 def toStringZDD (z : ZDD) := match z with
     | ZDD.node v t e => s!"[ZDD: {v} {toStringZDD t} {toStringZDD e}]"
-    | ZDD.terminal0  => "ZDD: 0"
-    | ZDD.terminal1  => "ZDD: 1"
+    | ZDD.terminal0  => "⊥"
+    | ZDD.terminal1  => "⊤"
 
 /--
   Implements ToString typeclass for ZDD using the toStringZDD function
@@ -73,7 +73,7 @@ structure ZDDManager where
 deriving Inhabited
 
 instance : ToString ZDDManager where
-  toString m := toString (m.uniq.toArray)
+  toString m := List.map (toString · ++ "\n") m.uniq.toList |>String.join
 
 def ZDDManager.get? (mgr : ZDDManager) (key : ZDDKey) : Option ZDD :=
   mgr.uniq.get? key
