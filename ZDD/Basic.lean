@@ -8,31 +8,25 @@ structure ZDD extends Graph
 
 instance : Inhabited ZDD := ⟨{toGraph := default}⟩
 
-instance : ToString ZDD where
-  toString zdd := s!"[zdd {zdd.toGraph}]"
+instance : ToString ZDD where toString zdd := s!"[zdd {zdd.toGraph}]"
 
-instance : BEq ZDD where
-  beq a b := a.toGraph == b.toGraph
+instance : BEq ZDD where beq a b := a.toGraph == b.toGraph
 
-instance : Coe ZDD Graph where
-  coe b := b.toGraph
+instance : Coe ZDD Graph where coe b := b.toGraph
 
-instance : Coe ZDD (Array Node) where
-  coe b := b.toGraph.nodes
+instance : Coe ZDD (Array Node) where coe b := b.toGraph.nodes
 
-def ZDD.addNode (self: ZDD) (node : Node) : ZDD :=
-  {self with toGraph := self.toGraph.addNode node}
+def ZDD.addNode (z: ZDD) (node : Node) : ZDD := {z with toGraph := z.toGraph.addNode node}
 
-def ZDD.addNode' (self: ZDD) (varId : Nat) (li hi : Ref) : ZDD :=
-  self.addNode {varId, li, hi}
+def ZDD.addNode' (z: ZDD) (varId : Nat) (li hi : Ref) : ZDD := z.addNode {varId, li, hi}
 
-namespace ZDD
+namespace ZDD_count
 
-abbrev Counter := Std.HashMap Ref Nat
+abbrev Counter := HashMap Ref Nat
 
-variable (g : Graph)
-
-partial def countPaths (g : Graph) (counter : Counter) (r : Ref) : Counter × Nat :=
+private partial
+def countPaths (g : Graph) (r : Ref) (counter : Counter := HashMap.emptyWithCapacity)
+    : Counter × Nat :=
   match r.link with
   | none => (counter, if r.grounded then 1 else 0)
   | some i =>
@@ -40,13 +34,11 @@ partial def countPaths (g : Graph) (counter : Counter) (r : Ref) : Counter × Na
       (counter, count)
     else
       let node := g.nodes[i]!
-      let (counter, a) := countPaths g counter node.li
-      let (counter, b) := countPaths g counter node.hi
+      let (counter, a) := countPaths g node.li counter
+      let (counter, b) := countPaths g node.hi counter
       (counter.insert r (a + b), (a + b))
 
-end ZDD
+end ZDD_count
 
-def ZDD.numSatisfies (self : ZDD) : Nat :=
-  if self.nodes.isEmpty
-  then 1
-  else ZDD.countPaths self.toGraph Std.HashMap.emptyWithCapacity (Ref.last self.toGraph.nodes) |>.snd
+def ZDD.numSatisfies (z : ZDD) : Nat :=
+  if z.nodes.isEmpty then 1 else ZDD_count.countPaths z.toGraph (Ref.last z.toGraph.nodes) |>.snd
