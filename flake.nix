@@ -14,7 +14,7 @@
             pkgs.bashInteractive
             pkgs.elan
             pkgs.graphviz
-            pkgs.vscodium
+            # pkgs.vscodium
           ];
         };
       });
