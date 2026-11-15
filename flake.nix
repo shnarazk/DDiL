@@ -1,30 +1,46 @@
 {
   description = "A basic flake with a shell";
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
-  inputs.flake-utils.url = "github:numtide/flake-utils";
   inputs.home.url = "github:shnarazk/flakes";
 
   outputs =
     {
+      self,
       nixpkgs,
-      flake-utils,
       home,
-      ...
     }:
-    flake-utils.lib.eachDefaultSystem (
-      system:
-      let
-        pkgs = nixpkgs.legacyPackages.${system};
-      in
-      {
-        devShells.default = pkgs.mkShell {
-          packages = [
-            pkgs.bashInteractive
-            pkgs.elan
-            pkgs.graphviz
-            home.packages.${system}.nvim4lean
-          ];
-        };
-      }
-    );
+    let
+      forAllSystems =
+        f:
+        builtins.listToAttrs (
+          map
+            (system: {
+              name = system;
+              value = f system;
+            })
+            [
+              "x86_64-linux"
+              "aarch64-linux"
+              "aarch64-darwin"
+            ]
+        );
+    in
+    {
+      devShells = forAllSystems (
+        system:
+        let
+          pkgs = nixpkgs.legacyPackages.${system};
+        in
+        {
+          default = pkgs.mkShell {
+            packages = [
+              pkgs.bashInteractive
+              pkgs.elan
+              pkgs.graphviz
+              home.packages.${system}.nvim4lean
+            ];
+          };
+        }
+      );
+    };
 }
